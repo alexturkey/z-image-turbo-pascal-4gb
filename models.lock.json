@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "note": "Three model files and two engine zips. Revisions are pinned commits / release tags, not 'main'. Every file is checked with sha256 after download.",
+  "models": [
+    {
+      "name": "z_image_turbo-Q8_0.gguf",
+      "role": "diffusion model (Z-Image-Turbo, Q8_0)",
+      "repo": "leejet/Z-Image-Turbo-GGUF",
+      "revision": "c61c0e422dc8b541b7548cf33a4ef8302b0f8085",
+      "url": "https://huggingface.co/leejet/Z-Image-Turbo-GGUF/resolve/c61c0e422dc8b541b7548cf33a4ef8302b0f8085/z_image_turbo-Q8_0.gguf",
+      "bytes": 6577440704,
+      "sha256": "df1c5baa86d1398c979495a6072dbcee79444fdb884a2445582ba0769c44e9a1",
+      "license": "Apache-2.0",
+      "base_model": "Tongyi-MAI/Z-Image-Turbo"
+    },
+    {
+      "name": "Qwen3-4B-Instruct-2507-Q8_0.gguf",
+      "role": "text encoder (LLM), Q8_0",
+      "repo": "unsloth/Qwen3-4B-Instruct-2507-GGUF",
+      "revision": "a06e946bb6b655725eafa393f4a9745d460374c9",
+      "url": "https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/resolve/a06e946bb6b655725eafa393f4a9745d460374c9/Qwen3-4B-Instruct-2507-Q8_0.gguf",
+      "bytes": 4280405600,
+      "sha256": "391c1e410fd9f4cf2de2b510273b56a84c19ce18f4fa3bfb3774031dac4ef068",
+      "license": "Apache-2.0",
+      "base_model": "Qwen/Qwen3-4B-Instruct-2507"
+    },
+    {
+      "name": "ae.safetensors",
+      "role": "VAE (FLUX.1 autoencoder)",
+      "repo": "Comfy-Org/Z-Image-Turbo",
+      "revision": "6fc90a3b1b653e935a0d175e260736de25b84df5",
+      "url": "https://huggingface.co/Comfy-Org/Z-Image-Turbo/resolve/6fc90a3b1b653e935a0d175e260736de25b84df5/split_files/vae/ae.safetensors",
+      "bytes": 335304388,
+      "sha256": "afc8e28272cd15db3919bacdb6918ce9c1ed22e96cb12c4d5ed0fba823529e38",
+      "license": "Apache-2.0 (repo tag)",
+      "base_model": "black-forest-labs FLUX.1 autoencoder"
+    }
+  ],
+  "engine": [
+    {
+      "name": "wan22-pascal-4gb-v0.1.0-win-x64-cuda12.8-sm61.zip",
+      "role": "sd-cli.exe (stable-diffusion.cpp master-1088-32d516c + Pascal patches), from our wan22-pascal-4gb release",
+      "url": "https://github.com/alexturkey/wan22-pascal-4gb/releases/download/v0.1.0/wan22-pascal-4gb-v0.1.0-win-x64-cuda12.8-sm61.zip",
+      "bytes": 37182063,
+      "sha256": "e23d53eeab5fbe8945db50e927fa8dcdefe8664b85b1ef522c4bc71f94e7f112",
+      "license": "MIT (stable-diffusion.cpp, ggml, patches)"
+    },
+    {
+      "name": "cudart-cuda12.8-win-x64.zip",
+      "role": "NVIDIA CUDA 12.8 runtime DLLs (cudart, cublas, cublasLt), unmodified",
+      "url": "https://github.com/alexturkey/wan22-pascal-4gb/releases/download/v0.1.0/cudart-cuda12.8-win-x64.zip",
+      "bytes": 567007257,
+      "sha256": "a17da465766934bef0654f4e1a75ce7ad973ac18ab68f972dd111ccf74165377",
+      "license": "NVIDIA CUDA EULA, Attachment A (redistributable)"
+    }
+  ]
+}

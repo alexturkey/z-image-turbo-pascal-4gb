@@ -1,0 +1,91 @@
+SPDX-License-Identifier: MIT
+Copyright 2026 Ali Haydar Ozturk. Derived from stable-diffusion.cpp / ggml (MIT).
+Subject: 0004-wan-vae-resample-conv3d-kd1
+Wan VAE: resample Conv2d runs as a KD=1 conv3d. Env SD_WAN_RESAMPLE_CONV3D=0 falls back to the stock path.
+
+diff --git a/ggml b/ggml
+index d803c23..94d18ed 160000
+--- a/ggml
++++ b/ggml
+@@ -1 +1 @@
+-Subproject commit d803c238f67915fb825a9aa4df27b99356d51597
++Subproject commit 94d18ed7bfb5321ffde50ff4afa5982bdf065553
+diff --git a/src/model/vae/wan_vae.hpp b/src/model/vae/wan_vae.hpp
+index d44fe92..1144359 100644
+--- a/src/model/vae/wan_vae.hpp
++++ b/src/model/vae/wan_vae.hpp
+@@ -1,6 +1,7 @@
+ #ifndef __SD_MODEL_VAE_WAN_VAE_HPP__
+ #define __SD_MODEL_VAE_WAN_VAE_HPP__
+ 
++#include <cstdlib>
+ #include <map>
+ #include <memory>
+ #include <utility>
+@@ -146,6 +147,46 @@ namespace WAN {
+         }
+     };
+ 
++    // Upsample/downsample Conv2d of the resample block: runs every frame as a KD=1 conv3d
++    // (Pascal SIMT implicit-GEMM kernel). Input [W,H,C,T] has the same memory layout as [W,H,1,T*C]
++    // (no copy); weight [KW,KH,IC,OC] is viewed as [KW,KH,1,IC*OC]. No im2col buffer is created.
++    // Set SD_WAN_RESAMPLE_CONV3D=0 to fall back to the original conv2d path (A/B test).
++    // If the preconditions below are not met, Conv2d::forward is used.
++    class Conv2dKd1 : public Conv2d {
++    public:
++        using Conv2d::Conv2d;
++
++        ggml_tensor* forward(GGMLRunnerContext* ctx, ggml_tensor* x) override {
++            static const bool disabled = []() {
++                const char* e = getenv("SD_WAN_RESAMPLE_CONV3D");
++                return e != nullptr && e[0] == '0';
++            }();
++            ggml_tensor* w = params["weight"];
++            if (disabled || !ctx->conv3d_direct_enabled || ctx->weight_adapter != nullptr ||
++                ctx->circular_x_enabled || ctx->circular_y_enabled || scale != 1.f ||
++                dilation.first != 1 || dilation.second != 1 ||
++                w == nullptr || (w->type != GGML_TYPE_F16 && w->type != GGML_TYPE_F32) ||
++                x->type != GGML_TYPE_F32 || x->ne[2] != in_channels) {
++                return Conv2d::forward(ctx, x);
++            }
++            ggml_context* g = ctx->ggml_ctx;
++            const int64_t T = x->ne[3];
++            ggml_tensor* x3 = ggml_reshape_4d(g, ggml_ext_cont(ctx, x), x->ne[0], x->ne[1], 1, in_channels * T);
++            ggml_tensor* w3 = ggml_reshape_4d(g, w, w->ne[0], w->ne[1], 1, in_channels * out_channels);
++            ggml_tensor* y  = ggml_conv_3d_direct(g, w3, x3,
++                                                  stride.second, stride.first, 1,
++                                                  padding.second, padding.first, 0,
++                                                  1, 1, 1,
++                                                  (int)in_channels, (int)T, (int)out_channels);
++            y = ggml_reshape_4d(g, y, y->ne[0], y->ne[1], out_channels, T);
++            if (bias) {
++                ggml_tensor* b = params["bias"];
++                y              = ggml_add_inplace(g, y, ggml_reshape_4d(g, b, 1, 1, b->ne[0], 1));
++            }
++            return y;
++        }
++    };
++
+     class Resample : public GGMLBlock {
+     protected:
+         int64_t dim;
+@@ -156,15 +197,15 @@ namespace WAN {
+             : dim(dim), mode(mode) {
+             if (mode == "upsample2d") {
+                 if (wan2_2) {
+-                    blocks["resample.1"] = std::shared_ptr<GGMLBlock>(new Conv2d(dim, dim, {3, 3}, {1, 1}, {1, 1}));
++                    blocks["resample.1"] = std::shared_ptr<GGMLBlock>(new Conv2dKd1(dim, dim, {3, 3}, {1, 1}, {1, 1}));
+                 } else {
+-                    blocks["resample.1"] = std::shared_ptr<GGMLBlock>(new Conv2d(dim, dim / 2, {3, 3}, {1, 1}, {1, 1}));
++                    blocks["resample.1"] = std::shared_ptr<GGMLBlock>(new Conv2dKd1(dim, dim / 2, {3, 3}, {1, 1}, {1, 1}));
+                 }
+             } else if (mode == "upsample3d") {
+                 if (wan2_2) {
+-                    blocks["resample.1"] = std::shared_ptr<GGMLBlock>(new Conv2d(dim, dim, {3, 3}, {1, 1}, {1, 1}));
++                    blocks["resample.1"] = std::shared_ptr<GGMLBlock>(new Conv2dKd1(dim, dim, {3, 3}, {1, 1}, {1, 1}));
+                 } else {
+-                    blocks["resample.1"] = std::shared_ptr<GGMLBlock>(new Conv2d(dim, dim / 2, {3, 3}, {1, 1}, {1, 1}));
++                    blocks["resample.1"] = std::shared_ptr<GGMLBlock>(new Conv2dKd1(dim, dim / 2, {3, 3}, {1, 1}, {1, 1}));
+                 }
+                 if (is_2D) {
+                     blocks["time_conv"] = std::make_shared<Conv2dBut3d>(dim, dim * 2, std::pair<int, int>{1, 1});

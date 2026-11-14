@@ -1,0 +1,12 @@
+﻿21:56:35 start
+21:57:53 engine rc=0
+21:58:53 killed at part size 384728540
+21:58:53 part after kill: E:\t\sf020_g12\bin\_downloads\cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip.part 384728540
+21:59:02 cudnn resume rc=0
+21:59:02 out2:   hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 71%
+21:59:02 out2:   hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 80%
+21:59:02 out2:   hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 91%
+21:59:02 out2:   hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 100%
+21:59:02 out2: CUDNN_OK
+21:59:02 out2: SETUP_PART_OK cudnn
+21:59:02 done

@@ -1,0 +1,382 @@
+SPDX-License-Identifier: MIT
+Copyright 2026 Ali Haydar Ozturk. Derived from stable-diffusion.cpp / ggml (MIT).
+Subject: 0003-cuda-fattn-tile-a3-pascal
+CUDA flash attention: hand-written fp32 tile kernel for Pascal (DKQ=DV=128). Env WAN_A3_ORIG disables it.
+
+diff --git a/src/ggml-cuda/fattn-common.cuh b/src/ggml-cuda/fattn-common.cuh
+index 8bfe7e30..d6bce097 100644
+--- a/src/ggml-cuda/fattn-common.cuh
++++ b/src/ggml-cuda/fattn-common.cuh
+@@ -981,7 +981,7 @@ template <int DV, int ncols1, int ncols2>
+ void launch_fattn(
+     ggml_backend_cuda_context & ctx, ggml_tensor * dst, fattn_kernel_t fattn_kernel, const int nwarps, const size_t nbytes_shared,
+     const int nbatch_fa, const bool need_f16_K, const bool need_f16_V, const bool stream_k, const bool use_sparse,
+-    const int warp_size = WARP_SIZE, const bool async_kv_preload = false
++    const int warp_size = WARP_SIZE, const bool async_kv_preload = false, const int force_max_blocks_per_sm = 0
+ ) {
+     constexpr int ncols = ncols1 * ncols2;
+ 
+@@ -1136,6 +1136,7 @@ void launch_fattn(
+     int max_blocks_per_sm = 1; // Max. number of active blocks limited by occupancy.
+     CUDA_CHECK(cudaOccupancyMaxActiveBlocksPerMultiprocessor(&max_blocks_per_sm, fattn_kernel, block_dim.x * block_dim.y * block_dim.z, nbytes_shared));
+     GGML_ASSERT(max_blocks_per_sm > 0);
++    if (force_max_blocks_per_sm > 0) { max_blocks_per_sm = force_max_blocks_per_sm; } // keep the parallel_blocks choice identical to the stock kernel when a caller forces the occupancy value
+     int parallel_blocks = max_blocks_per_sm;
+ 
+     const int64_t n_kv = use_sparse ? n_kv_max : K->ne[1];
+diff --git a/src/ggml-cuda/fattn-tile-a3.cuh b/src/ggml-cuda/fattn-tile-a3.cuh
+new file mode 100644
+index 00000000..a3bba57b
+--- /dev/null
++++ b/src/ggml-cuda/fattn-tile-a3.cuh
+@@ -0,0 +1,296 @@
++// SPDX-License-Identifier: MIT
++// Hand-written flash-attention tile kernel for Pascal (sm_61, fp32 path).
++// Derived from the summation order of ggml's fattn-tile.cuh (ggml, MIT); the kernel body is independent code.
++//
++// Scope: DKQ = DV = 128, ncols2 = 1, no mask, no softcap, no sinks, K/V f16, Q f32.
++// It reproduces ggml fattn-tile's fp32 accumulation order (ncols1 = 32, nbatch_fa = 64, np = 1) exactly,
++// so its output is bit-identical to the stock kernel:
++//  - Q*scale in f32; KQ[kv][q] is ONE accumulator, an fmaf chain over k = 0..127 in increasing order.
++//  - per tile of 64 kv: KQ_max_new = max(old, max(KQ + OFFSET)); KQ_max_scale = expf(old - new); val = expf(KQ - new).
++//  - KQ_sum is kept per q as 32 "lane" partial sums: lane m receives kv = m and kv = 32 + m;
++//    sum[m] = sum[m]*scale + (0 + e(m) + e(32+m)).
++//  - VKQ[q][d] is ONE accumulator: multiplied by KQ_max_scale at the start of each tile, then fmaf over kv in increasing order.
++//  - at the end the lane sums are combined with ggml's warp_reduce_sum tree (xor 16, 8, 4, 2, 1);
++//    if gridDim.y == 1 the output is scaled by 1/sum, otherwise the raw partial VKQ and (max, sum) meta are written.
++// Block: 128 threads (32x4), 64 Q columns, 2-3 blocks per SM (static shared memory is exactly 32768 B).
++#pragma once
++#include "common.cuh"
++#include "fattn-common.cuh"
++
++#define A3_EXPF(x) expf(x)
++#define A3_D    128
++#define A3_BQ   64
++#define A3_BKV  64
++#define A3_NT   128
++#define A3_CK   32
++#define A3_VC   16
++
++__launch_bounds__(A3_NT, 3)
++static __global__ void flash_attn_tile_a3(
++        const char * Q_ptr,
++        const char * K_ptr,
++        const char * V_ptr,
++        const char * mask_ptr,
++        const char * sinks_ptr,
++        const int  * KV_max_ptr,
++        float      * dst_ptr,
++        float2     * dst_meta_ptr,
++        const float scale,
++        const float max_bias,
++        const float m0,
++        const float m1,
++        const uint32_t n_head_log2,
++        const float logit_softcap,
++        const int32_t ne00, const uint3   ne01, const int32_t ne02, const int32_t ne03,
++                            const int32_t nb01, const int32_t nb02, const int32_t nb03,
++        const int32_t ne10, const int32_t ne11, const int32_t ne12, const int32_t ne13,
++                            const int32_t nb11, const int32_t nb12, const int64_t nb13,
++                            const int32_t nb21, const int32_t nb22, const int64_t nb23,
++                            const int32_t ne31, const int32_t ne32, const int32_t ne33,
++                            const int32_t nb31, const int32_t nb32, const int64_t nb33) {
++#ifdef FLASH_ATTN_AVAILABLE
++    __shared__ __align__(16) float Qs[A3_CK][A3_BQ];          //  8 KB [k][q] chunk (re-read as 4 chunks per tile)
++    __shared__ __align__(16) float KVs[A3_CK*A3_BKV];         //  8 KB K chunk [k][kv]  /  V chunk [kv][d]
++    __shared__ __align__(16) float Ss[A3_BKV][A3_BQ];         // 16 KB e values [kv][q], 16 B column XOR swizzle
++
++    const int tid  = threadIdx.x + 32*threadIdx.y;
++    const int lane = threadIdx.x;
++    const int col_Q_0 = blockIdx.x * A3_BQ;
++    const int sequence = blockIdx.z / ne02;
++    const int head0    = blockIdx.z - sequence*ne02;
++    const int gqa_ratio = ne02 / ne12;
++    const char * Qb = Q_ptr + (int64_t) nb03*sequence + (int64_t) nb02*head0;
++    const char * Kb = K_ptr + nb13*sequence + (int64_t) nb12*(head0 / gqa_ratio);
++    const char * Vb = V_ptr + nb23*sequence + (int64_t) nb22*(head0 / gqa_ratio);
++    const int nkv = ne11;
++    const int pb = gridDim.y, pbi = blockIdx.y;
++
++    // QK mapping: kv {4kvg+i} U {32+4kvg+i} (i<4), q {4qg..4qg+3}
++    const int kvg = lane & 7, qg = (lane >> 3) + 4*threadIdx.y;
++    // PV mapping: d {4dg+i} U {64+4dg+i}, q {8qg2..8qg2+7}
++    const int dg = lane & 15, qg2 = (lane >> 4) + 2*threadIdx.y;
++
++    float KQ_max[4], KQ_sum[4][4];
++#pragma unroll
++    for (int b = 0; b < 4; ++b) {
++        KQ_max[b] = -FLT_MAX/2.0f;
++#pragma unroll
++        for (int i = 0; i < 4; ++i) KQ_sum[b][i] = 0.0f;
++    }
++    float O_acc[8][8];
++#pragma unroll
++    for (int a = 0; a < 8; ++a)
++#pragma unroll
++        for (int b = 0; b < 8; ++b) O_acc[a][b] = 0.0f;
++
++    ggml_cuda_pdl_sync();
++
++    const int ntiles = (nkv + A3_BKV - 1) / A3_BKV;
++    for (int t = pbi; t < ntiles; t += pb) {
++        const int kv0 = t * A3_BKV;
++        const int kv_sup = nkv - kv0;   // number of valid kv (>= 64 means a full tile)
++        const bool tail = kv_sup <= A3_BKV;   // ggml: the loop body covers full tiles (oob_check=false); the single remaining tile is the tail (oob_check=true)
++
++        float S[8][4];
++#pragma unroll
++        for (int a = 0; a < 8; ++a)
++#pragma unroll
++            for (int b = 0; b < 4; ++b) S[a][b] = 0.0f;
++
++        // ---- KQ = K^T Q ----
++#pragma unroll 1
++        for (int kc = 0; kc < A3_D; kc += A3_CK) {
++            {   // K chunk: lane -> kv row, half h -> half of k
++                const int kv = tid & 63, hh = tid >> 6;
++                const bool ok = kv < kv_sup;
++                const uint4 * src = (const uint4 *)(Kb + (int64_t)(kv0 + (ok ? kv : 0))*nb11 + (kc + hh*(A3_CK/2))*2);
++#pragma unroll
++                for (int c = 0; c < A3_CK/16; ++c) {
++                    uint4 u = ok ? src[c] : make_uint4(0, 0, 0, 0);
++                    const half2 * h = (const half2 *) &u;
++#pragma unroll
++                    for (int i = 0; i < 4; ++i) {
++                        const float2 f = __half22float2(h[i]);
++                        KVs[(hh*(A3_CK/2) + c*8 + i*2 + 0)*A3_BKV + kv] = f.x;
++                        KVs[(hh*(A3_CK/2) + c*8 + i*2 + 1)*A3_BKV + kv] = f.y;
++                    }
++                }
++            }
++            for (int idx = tid; idx < A3_BQ * (A3_CK/4); idx += A3_NT) {   // Q chunk, pre-multiplied by scale
++                const int q = idx % A3_BQ, k4 = idx / A3_BQ;
++                int qq = col_Q_0 + q; if (qq >= (int) ne01.z) qq = ne01.z - 1;
++                float4 v = *(const float4 *)(Qb + (int64_t) qq*nb01 + (kc + k4*4)*4);
++                v.x *= scale; v.y *= scale; v.z *= scale; v.w *= scale;
++                Qs[k4*4+0][q] = v.x; Qs[k4*4+1][q] = v.y; Qs[k4*4+2][q] = v.z; Qs[k4*4+3][q] = v.w;
++            }
++            __syncthreads();
++#pragma unroll
++            for (int k = 0; k < A3_CK; ++k) {
++                const float4 ka = *(const float4 *)&KVs[k*A3_BKV + 4*kvg];
++                const float4 kb = *(const float4 *)&KVs[k*A3_BKV + 32 + 4*kvg];
++                const float4 qv = *(const float4 *)&Qs[k][4*qg];
++                const float kk[8] = {ka.x, ka.y, ka.z, ka.w, kb.x, kb.y, kb.z, kb.w};
++                const float qq[4] = {qv.x, qv.y, qv.z, qv.w};
++#pragma unroll
++                for (int a = 0; a < 8; ++a)
++#pragma unroll
++                    for (int b = 0; b < 4; ++b) S[a][b] = __fmaf_rn(kk[a], qq[b], S[a][b]);
++            }
++            __syncthreads();
++        }
++
++        // ---- max / exp / sum (ggml order) ----
++        float scl[4];
++#pragma unroll
++        for (int b = 0; b < 4; ++b) {
++            float tmax = KQ_max[b];
++#pragma unroll
++            for (int a = 0; a < 8; ++a) {
++                const int m = a < 4 ? 4*kvg + a : 32 + 4*kvg + (a - 4);
++                if (m < kv_sup) {
++                    S[a][b] += 0.0f;
++                    tmax = fmaxf(tmax, S[a][b] + FATTN_KQ_MAX_OFFSET);
++                }
++            }
++            tmax = fmaxf(tmax, __shfl_xor_sync(0xFFFFFFFF, tmax, 1, 32));
++            tmax = fmaxf(tmax, __shfl_xor_sync(0xFFFFFFFF, tmax, 2, 32));
++            tmax = fmaxf(tmax, __shfl_xor_sync(0xFFFFFFFF, tmax, 4, 32));
++            const float KQ_max_scale = expf(KQ_max[b] - tmax);
++            KQ_max[b] = tmax;
++            scl[b] = KQ_max_scale;
++#pragma unroll
++            for (int i = 0; i < 4; ++i) {
++                const int m0_ = 4*kvg + i, m1_ = 32 + 4*kvg + i;
++                const float e0 = m0_ < kv_sup ? A3_EXPF(S[i][b]   - KQ_max[b]) : 0.0f;
++                const float e1 = m1_ < kv_sup ? A3_EXPF(S[4+i][b] - KQ_max[b]) : 0.0f;
++                float add = 0.0f;
++                add += e0;
++                add += e1;
++                KQ_sum[b][i] = KQ_sum[b][i]*KQ_max_scale + add;
++                S[i][b]   = e0;
++                S[4+i][b] = e1;
++            }
++        }
++        // e -> shared memory (kv row, q column, 16 B swizzled)
++#pragma unroll
++        for (int a = 0; a < 8; ++a) {
++            const int kv = a < 4 ? 4*kvg + a : 32 + 4*kvg + (a - 4);
++            *(float4 *)&Ss[kv][4*(qg ^ ((kv >> 2) & 7))] = make_float4(S[a][0], S[a][1], S[a][2], S[a][3]);
++        }
++        float * sScale = &Qs[0][0];            // Qs is free at this point
++        if (kvg == 0) {
++            *(float4 *)&sScale[4*qg] = make_float4(scl[0], scl[1], scl[2], scl[3]);
++        }
++        __syncthreads();
++        float sc8[8];
++        {
++            const float4 s0 = *(const float4 *)&sScale[8*qg2];
++            const float4 s1 = *(const float4 *)&sScale[8*qg2 + 4];
++            sc8[0] = s0.x; sc8[1] = s0.y; sc8[2] = s0.z; sc8[3] = s0.w; sc8[4] = s1.x; sc8[5] = s1.y; sc8[6] = s1.z; sc8[7] = s1.w;
++        }
++
++        // ---- VKQ += V^T e ----
++#pragma unroll 1
++        for (int vc = 0; vc < A3_BKV; vc += A3_VC) {
++            for (int idx = tid; idx < A3_VC * (A3_D/8); idx += A3_NT) {
++                const int row = idx / (A3_D/8), c = idx % (A3_D/8);
++                const int kvr = vc + row;
++                const bool ok = kvr < kv_sup;
++                uint4 u = ok ? *(const uint4 *)(Vb + (int64_t)(kv0 + kvr)*nb21 + c*16) : make_uint4(0, 0, 0, 0);
++                const half2 * h = (const half2 *) &u;
++                const float2 f0 = __half22float2(h[0]), f1 = __half22float2(h[1]), f2 = __half22float2(h[2]), f3 = __half22float2(h[3]);
++                *(float4 *)&KVs[row*A3_D + c*8]     = make_float4(f0.x, f0.y, f1.x, f1.y);
++                *(float4 *)&KVs[row*A3_D + c*8 + 4] = make_float4(f2.x, f2.y, f3.x, f3.y);
++            }
++            __syncthreads();
++#ifdef A3_VUNR16
++#pragma unroll 16
++#else
++#pragma unroll 8
++#endif
++            for (int r = 0; r < A3_VC; ++r) {
++                const float4 va = *(const float4 *)&KVs[r*A3_D + 4*dg];
++                const float4 vb = *(const float4 *)&KVs[r*A3_D + 64 + 4*dg];
++                const int rw = vc + r, sw = (rw >> 2) & 7;
++                const float4 sa = *(const float4 *)&Ss[rw][4*((2*qg2)     ^ sw)];
++                const float4 sb = *(const float4 *)&Ss[rw][4*((2*qg2 + 1) ^ sw)];
++                const float vv[8] = {va.x, va.y, va.z, va.w, vb.x, vb.y, vb.z, vb.w};
++                const float ss[8] = {sa.x, sa.y, sa.z, sa.w, sb.x, sb.y, sb.z, sb.w};
++                if (!tail && vc == 0 && r == 0) {
++                    // ggml "body" instantiation (oob_check=false): the rescale fuses into the first kv product as FFMA(O, scale, rounded V*e)
++#pragma unroll
++                    for (int a = 0; a < 8; ++a)
++#pragma unroll
++                        for (int b = 0; b < 8; ++b) O_acc[a][b] = __fmaf_rn(O_acc[a][b], sc8[a], __fmul_rn(ss[a], vv[b]));
++                } else {
++                    if (tail && vc == 0 && r == 0) {
++                        // ggml "tail" instantiation (oob_check=true): rescale with a separate FMUL, then a plain FMA chain
++#pragma unroll
++                        for (int a = 0; a < 8; ++a)
++#pragma unroll
++                            for (int b = 0; b < 8; ++b) O_acc[a][b] *= sc8[a];
++                    }
++#pragma unroll
++                    for (int a = 0; a < 8; ++a)
++#pragma unroll
++                        for (int b = 0; b < 8; ++b) O_acc[a][b] = __fmaf_rn(ss[a], vv[b], O_acc[a][b]);
++                }
++            }
++            __syncthreads();
++        }
++    }
++
++    // ---- lane sums: ggml warp_reduce_sum (xor 16,8,4,2,1) ----
++    float tot[4];
++#pragma unroll
++    for (int b = 0; b < 4; ++b) {
++        float s0 = KQ_sum[b][0], s1 = KQ_sum[b][1], s2 = KQ_sum[b][2], s3 = KQ_sum[b][3];
++        s0 += __shfl_xor_sync(0xFFFFFFFF, s0, 4, 32); s1 += __shfl_xor_sync(0xFFFFFFFF, s1, 4, 32);
++        s2 += __shfl_xor_sync(0xFFFFFFFF, s2, 4, 32); s3 += __shfl_xor_sync(0xFFFFFFFF, s3, 4, 32);
++        s0 += __shfl_xor_sync(0xFFFFFFFF, s0, 2, 32); s1 += __shfl_xor_sync(0xFFFFFFFF, s1, 2, 32);
++        s2 += __shfl_xor_sync(0xFFFFFFFF, s2, 2, 32); s3 += __shfl_xor_sync(0xFFFFFFFF, s3, 2, 32);
++        s0 += __shfl_xor_sync(0xFFFFFFFF, s0, 1, 32); s1 += __shfl_xor_sync(0xFFFFFFFF, s1, 1, 32);
++        s2 += __shfl_xor_sync(0xFFFFFFFF, s2, 1, 32); s3 += __shfl_xor_sync(0xFFFFFFFF, s3, 1, 32);
++        const float n0 = s0 + s2, n2 = s2 + s0, n1 = s1 + s3, n3 = s3 + s1;   // xor 2
++        tot[b] = n0 + n1;                                                      // xor 1 (n0 + n1 == n1 + n0)
++        (void) n2; (void) n3;
++    }
++    float * sInv = &Qs[0][0];     // Qs is free after the last tile; the PV loop ended with a __syncthreads
++    if (kvg == 0) {
++        float4 r;
++        r.x = pb == 1 ? 1.0f/tot[0] : 1.0f; r.y = pb == 1 ? 1.0f/tot[1] : 1.0f;
++        r.z = pb == 1 ? 1.0f/tot[2] : 1.0f; r.w = pb == 1 ? 1.0f/tot[3] : 1.0f;
++        *(float4 *)&sInv[4*qg] = r;
++        if (pb != 1) {
++#pragma unroll
++            for (int b = 0; b < 4; ++b) {
++                const int q = col_Q_0 + 4*qg + b;
++                if (q < (int) ne01.z) {
++                    const int j_dst_unrolled = ((sequence*int(ne01.z) + q)*ne02 + head0)*pb + pbi;
++                    dst_meta_ptr[j_dst_unrolled] = make_float2(KQ_max[b], tot[b]);
++                }
++            }
++        }
++    }
++    __syncthreads();
++    {
++        const float4 i0 = *(const float4 *)&sInv[8*qg2];
++        const float4 i1 = *(const float4 *)&sInv[8*qg2 + 4];
++        const float inv8[8] = {i0.x, i0.y, i0.z, i0.w, i1.x, i1.y, i1.z, i1.w};
++#pragma unroll
++        for (int a = 0; a < 8; ++a) {
++            const int q = col_Q_0 + 8*qg2 + a;
++            if (q < (int) ne01.z) {
++                const int j_dst_unrolled = ((sequence*int(ne01.z) + q)*ne02 + head0)*pb + pbi;
++                float4 w0, w1;
++                w0.x = O_acc[a][0]*inv8[a]; w0.y = O_acc[a][1]*inv8[a]; w0.z = O_acc[a][2]*inv8[a]; w0.w = O_acc[a][3]*inv8[a];
++                w1.x = O_acc[a][4]*inv8[a]; w1.y = O_acc[a][5]*inv8[a]; w1.z = O_acc[a][6]*inv8[a]; w1.w = O_acc[a][7]*inv8[a];
++                *(float4 *)&dst_ptr[(int64_t) j_dst_unrolled*A3_D + 4*dg]      = w0;
++                *(float4 *)&dst_ptr[(int64_t) j_dst_unrolled*A3_D + 64 + 4*dg] = w1;
++            }
++        }
++    }
++#else
++    NO_DEVICE_CODE;
++#endif // FLASH_ATTN_AVAILABLE
++}
+diff --git a/src/ggml-cuda/fattn-tile.cuh b/src/ggml-cuda/fattn-tile.cuh
+index b5ea915e..e0f73a1a 100644
+--- a/src/ggml-cuda/fattn-tile.cuh
++++ b/src/ggml-cuda/fattn-tile.cuh
+@@ -1,5 +1,6 @@
+ #include "common.cuh"
+ #include "fattn-common.cuh"
++#include "fattn-tile-a3.cuh"
+ 
+ // nbatch_fa == number of KQ rows to process per iteration
+ // nbatch_K == number of K columns to load in parallel for KQ calculation
+@@ -1145,6 +1146,27 @@ static __global__ void flash_attn_tile(
+ #endif // FLASH_ATTN_AVAILABLE
+ }
+ 
++static bool ggml_cuda_fattn_tile_a3_ok(const ggml_tensor * dst, const int cc) {
++    const ggml_tensor * Q = dst->src[0];
++    const ggml_tensor * K = dst->src[1];
++    const ggml_tensor * V = dst->src[2];
++    if (getenv("WAN_A3_ORIG")) { return false; }
++    if (fast_fp16_available(cc) || !GGML_CUDA_CC_IS_NVIDIA(cc) || cc < GGML_CUDA_CC_PASCAL) { return false; }
++    if (dst->src[3] || dst->src[4]) { return false; }
++    float max_bias = 0.0f, logit_softcap = 0.0f;
++    memcpy(&max_bias, (const float *) dst->op_params + 1, sizeof(float));
++    memcpy(&logit_softcap, (const float *) dst->op_params + 2, sizeof(float));
++    if (max_bias != 0.0f || logit_softcap != 0.0f) { return false; }
++    if (K->type != GGML_TYPE_F16 || V->type != GGML_TYPE_F16 || Q->type != GGML_TYPE_F32) { return false; }
++    if (Q->ne[0] != 128 || K->ne[0] != 128 || V->ne[0] != 128) { return false; }
++    if (Q->ne[2] % K->ne[2] != 0) { return false; }
++    for (int i = 1; i < 4; ++i) {
++        if (Q->nb[i] % 16 || K->nb[i] % 16 || V->nb[i] % 16) { return false; }
++    }
++    if (((uintptr_t) Q->data | (uintptr_t) K->data | (uintptr_t) V->data | (uintptr_t) dst->data) % 16) { return false; }
++    return true;
++}
++
+ template <int DKQ, int DV, int ncols2, bool use_logit_softcap>
+ static void launch_fattn_tile_switch_ncols1(ggml_backend_cuda_context & ctx, ggml_tensor * dst) {
+     const ggml_tensor * Q = dst->src[0];
+@@ -1174,6 +1196,14 @@ static void launch_fattn_tile_switch_ncols1(ggml_backend_cuda_context & ctx, ggm
+ #endif // GGML_USE_HIP
+     {
+         if (Q->ne[1] > 16/ncols2) {
++            if constexpr (DKQ == 128 && DV == 128 && ncols2 == 1 && !use_logit_softcap) {
++                if (ggml_cuda_fattn_tile_a3_ok(dst, cc)) {
++                    fattn_kernel_t fattn_kernel_a3 = flash_attn_tile_a3;
++                    launch_fattn<128, A3_BQ, 1>
++                        (ctx, dst, fattn_kernel_a3, A3_NT/32, nbytes_shared, A3_BKV, true, true, false, false, warp_size, false, 2);
++                    return;
++                }
++            }
+             constexpr int cols_per_block = 32;
+             const int nwarps    = ggml_cuda_fattn_tile_get_nthreads (DKQ, DV, cols_per_block, cc) / warp_size;
+             const int nbatch_fa = ggml_cuda_fattn_tile_get_nbatch_fa(DKQ, DV, cols_per_block, cc);

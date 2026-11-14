@@ -1,0 +1,23 @@
+Downloading cudart-cuda12.8-win-x64.zip (540.7 MiB)
+  cudart-cuda12.8-win-x64.zip 20% (3.3 MiB/s)
+  cudart-cuda12.8-win-x64.zip 30% (4.4 MiB/s)
+  cudart-cuda12.8-win-x64.zip 40% (2.8 MiB/s)
+  cudart-cuda12.8-win-x64.zip 50% (2.7 MiB/s)
+  cudart-cuda12.8-win-x64.zip 60% (2.5 MiB/s)
+  cudart-cuda12.8-win-x64.zip 70% (2.6 MiB/s)
+  cudart-cuda12.8-win-x64.zip 80% (3.0 MiB/s)
+  cudart-cuda12.8-win-x64.zip 90% (3.3 MiB/s)
+  cudart-cuda12.8-win-x64.zip 100% (3.5 MiB/s)
+  hashing cudart-cuda12.8-win-x64.zip ... 10%
+  hashing cudart-cuda12.8-win-x64.zip ... 20%
+  hashing cudart-cuda12.8-win-x64.zip ... 31%
+  hashing cudart-cuda12.8-win-x64.zip ... 41%
+  hashing cudart-cuda12.8-win-x64.zip ... 50%
+  hashing cudart-cuda12.8-win-x64.zip ... 60%
+  hashing cudart-cuda12.8-win-x64.zip ... 71%
+  hashing cudart-cuda12.8-win-x64.zip ... 81%
+  hashing cudart-cuda12.8-win-x64.zip ... 90%
+  hashing cudart-cuda12.8-win-x64.zip ... 100%
+ENGINE_OK
+CUDART_OK
+SETUP_OK

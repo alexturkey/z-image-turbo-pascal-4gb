@@ -1,0 +1,96 @@
+Preflight (measured on: GTX 1050 Ti 4 GB laptop, sm_61 / Pascal, 16 GB RAM, Windows 10; see docs/MEASUREMENTS.md)
+  GPU      : NVIDIA GeForce GTX 1050 Ti, 4096 MiB, driver 581.29
+  RAM      : 16266 MiB total
+  Disk     : 864.6 GiB free for models in E:\t\sf020\models
+  Disk     : 864.6 GiB free for engine in E:\t\sf020_g11\bin
+  hashing z_image_turbo-Q8_0.gguf ... 10%
+  hashing z_image_turbo-Q8_0.gguf ... 20%
+  hashing z_image_turbo-Q8_0.gguf ... 30%
+  hashing z_image_turbo-Q8_0.gguf ... 40%
+  hashing z_image_turbo-Q8_0.gguf ... 50%
+  hashing z_image_turbo-Q8_0.gguf ... 60%
+  hashing z_image_turbo-Q8_0.gguf ... 70%
+  hashing z_image_turbo-Q8_0.gguf ... 80%
+  hashing z_image_turbo-Q8_0.gguf ... 90%
+  hashing z_image_turbo-Q8_0.gguf ... 100%
+MODEL_OK z_image_turbo-Q8_0.gguf
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 10%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 20%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 30%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 40%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 50%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 60%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 70%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 80%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 90%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 100%
+MODEL_OK Qwen3-4B-Instruct-2507-Q8_0.gguf
+  hashing ae.safetensors ... 10%
+  hashing ae.safetensors ... 20%
+  hashing ae.safetensors ... 30%
+  hashing ae.safetensors ... 40%
+  hashing ae.safetensors ... 50%
+  hashing ae.safetensors ... 60%
+  hashing ae.safetensors ... 70%
+  hashing ae.safetensors ... 80%
+  hashing ae.safetensors ... 90%
+  hashing ae.safetensors ... 100%
+MODEL_OK ae.safetensors
+Downloading sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip (35.8 MiB)
+  sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip 11% (4000000.0 MiB/s)
+  sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip 22% (1056.3 MiB/s)
+  sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip 30% (1452.5 MiB/s)
+  sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip 41% (837.7 MiB/s)
+  sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip 50% (880.3 MiB/s)
+  sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip 61% (1076.0 MiB/s)
+  sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip 72% (923.5 MiB/s)
+  sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip 81% (1030.0 MiB/s)
+  sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip 92% (1172.1 MiB/s)
+  sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip 100% (921.8 MiB/s)
+Downloading cudart-cuda12.8-win-x64.zip (540.7 MiB)
+  cudart-cuda12.8-win-x64.zip 10% (2.8 MiB/s)
+  cudart-cuda12.8-win-x64.zip 20% (3.5 MiB/s)
+  cudart-cuda12.8-win-x64.zip 30% (4.4 MiB/s)
+  cudart-cuda12.8-win-x64.zip 40% (5.1 MiB/s)
+  cudart-cuda12.8-win-x64.zip 50% (5.6 MiB/s)
+  cudart-cuda12.8-win-x64.zip 60% (6.1 MiB/s)
+  cudart-cuda12.8-win-x64.zip 70% (6.4 MiB/s)
+  cudart-cuda12.8-win-x64.zip 80% (6.7 MiB/s)
+  cudart-cuda12.8-win-x64.zip 90% (6.9 MiB/s)
+  cudart-cuda12.8-win-x64.zip 100% (7.1 MiB/s)
+  hashing cudart-cuda12.8-win-x64.zip ... 10%
+  hashing cudart-cuda12.8-win-x64.zip ... 20%
+  hashing cudart-cuda12.8-win-x64.zip ... 31%
+  hashing cudart-cuda12.8-win-x64.zip ... 41%
+  hashing cudart-cuda12.8-win-x64.zip ... 50%
+  hashing cudart-cuda12.8-win-x64.zip ... 60%
+  hashing cudart-cuda12.8-win-x64.zip ... 71%
+  hashing cudart-cuda12.8-win-x64.zip ... 81%
+  hashing cudart-cuda12.8-win-x64.zip ... 90%
+  hashing cudart-cuda12.8-win-x64.zip ... 100%
+ENGINE_OK
+CUDART_OK
+Downloading NVIDIA cuDNN under NVIDIA's license: https://docs.nvidia.com/deeplearning/cudnn/backend/latest/reference/eula.html. Use --no-cudnn to skip.
+Downloading cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip from NVIDIA (366.9 MiB)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 10% (7.0 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 20% (7.6 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 30% (7.7 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 40% (7.8 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 50% (8.0 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 60% (8.2 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 70% (8.2 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 80% (8.4 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 90% (8.5 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 100% (8.5 MiB/s)
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 10%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 21%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 30%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 41%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 50%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 61%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 71%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 80%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 91%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 100%
+CUDNN_OK
+SETUP_OK

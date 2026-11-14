@@ -1,0 +1,5 @@
+768x1344 seed=42 steps=8 -> E:\t\sf020_g11\outputs\20261114_220911_eiffel
+Started (VAE mode: auto). Expected about 3 to 4 minutes on a GTX 1050 Ti (measured). Log: E:\t\sf020_g11\outputs\20261114_220911_eiffel\log.txt
+238 s
+PIXEL_SHA256 bf39b8c5388599c4a85f195782e089f28bad56ef91882d95c1f2c90971f2ab2e
+IMAGE_OK E:\t\sf020_g11\outputs\20261114_220911_eiffel\image.png

@@ -1,0 +1,1 @@
+Run interrupted by Claude Code memory-pressure reaper at 21:25:43 (host), not an engine error. No image.png/run.json. Kept as evidence.

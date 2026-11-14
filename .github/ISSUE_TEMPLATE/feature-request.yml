@@ -1,0 +1,21 @@
+name: Feature request / Özellik önerisi
+description: A change you would like to see. / Görmek istediğiniz bir değişiklik.
+title: "[idea] "
+labels: ["idea"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        One rule decides every change here: image quality is never lowered for speed. A change is accepted when the pixels stay identical, or when they get measurably closer to the reference (docs/MEASUREMENTS.md).
+        Buradaki her değişikliği tek kural belirler: hız için görüntü kalitesi düşürülmez. Değişiklik, pikseller aynı kalırsa ya da referansa ölçülür biçimde yaklaşırsa kabul edilir (docs/MEASUREMENTS.md).
+  - type: textarea
+    id: what
+    attributes:
+      label: What and why / Ne ve neden
+    validations:
+      required: true
+  - type: textarea
+    id: how
+    attributes:
+      label: How it could be measured / Nasıl ölçülebilir
+      description: Which command, which number would show that it works. / Hangi komut, hangi sayı çalıştığını gösterir.

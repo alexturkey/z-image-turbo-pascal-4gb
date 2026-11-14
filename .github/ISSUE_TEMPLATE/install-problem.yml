@@ -1,0 +1,51 @@
+name: Install problem / Kurulum sorunu
+description: setup.py, the prebuilt engine, CUDA or cuDNN does not install or start. / setup.py, hazır motor, CUDA ya da cuDNN kurulmuyor ya da başlamıyor.
+title: "[install] "
+labels: ["install"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check [docs/TROUBLESHOOTING.md](../blob/main/docs/TROUBLESHOOTING.md) first. The exe files are not double-clicked; install with `python scripts/setup.py`.
+        Önce [docs/TROUBLESHOOTING.md](../blob/main/docs/TROUBLESHOOTING.md) tablosuna bakın. Exe dosyaları çift tıklanmaz; kurulum `python scripts/setup.py` iledir.
+  - type: input
+    id: gpu
+    attributes:
+      label: GPU, memory, driver / Ekran kartı, bellek, sürücü
+      description: "`nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader`"
+      placeholder: "NVIDIA GeForce GTX 1050 Ti, 4096 MiB, 581.29"
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Windows and Python version / Windows ve Python sürümü
+      placeholder: "Windows 10 22H2 (10.0.19045), Python 3.12.6"
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Command you ran / Çalıştırılan komut
+      placeholder: "python scripts/setup.py"
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Output / Çıktı
+      description: The preflight block and the last 30 lines, including the last `*_OK` line. / Ön kontrol bloğu ve son 30 satır; son geçen `*_OK` satırı dahil.
+      render: text
+    validations:
+      required: true
+  - type: dropdown
+    id: cudnn
+    attributes:
+      label: cuDNN step / cuDNN adımı
+      options:
+        - Installed by default, CUDNN_OK / Varsayılan olarak kuruldu, CUDNN_OK
+        - Skipped with --no-cudnn (CUDNN_SKIPPED) / --no-cudnn ile atladım (CUDNN_SKIPPED)
+        - It failed / Hata verdi
+        - Did not get that far / O adıma gelmedi
+    validations:
+      required: true

@@ -1,0 +1,128 @@
+[V] version: stable-diffusion.cpp version master-1088-32d516c+, commit 32d516c --- main.cpp:775
+ggml_cuda_init: found 1 CUDA devices (Total VRAM: 4095 MiB):
+  Device 0: NVIDIA GeForce GTX 1050 Ti, compute capability 6.1, VMM: yes, VRAM: 4095 MiB
+load_backend: loaded CUDA backend from E:\t\sf020_okuyucu\bin\ggml-cuda.dll
+load_backend: loaded CPU backend from E:\t\sf020_okuyucu\bin\ggml-cpu.dll
+[V] System Info: 
+   SSE3 = 1 |    SSSE3 = 1 |    AVX = 1 |    AVX2 = 1 |    F16C = 1 |    FMA = 1 |    BMI2 = 1 |    OPENMP = 1 |    REPACK = 1 |  --- main.cpp:776
+[V] using 4 threads for model loading --- model_loader.cpp:194
+[I] loading diffusion model from 'C:/sinirsiz_foto_m/z_image_turbo-Q8_0.gguf' --- diffusion_engine.cpp:693
+[I] load C:/sinirsiz_foto_m/z_image_turbo-Q8_0.gguf using gguf format --- model_loader.cpp:220
+[V] init from 'C:/sinirsiz_foto_m/z_image_turbo-Q8_0.gguf' --- model_loader.cpp:266
+[V] GGUF v3, tensor_count=453, metadata_kv_count=0 --- gguf_reader_ext.h:225
+[I] loading llm from 'C:/sinirsiz_foto_m/Qwen3-4B-Instruct-2507-Q8_0.gguf' --- diffusion_engine.cpp:750
+[I] load C:/sinirsiz_foto_m/Qwen3-4B-Instruct-2507-Q8_0.gguf using gguf format --- model_loader.cpp:220
+[V] init from 'C:/sinirsiz_foto_m/Qwen3-4B-Instruct-2507-Q8_0.gguf' --- model_loader.cpp:266
+[V] GGUF v3, tensor_count=398, metadata_kv_count=42 --- gguf_reader_ext.h:225
+[I] loading vae from 'C:/sinirsiz_foto_m/ae.safetensors' --- diffusion_engine.cpp:764
+[I] load C:/sinirsiz_foto_m/ae.safetensors using safetensors format --- model_loader.cpp:226
+[V] init from 'C:/sinirsiz_foto_m/ae.safetensors', prefix = 'vae.' --- model_loader.cpp:294
+[I] Version: Z-Image  --- diffusion_engine.cpp:978
+[V] Found 2 backend devices: --- ggml_extend_backend.cpp:719
+[V] #0: CUDA0 --- ggml_extend_backend.cpp:722
+[V] #1: CPU --- ggml_extend_backend.cpp:722
+[V] Initializing backend: CUDA0 --- ggml_extend_backend.cpp:421
+[V] Initializing backend: CPU --- ggml_extend_backend.cpp:421
+[V] using 4 threads for model loading --- model_loader.cpp:194
+[I] Weight type stat:                      f32: 640  |    q8_0: 455   --- diffusion_engine.cpp:1556
+[I] Conditioner weight type stat:          f32: 145  |    q8_0: 253   --- diffusion_engine.cpp:1557
+[I] Diffusion model weight type stat:      f32: 251  |    q8_0: 202   --- diffusion_engine.cpp:1558
+[I] VAE weight type stat:                  f32: 244   --- diffusion_engine.cpp:1559
+[V] using mmap for I/O --- model_loader.cpp:942
+[I] using mmap for 'C:/sinirsiz_foto_m/z_image_turbo-Q8_0.gguf' --- model_loader.cpp:948
+[V] using mmap for I/O --- model_loader.cpp:942
+[I] using mmap for 'C:/sinirsiz_foto_m/Qwen3-4B-Instruct-2507-Q8_0.gguf' --- model_loader.cpp:948
+[V] using mmap for I/O --- model_loader.cpp:942
+[I] using mmap for 'C:/sinirsiz_foto_m/ae.safetensors' --- model_loader.cpp:948
+[V] llm: num_layers = 36, vocab_size = 151936, hidden_size = 2560, intermediate_size = 9728 --- llm.hpp:446
+[V] z_image: num_layers = 30, num_refiner_layers = 2, hidden_size = 3840, num_heads = 30, num_kv_heads = 30, in_channels = 16, out_channels = 16 --- z_image.hpp:126
+[I] using VAE for encoding / decoding --- model_builders.cpp:225
+[I] vae decoder: ch = 128 --- auto_encoder_kl.hpp:529
+[I] conv2d direct auto: CUDA0 -> off (no implicit GEMM path) --- conv_direct.cpp:90
+[I] conv3d direct auto: CUDA0 -> on (implicit GEMM) --- conv_direct.cpp:87
+[V] validating model metadata --- diffusion_engine.cpp:1310
+[V] memory-mapping tensors... --- model_loader.cpp:982
+[I] memory-mapped 1025 tensors in 3 files (10349.39 MB), taking 0.00s --- model_loader.cpp:1097
+[V] loading 453/453 tensors from C:/sinirsiz_foto_m/z_image_turbo-Q8_0.gguf --- model_loader.cpp:1181
+
+  |#####################                             |  453/1095 -   0.00MB/s
+[V] loading 398/398 tensors from C:/sinirsiz_foto_m/Qwen3-4B-Instruct-2507-Q8_0.gguf --- model_loader.cpp:1181
+
+  |#####################                             |  453/1095 -   0.00MB/s
+  |#######################################           |  851/1095 -   0.00MB/s
+[V] loading 244/244 tensors from C:/sinirsiz_foto_m/ae.safetensors --- model_loader.cpp:1181
+
+  |#######################################           |  851/1095 -   0.00MB/s
+  |############################################      |  949/1095 -  99.14MB/s
+  |##############################################    | 1003/1095 - 205.74MB/s
+  |################################################# | 1063/1095 - 232.56MB/s
+  |##################################################| 1095/1095 - 252.57MB/s
+[I] loading tensors completed, taking 1.26s (read: 0.65s, memcpy: 0.00s, convert: 0.07s, copy_to_backend: 0.00s) --- model_loader.cpp:1453
+[V] model manager prepared params backend buffers (159.75 MB, 70 tensors, 1 blocks, RAM) on CUDA_Host --- model_manager.cpp:514
+[V] model metadata validated; weights pre-loaded to params backend --- diffusion_engine.cpp:1378
+[I] total params memory size = 10509.14MB (VRAM 0.00MB, RAM 10509.14MB): text_encoders 4076.43MB(RAM), diffusion_model 6272.71MB(RAM), vae 160.00MB(RAM), controlnet 0.00MB(N/A), extensions 0.00MB(N/A) --- diffusion_engine.cpp:1441
+[I] running in FLOW mode --- diffusion_engine.cpp:1481
+[I] generate_image 768x1344 --- image.cpp:952
+[V] using 4 threads for model loading --- model_loader.cpp:194
+[I] get_sigmas with Simple scheduler --- denoiser.hpp:1158
+[I] sampling using Euler method --- request.cpp:478
+[V] parse '<|im_start|>user\nA realistic travel photograph of the Eiffel Tower at golden hour, shot from a low angle in the Trocadero gardens on a full-frame camera with a 35mm lens at f/8, so the whole scene is in sharp focus. The wrought-iron lattice is crisp and finely detailed, with warm low sunlight glowing on the metal and long soft shadows. Soft pink and orange clouds drift across the evening sky. In the foreground, fresh green trees and a few tiny people walking along the path, with the river Seine glinting beyond. Wide shot, natural colors, calm and majestic atmosphere, fine film-like detail.<|im_end|>\n<|im_start|>assistant\n' to [['<|im_start|>user\n', 1], ['A realistic travel photograph of the Eiffel Tower at golden hour, shot from a low angle in the Trocadero gardens on a full-frame camera with a 35mm lens at f/8, so the whole scene is in sharp focus. The wrought-iron lattice is crisp and finely detailed, with warm low sunlight glowing on the metal and long soft shadows. Soft pink and orange clouds drift across the evening sky. In the foreground, fresh green trees and a few tiny people walking along the path, with the river Seine glinting beyond. Wide shot, natural colors, calm and majestic atmosphere, fine film-like detail.', 1], ['<|im_end|>\n<|im_start|>assistant\n', 1], ] --- conditioner.hpp:2210
+[V] split prompt "<|im_start|>user\n" to 3 tokens ["<|im_start|>", "user", "Ċ", ] --- bpe_tokenizer.cpp:245
+[V] split prompt "A realistic travel photograph of the Eiffel Tower at golden hour, shot from a low angle in the Trocadero gardens on a full-frame camera with a 35mm lens at f/8, so the whole scene is in sharp focus. The wrought-iron lattice is crisp and finely detailed, with warm low sunlight glowing on the metal and long soft shadows. Soft pink and orange clouds drift across the evening sky. In the foreground, fresh green trees and a few tiny people walking along the path, with the river Seine glinting beyond. Wide shot, natural colors, calm and majestic atmosphere, fine film-like detail." to 129 tokens ["A", "Ġrealistic", "Ġtravel", "Ġphotograph", "Ġof", "Ġthe", "ĠE", "iff", "el", "ĠTower", "Ġat", "Ġgolden", "Ġhour", ",", "Ġshot", "Ġfrom", "Ġa", "Ġlow", "Ġangle", "Ġin", "Ġthe", "ĠTro", "c", "adero", "Ġgardens", "Ġon", "Ġa", "Ġfull", "-frame", "Ġcamera", "Ġwith", "Ġa", "Ġ", "3", "5", "mm", "Ġlens", "Ġat", "Ġf", "/", "8", ",", "Ġso", "Ġthe", "Ġwhole", "Ġscene", "Ġis", "Ġin", "Ġsharp", "Ġfocus", ".", "ĠThe", "Ġwrought", "-", "iron", "Ġlattice", "Ġis", "Ġcrisp", "Ġand", "Ġfinely", "Ġdetailed", ",", "Ġwith", "Ġwarm", "Ġlow", "Ġsunlight", "Ġglowing", "Ġon", "Ġthe", "Ġmetal", "Ġand", "Ġlong", "Ġsoft", "Ġshadows", ".", "ĠSoft", "Ġpink", "Ġand", "Ġorange", "Ġclouds", "Ġdrift", "Ġacross", "Ġthe", "Ġevening", "Ġsky", ".", "ĠIn", "Ġthe", "Ġforeground", ",", "Ġfresh", "Ġgreen", "Ġtrees", "Ġand", "Ġa", "Ġfew", "Ġtiny", "Ġpeople", "Ġwalking", "Ġalong", "Ġthe", "Ġpath", ",", "Ġwith", "Ġthe", "Ġriver", "ĠSe", "ine", "Ġgl", "int", "ing", "Ġbeyond", ".", "ĠWide", "Ġshot", ",", "Ġnatural", "Ġcolors", ",", "Ġcalm", "Ġand", "Ġmajestic", "Ġatmosphere", ",", "Ġfine", "Ġfilm", "-like", "Ġdetail", ".", ] --- bpe_tokenizer.cpp:245
+[V] split prompt "<|im_end|>\n<|im_start|>assistant\n" to 5 tokens ["<|im_end|>", "Ċ", "<|im_start|>", "assistant", "Ċ", ] --- bpe_tokenizer.cpp:245
+[I] qwen3 build cached graph cut plan done (taking 4 ms) --- ggml_graph_cut.cpp:1034
+[V] qwen3 using 36 segments --- execution_engine.cpp:572
+[V] model manager staged compute params (394.12 MB, 1 tensors, 1 blocks) to CUDA0, taking 0.27s --- model_manager.cpp:643
+[V] qwen3 compute buffer size: 12.84 MB(VRAM) on CUDA0 (peak across 36 segments) --- execution_engine.cpp:725
+[V] qwen3 compute buffer size: 0.07 MB(RAM) on CPU (peak across 36 segments) --- execution_engine.cpp:725
+[V] computing condition graph completed, taking 3614 ms --- conditioner.hpp:3335
+[I] get_learned_condition completed, taking 3.62s --- image.cpp:662
+[I] generating image: 1/1 - seed 42 --- image.cpp:1004
+[I] z_image build cached graph cut plan done (taking 5 ms) --- ggml_graph_cut.cpp:1034
+[V] z_image using 36 segments --- execution_engine.cpp:572
+[V] model manager staged compute params ( 40.48 MB, 9 tensors, 1 blocks) to CUDA0, taking 0.06s --- model_manager.cpp:643
+[V] z_image compute buffer size: 522.95 MB(VRAM) on CUDA0 (peak across 36 segments) --- execution_engine.cpp:725
+[V] z_image compute buffer size: 4.09 MB(RAM) on CPU (peak across 36 segments) --- execution_engine.cpp:725
+
+  |======>                                           | 1/8 -  28.53s/it - ETA 03:19
+  |============>                                     | 2/8 -  21.27s/it - ETA 02:29
+  |==================>                               | 3/8 -  20.92s/it - ETA 01:57
+  |=========================>                        | 4/8 -  21.10s/it - ETA 01:31
+  |===============================>                  | 5/8 -  21.10s/it - ETA 01:07
+  |=====================================>            | 6/8 -  21.08s/it - ETA 00:44
+  |===========================================>      | 7/8 -  21.11s/it - ETA 00:22
+  |==================================================| 8/8 -  21.12s/it
+[I] sampling completed, taking 176.34s --- image.cpp:1037
+[I] generating 1 latent images completed, taking 176.36s --- image.cpp:1051
+[I] decoding 1 latents --- image.cpp:687
+[I] vae build cached graph cut plan done (taking 2 ms) --- ggml_graph_cut.cpp:1034
+[W] model manager memory on CUDA0: reported free 3213.40 MB / total 4095.88 MB, tracked weights 0.00 MB / other runtime 0.00 MB / current runtime 0.00 MB --- model_manager.cpp:1833
+[W] execution engine cannot make enough memory available on CUDA0: need 7670.57 MB device / 6646.57 MB budget, available 3213.40 MB device / unlimited budget --- execution_engine.cpp:942
+[E] vae segment 1/1 (graph) failed during weight preparation --- execution_engine.cpp:591
+[E] vae decode compute failed --- vae.hpp:377
+[W] Reducing VAE decode tiles from 768x1344 to 384x672 image pixels --- backend_fit.cpp:526
+[W] VAE decode ran out of memory; retrying with spatial tiling --- backend_fit.cpp:530
+[V] VAE decode tile size: 384x672 pixels (48x84 latent) --- vae.hpp:348
+[V] num tiles : 3, 3  --- tiling.cpp:178
+[V] processing 9 tiles --- tiling.cpp:179
+[I] vae build cached graph cut plan done (taking 0 ms) --- ggml_graph_cut.cpp:1034
+[V] model manager staged compute params ( 94.57 MB, 138 tensors, 1 blocks) to CUDA0, taking 0.09s --- model_manager.cpp:643
+[V] vae compute buffer size: 1638.00 MB(VRAM) on CUDA0 (peak across 1 segment) --- execution_engine.cpp:725
+[V] vae compute buffer size: 0.25 MB(RAM) on CPU (peak across 1 segment) --- execution_engine.cpp:725
+
+  |=====>                                            | 1/9 -   2.81s/it - ETA 00:22
+  |===========>                                      | 2/9 -   2.49s/it - ETA 00:18
+  |================>                                 | 3/9 -   2.49s/it - ETA 00:15
+  |======================>                           | 4/9 -   2.50s/it - ETA 00:12
+  |===========================>                      | 5/9 -   2.49s/it - ETA 00:10
+  |=================================>                | 6/9 -   2.48s/it - ETA 00:07
+  |======================================>           | 7/9 -   2.48s/it - ETA 00:05
+  |============================================>     | 8/9 -   2.48s/it - ETA 00:02
+  |==================================================| 9/9 -   2.49s/it
+[V] computing vae decode graph completed, taking 22.75s --- vae.hpp:384
+[I] latent 1 decoded, taking 22.83s --- image.cpp:753
+[I] decode_first_stage completed, taking 22.83s --- image.cpp:757
+[I] generate_image completed in 202.92s --- image.cpp:1227
+[V] model manager released params backend buffers (159.75 MB, 70 tensors, 1 blocks, RAM) from CUDA_Host --- model_manager.cpp:1322
+[I] save result image 0 to 'E:/t/sf020_okuyucu/repo/outputs/20261114_215115_eiffel/image.png' (success) --- main.cpp:508
+[I] 1/1 images saved --- main.cpp:586

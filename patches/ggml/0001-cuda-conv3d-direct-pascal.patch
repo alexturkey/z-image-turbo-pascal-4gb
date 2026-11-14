@@ -1,0 +1,218 @@
+SPDX-License-Identifier: MIT
+Copyright 2026 Ali Haydar Ozturk. Derived from stable-diffusion.cpp / ggml (MIT).
+Subject: 0001-cuda-conv3d-direct-pascal
+CUDA conv3d: implicit-GEMM SIMT kernel for Pascal (no tensor cores); bit-identical to the stock kernel. Env GGML_CUDA_CONV3D_OLD selects the stock kernel.
+
+diff --git a/src/ggml-cuda/conv3d.cu b/src/ggml-cuda/conv3d.cu
+index 7e4bd57a..21161417 100644
+--- a/src/ggml-cuda/conv3d.cu
++++ b/src/ggml-cuda/conv3d.cu
+@@ -1,6 +1,7 @@
+ #include "conv3d.cuh"
+ #include "convert.cuh"
+ #include "mma.cuh"
++#include <cstdlib>
+ 
+ struct conv3d_params {
+     int64_t IW, IH, ID;
+@@ -230,6 +231,173 @@ static __global__ void conv3d_implicit_gemm_f16(const half * __restrict__ input,
+     }
+ }
+ 
++// Implicit-GEMM SIMT conv3d kernel for Pascal (sm_61, no tensor cores).
++// SAME as the stock kernel in: 64x64 output tile, 128 threads, same grid/split_k, same k summation order
++// (per output: k increasing, FMA, f32 accumulation, then the split_k partial sums in order) -> bit-identical result.
++// Differences: shared memory holds f32 (the conversion happens at load time, not in the inner loop), k-major layout
++// allows LDS.128, global loads for the next tile are prefetched into registers, and the k -> input offset is
++// computed once per tile.
++// conv3d_params and ggml_cuda_get_physical_warp_size must already be defined (it is called from within conv3d.cu).
++template <int KW, int KH, int KD>
++static __global__ void __launch_bounds__(128, 4) conv3d_implicit_gemm_f16_simt(const half * __restrict__ input,
++                                                                              const half * __restrict__ weight,
++                                                                              float * __restrict__ output,
++                                                                              const conv3d_params P,
++                                                                              const int           split_k,
++                                                                              const bool          aligned_weights) {
++    constexpr int BM = 64, BN = 64, BKO = 64, BK = 32, LD = BN + 4;  // BKO: stock tile; split boundaries are defined by it
++    __shared__ __align__(16) float a_s[BK][LD];   // a_s[k][m]
++    __shared__ __align__(16) float b_s[BK][LD];   // b_s[k][n]
++    __shared__ int                 offs_s[2][BK]; // k -> input offset (-1: invalid)
++
++    const int tid = threadIdx.y * 32 + threadIdx.x;
++    const int iw = int(P.IW), ih = int(P.IH), id = int(P.ID);
++    const int ow = int(P.OW), oh = int(P.OH), od = int(P.OD);
++    const int kw = KW ? KW : int(P.KW), kh = KH ? KH : int(P.KH), kd = KD ? KD : int(P.KD);
++    const int ic = int(P.IC), oc = int(P.OC);
++    const int sx = int(P.ST_X), sy = int(P.ST_Y), sz = int(P.ST_Z);
++    const int dx = int(P.DL_X), dy = int(P.DL_Y), dz = int(P.DL_Z);
++    const int n_b = blockIdx.z / split_k, split = blockIdx.z % split_k;
++    const int m0 = blockIdx.y * BM, n0 = blockIdx.x * BN;
++    const int k_total = ic * kw * kh * kd;
++    const int S       = ow * oh * od;
++
++    // same split boundaries as the stock kernel (counted in tiles of 64)
++    const int tiles = (k_total + BKO - 1) / BKO;
++    const int begin = int(int64_t(tiles) * split / split_k) * BKO;
++    const int end   = int(int64_t(tiles) * (split + 1) / split_k) * BKO;
++
++    // B load position of this thread: n = tid % 64, k rows tid/64 + 2*it
++    const int  nb      = tid & 63;
++    const int  spatial = n0 + nb;
++    const bool nvalid  = spatial < S;
++    int        posn    = 0;
++    if (nvalid) {
++        const int z = spatial / (ow * oh), y = spatial / ow % oh, x = spatial % ow;
++        posn        = (z * sz * ih + y * sy) * iw + x * sx;
++    }
++    // A load position: row = tid % 64, k column = (tid/64)*8 + 16*p
++    const int arow = tid & 63;
++    const int acol = (tid >> 6) * 8;
++    // compute position: 4 (m) x 8 (n: 4 + 4)
++    const int tm = (tid >> 3) * 4, tn0 = (tid & 7) * 4, tn1 = 32 + (tid & 7) * 4;
++
++    float acc[4][8];
++#pragma unroll
++    for (int i = 0; i < 4; ++i) {
++#pragma unroll
++        for (int j = 0; j < 8; ++j) {
++            acc[i][j] = 0.0f;
++        }
++    }
++
++    auto decode_off = [&](int ki) -> int {
++        if (ki >= k_total) {
++            return -1;
++        }
++        const int ci = ki / (kw * kh * kd), kz = ki / (kw * kh) % kd, ky = ki / kw % kh, kx = ki % kw;
++        return ((n_b * ic + ci) * id + kz * dz) * ih * iw + ky * dy * iw + kx * dx;
++    };
++
++    unsigned short bv[16];
++    int4           av[2];
++
++    // load the global values for tile k0 into registers (offs_s[buf] must be ready)
++    auto load_global = [&](int k0, int buf) {
++#pragma unroll
++        for (int it = 0; it < 16; ++it) {
++            const int off = offs_s[buf][(tid >> 6) + 2 * it];
++            bv[it]        = (off >= 0 && nvalid) ? __ldg((const unsigned short *) input + (off + posn)) : (unsigned short) 0;
++        }
++        if (aligned_weights) {
++#pragma unroll
++            for (int p = 0; p < 2; ++p) {
++                const int col = k0 + acol + 16 * p;
++                av[p] = (m0 + arow < oc && col < k_total) ? __ldg(((const int4 *) weight) + ((int64_t(m0 + arow) * k_total + col) >> 3)) :
++                                                            make_int4(0, 0, 0, 0);
++            }
++        }
++    };
++
++    // write the registers to shared memory
++    auto store_smem = [&](int k0) {
++#pragma unroll
++        for (int it = 0; it < 16; ++it) {
++            b_s[(tid >> 6) + 2 * it][nb] = __half2float(__ushort_as_half(bv[it]));
++        }
++        if (aligned_weights) {
++#pragma unroll
++            for (int p = 0; p < 2; ++p) {
++                const half * h = (const half *) &av[p];
++#pragma unroll
++                for (int j = 0; j < 8; ++j) {
++                    a_s[acol + 16 * p + j][arow] = __half2float(h[j]);
++                }
++            }
++        } else {
++            // unaligned weights: scalar loads (same values as the stock kernel)
++#pragma unroll
++            for (int it = 0; it < 16; ++it) {
++                const int kk = (tid >> 6) + 2 * it;
++                float     v  = 0.0f;
++                if (m0 + arow < oc && k0 + kk < k_total) {
++                    v = __half2float(weight[int64_t(m0 + arow) * k_total + k0 + kk]);
++                }
++                a_s[kk][arow] = v;
++            }
++        }
++    };
++
++    if (begin < end) {
++        if (tid < BK) {
++            offs_s[0][tid] = decode_off(begin + tid);
++        }
++        __syncthreads();
++        load_global(begin, 0);
++        int buf = 0;
++        for (int k0 = begin; k0 < end; k0 += BK) {
++            store_smem(k0);
++            const bool has_next = k0 + BK < end;
++            if (has_next && tid < BK) {
++                offs_s[buf ^ 1][tid] = decode_off(k0 + BK + tid);
++            }
++            __syncthreads();
++            if (has_next) {
++                load_global(k0 + BK, buf ^ 1);
++            }
++#pragma unroll 8
++            for (int k = 0; k < BK; ++k) {
++                const float4 a4 = *(const float4 *) &a_s[k][tm];
++                const float4 b0 = *(const float4 *) &b_s[k][tn0];
++                const float4 b1 = *(const float4 *) &b_s[k][tn1];
++                const float  a[4] = { a4.x, a4.y, a4.z, a4.w };
++                const float  b[8] = { b0.x, b0.y, b0.z, b0.w, b1.x, b1.y, b1.z, b1.w };
++#pragma unroll
++                for (int i = 0; i < 4; ++i) {
++#pragma unroll
++                    for (int j = 0; j < 8; ++j) {
++                        acc[i][j] = fmaf(a[i], b[j], acc[i][j]);
++                    }
++                }
++            }
++            __syncthreads();
++            buf ^= 1;
++        }
++    }
++
++#pragma unroll
++    for (int i = 0; i < 4; ++i) {
++        const int co = m0 + tm + i;
++#pragma unroll
++        for (int j = 0; j < 8; ++j) {
++            const int pos = n0 + (j < 4 ? tn0 + j : tn1 + j - 4);
++            if (co < oc && pos < S) {
++                output[(int64_t(blockIdx.z) * oc + co) * S + pos] = acc[i][j];
++            }
++        }
++    }
++}
++
+ static __global__ void conv3d_reduce_split_k(const float * __restrict__ partial,
+                                              float * __restrict__ output,
+                                              const int total,
+@@ -261,6 +429,26 @@ static void conv3d_launch_implicit_gemm(const half *          input,
+     // Vector loads require both the base pointer and each weight row to be 16-byte aligned.
+     const bool aligned_weights = uintptr_t(weight) % sizeof(int4) == 0 &&
+                                  (params.IC * params.KW * params.KH * params.KD) % (sizeof(int4) / sizeof(half)) == 0;
++    if constexpr (!use_mma) {
++        // Pascal SIMT path: new kernel with a bit-identical result. GGML_CUDA_CONV3D_OLD=1 falls back to the stock kernel (for A/B measurement).
++        static const bool use_old = getenv("GGML_CUDA_CONV3D_OLD") != nullptr;
++        if (!use_old) {
++            if (params.KW == 3 && params.KH == 3 && params.KD == 3) {
++                conv3d_implicit_gemm_f16_simt<3, 3, 3>
++                    <<<grid, block, 0, stream>>>(input, weight, output, params, split_k, aligned_weights);
++            } else if (params.KW == 1 && params.KH == 1 && params.KD == 3) {
++                conv3d_implicit_gemm_f16_simt<1, 1, 3>
++                    <<<grid, block, 0, stream>>>(input, weight, output, params, split_k, aligned_weights);
++            } else if (params.KW == 1 && params.KH == 1 && params.KD == 1) {
++                conv3d_implicit_gemm_f16_simt<1, 1, 1>
++                    <<<grid, block, 0, stream>>>(input, weight, output, params, split_k, aligned_weights);
++            } else {
++                conv3d_implicit_gemm_f16_simt<0, 0, 0>
++                    <<<grid, block, 0, stream>>>(input, weight, output, params, split_k, aligned_weights);
++            }
++            return;
++        }
++    }
+     if (params.KW == 3 && params.KH == 3 && params.KD == 3) {
+         conv3d_implicit_gemm_f16<3, 3, 3, use_mma>
+             <<<grid, block, 0, stream>>>(input, weight, output, params, split_k, aligned_weights);

@@ -1,0 +1,8 @@
+Preflight (measured on: GTX 1050 Ti 4 GB laptop, sm_61 / Pascal, 16 GB RAM, Windows 10; see docs/MEASUREMENTS.md)
+  GPU      : NVIDIA GeForce GTX 1050 Ti, 4096 MiB, driver 581.29
+  RAM      : 16266 MiB total
+  Disk     : 865.1 GiB free for models in E:\t\sf020\models
+  Disk     : 865.1 GiB free for engine in E:\t\sf020_g12\bin2
+Downloading NVIDIA cuDNN under NVIDIA's license: https://docs.nvidia.com/deeplearning/cudnn/backend/latest/reference/eula.html. Use --no-cudnn to skip.
+Downloading cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip from NVIDIA (366.9 MiB)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 10% (6.7 MiB/s)

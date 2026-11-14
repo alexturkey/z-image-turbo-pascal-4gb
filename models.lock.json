@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "note": "Three model files and two engine zips. Revisions are pinned commits / release tags, not 'main'. Every file is checked with sha256 after download.",
+  "note": "Three model files, two engine zips and one optional NVIDIA archive (cudnn). Revisions are pinned commits / release tags / one versioned archive, never 'main' or 'latest'. Every file is checked with sha256 after download.",
   "models": [
     {
       "name": "z_image_turbo-Q8_0.gguf",
@@ -38,12 +38,12 @@
   ],
   "engine": [
     {
-      "name": "wan22-pascal-4gb-v0.1.0-win-x64-cuda12.8-sm61.zip",
-      "role": "sd-cli.exe (stable-diffusion.cpp master-1088-32d516c + Pascal patches), from our wan22-pascal-4gb release",
-      "url": "https://github.com/alexturkey/wan22-pascal-4gb/releases/download/v0.1.0/wan22-pascal-4gb-v0.1.0-win-x64-cuda12.8-sm61.zip",
-      "bytes": 37182063,
-      "sha256": "e23d53eeab5fbe8945db50e927fa8dcdefe8664b85b1ef522c4bc71f94e7f112",
-      "license": "MIT (stable-diffusion.cpp, ggml, patches)"
+      "name": "sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip",
+      "role": "sd-cli.exe and sd-server.exe (stable-diffusion.cpp master-1088-32d516c + ggml d803c23 + the patches in patches/), built for sm_61 (Pascal) only",
+      "url": "https://github.com/alexturkey/z-image-turbo-pascal-4gb/releases/download/v0.2.0/sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip",
+      "bytes": 37541583,
+      "sha256": "9f33330a5e5370b202b46bb4b53dd38900d200b8beed6597230c39cfd4ed47c6",
+      "license": "MIT (stable-diffusion.cpp, ggml, patches); bundled third-party notices in the zip"
     },
     {
       "name": "cudart-cuda12.8-win-x64.zip",
@@ -53,5 +53,59 @@
       "sha256": "a17da465766934bef0654f4e1a75ce7ad973ac18ab68f972dd111ccf74165377",
       "license": "NVIDIA CUDA EULA, Attachment A (redistributable)"
     }
-  ]
+  ],
+  "cudnn": {
+    "name": "cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip",
+    "role": "optional: NVIDIA cuDNN runtime DLLs for the fast, more exact VAE decode. Not stored in this repository or its releases; downloaded from NVIDIA after the user accepts NVIDIA's license",
+    "version": "9.10.2.21 (cuda11 build; the only build we measured)",
+    "url": "https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/windows-x86_64/cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip",
+    "bytes": 384728540,
+    "sha256": "dc837ef00beffab937979ba5a72c27facd0443c7e3fa71fc7c2e29adf5262f36",
+    "license": "NVIDIA Software Development Kits license + cuDNN Supplement (proprietary)",
+    "license_url": "https://docs.nvidia.com/deeplearning/cudnn/backend/latest/reference/eula.html",
+    "license_member": "cudnn-windows-x86_64-9.10.2.21_cuda11-archive/LICENSE",
+    "license_save_as": "NVIDIA_cuDNN_LICENSE.txt",
+    "members": [
+      {
+        "path": "cudnn-windows-x86_64-9.10.2.21_cuda11-archive/bin/cudnn64_9.dll",
+        "bytes": 266296,
+        "crc32": "a6add953"
+      },
+      {
+        "path": "cudnn-windows-x86_64-9.10.2.21_cuda11-archive/bin/cudnn_adv64_9.dll",
+        "bytes": 168971296,
+        "crc32": "7c17dedb"
+      },
+      {
+        "path": "cudnn-windows-x86_64-9.10.2.21_cuda11-archive/bin/cudnn_cnn64_9.dll",
+        "bytes": 3929632,
+        "crc32": "a17fe874"
+      },
+      {
+        "path": "cudnn-windows-x86_64-9.10.2.21_cuda11-archive/bin/cudnn_engines_precompiled64_9.dll",
+        "bytes": 272844320,
+        "crc32": "0c64d7d9"
+      },
+      {
+        "path": "cudnn-windows-x86_64-9.10.2.21_cuda11-archive/bin/cudnn_engines_runtime_compiled64_9.dll",
+        "bytes": 18143776,
+        "crc32": "08b68e9b"
+      },
+      {
+        "path": "cudnn-windows-x86_64-9.10.2.21_cuda11-archive/bin/cudnn_graph64_9.dll",
+        "bytes": 2393632,
+        "crc32": "19523c23"
+      },
+      {
+        "path": "cudnn-windows-x86_64-9.10.2.21_cuda11-archive/bin/cudnn_heuristic64_9.dll",
+        "bytes": 56803376,
+        "crc32": "8aaadb8d"
+      },
+      {
+        "path": "cudnn-windows-x86_64-9.10.2.21_cuda11-archive/bin/cudnn_ops64_9.dll",
+        "bytes": 69195320,
+        "crc32": "b58eb6fb"
+      }
+    ]
+  }
 }

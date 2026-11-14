@@ -1,0 +1,18 @@
+SPDX-License-Identifier: MIT
+Copyright 2026 Ali Haydar Ozturk. Derived from stable-diffusion.cpp / ggml (MIT).
+Subject: 0002-cuda-mmq-q8_0-dp4a-tile128
+CUDA MMQ (dp4a path): Q8_0 tile config 128x64 instead of 64x64 for the last ncols case; fewer weight re-reads on Pascal.
+
+diff --git a/src/ggml-cuda/mmq-config-pascal-dp4a.cuh b/src/ggml-cuda/mmq-config-pascal-dp4a.cuh
+index 83eb7c14..622c4d1d 100644
+--- a/src/ggml-cuda/mmq-config-pascal-dp4a.cuh
++++ b/src/ggml-cuda/mmq-config-pascal-dp4a.cuh
+@@ -81,7 +81,7 @@ static constexpr __host__ __device__ ggml_cuda_mmq_config ggml_cuda_mmq_get_conf
+     CASE(GGML_TYPE_Q8_0, 256, 2, 64,  32, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, false, false);
+     CASE(GGML_TYPE_Q8_0, 256, 2, 64,  40, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, false, false);
+     CASE(GGML_TYPE_Q8_0, 256, 2, 64,  48, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, false, false);
+-    CASE(GGML_TYPE_Q8_0, 256, 2, 64,  64, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, false, false);
++    CASE(GGML_TYPE_Q8_0, 256, 2, 128, 64, GGML_CUDA_MMQ_SRAM_LAYOUT_Q8_0, MMQ_ITER_K, false, false);
+ 
+ // ---------------------------------------------------------------------------------------------
+ 

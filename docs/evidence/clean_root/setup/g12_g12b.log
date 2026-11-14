@@ -1,0 +1,13 @@
+﻿21:59:17 start
+22:00:25 engine rc=0
+22:00:37 killed with part size 62914560
+22:00:37 part after kill: 62914560 of 384728540 bytes
+22:01:21 resume rc=0
+22:01:21 out2: Downloading NVIDIA cuDNN under NVIDIA's license: https://docs.nvidia.com/deeplearning/cudnn/backend/latest/reference/eula.html. Use --no-cudnn to skip.
+22:01:21 out2: Downloading cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip from NVIDIA (366.9 MiB)
+22:01:21 out2: CUDNN_OK
+22:01:21 out2: SETUP_PART_OK cudnn
+22:01:21 out2: cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 20% (5.6 MiB/s)
+22:01:21 out2: cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 30% (7.4 MiB/s)
+22:01:21 out2: cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 40% (7.9 MiB/s)
+22:01:22 done

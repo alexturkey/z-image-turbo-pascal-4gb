@@ -1,0 +1,4 @@
+﻿22:01:36 komut 1 basla: python scripts/setup.py --lock lock_test.json --bin-dir E:/t/sf020_g11/bin --models-dir E:/t/sf020/models
+22:05:42 komut 1 bitti rc=0
+22:05:42 komut 2 basla (GPU kilidi altinda): python scripts/generate.py --prompt-file prompts/eiffel.txt --models-dir E:/t/sf020/models --bin-dir E:/t/sf020_g11/bin
+22:09:11 komut 2 yeniden basla (2. deneme, ayrik gizli surec, GPU kilidi altinda)

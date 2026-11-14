@@ -1,0 +1,29 @@
+21:15:07 hash basla
+21:15:39 hash bitti rc=0
+MODEL_OK sayisi 3
+21:15:39 basla eiffel
+21:19:31 bitti eiffel rc=0
+21:19:31 basla turkish_tea
+21:22:54 bitti turkish_tea rc=0
+21:22:54 basla fisherman
+ hash basla
+21:27:12 hash basla
+21:27:42 hash bitti rc=0
+MODEL_OK sayisi 3
+21:27:42 basla fisherman
+21:31:17 bitti fisherman rc=0
+21:31:17 basla village
+21:34:35 bitti village rc=0
+21:34:35 basla istanbul_aerial
+21:37:56 bitti istanbul_aerial rc=0
+21:37:56 ORNEK5_BITTI
+21:37:56 HEPSI_BITTI
+21:39:14 hash basla
+21:39:46 hash bitti rc=0
+MODEL_OK sayisi 3
+21:39:46 ORNEK5_BITTI
+21:39:46 basla vae_tiled
+21:43:15 bitti vae_tiled rc=0
+21:43:15 basla g19_zorla_dusus
+21:46:38 bitti g19_zorla_dusus rc=0
+21:46:38 HEPSI_BITTI

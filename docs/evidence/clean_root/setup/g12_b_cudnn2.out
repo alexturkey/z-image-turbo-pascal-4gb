@@ -1,0 +1,28 @@
+Preflight (measured on: GTX 1050 Ti 4 GB laptop, sm_61 / Pascal, 16 GB RAM, Windows 10; see docs/MEASUREMENTS.md)
+  GPU      : NVIDIA GeForce GTX 1050 Ti, 4096 MiB, driver 581.29
+  RAM      : 16266 MiB total
+  Disk     : 865.0 GiB free for models in E:\t\sf020\models
+  Disk     : 865.0 GiB free for engine in E:\t\sf020_g12\bin2
+Downloading NVIDIA cuDNN under NVIDIA's license: https://docs.nvidia.com/deeplearning/cudnn/backend/latest/reference/eula.html. Use --no-cudnn to skip.
+Downloading cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip from NVIDIA (366.9 MiB)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 20% (5.6 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 30% (7.4 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 40% (7.9 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 50% (8.3 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 60% (8.5 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 70% (8.5 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 80% (8.6 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 90% (8.7 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 100% (8.9 MiB/s)
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 10%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 21%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 30%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 41%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 50%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 61%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 71%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 80%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 91%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 100%
+CUDNN_OK
+SETUP_PART_OK cudnn

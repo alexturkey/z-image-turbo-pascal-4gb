@@ -31,8 +31,10 @@ class Recipe(unittest.TestCase):
         self.assertEqual(value(c, "--sampling-method"), "euler")
         self.assertEqual(value(c, "--scheduler"), "simple")
         self.assertEqual(value(c, "--flash-attn"), "on")
-        for f in ("--offload-to-cpu", "--mmap"):
+        for f in ("--offload-to-cpu", "--mmap", "--eager-load"):
             self.assertIn(f, c)
+        for f in ("--conv-direct", "--vae-tiling", "--vae-tile-size"):   # default command is the legacy VAE path
+            self.assertNotIn(f, c)
         self.assertNotIn("--negative-prompt", c)
         self.assertNotIn("--negative-prompt-file", c)
 
@@ -50,10 +52,57 @@ class Recipe(unittest.TestCase):
         self.assertIsNone(re.search(r"(?i)[A-Z]:[\\/]+Users", text))
 
 
+class Vae(unittest.TestCase):
+    def test_tile_rule(self):
+        self.assertEqual(gen.vae_tile(768, 1344), (768, 1024))
+        self.assertEqual(gen.vae_tile(1344, 768), (1024, 768))
+        self.assertEqual(gen.vae_tile(1024, 1024), (1024, 768))
+        self.assertIsNone(gen.vae_tile(768, 768))            # fits in one piece
+        self.assertIsNone(gen.vae_tile(1024, 768))
+        for w, h in ((768, 1344), (1344, 768), (1024, 1024), (1024, 1536), (2048, 512), (512, 2048)):
+            tw, th = gen.vae_tile(w, h)
+            self.assertLessEqual(tw * th, gen.MAX_TILE_PIXELS)
+            self.assertEqual((tw % 16, th % 16), (0, 0))
+            self.assertTrue(tw <= w and th <= h)
+
+    def test_mode_arguments(self):
+        self.assertEqual(gen.vae_args("legacy", 768, 1344), [])
+        for mode in ("auto", "tiled"):
+            c = cmd(vae_mode=mode)
+            self.assertEqual(value(c, "--conv-direct"), "auto,vae=on")
+            self.assertIn("--vae-tiling", c)
+            self.assertEqual(value(c, "--vae-tile-size"), "768x1024")
+        c = cmd(vae_mode="auto", width=768, height=768)
+        self.assertIn("--conv-direct", c)
+        self.assertNotIn("--vae-tiling", c)
+
+    def test_mode_needs_cudnn(self):
+        self.assertEqual(gen.resolve_vae_mode("auto", None), "legacy")
+        self.assertEqual(gen.resolve_vae_mode("tiled", None), "legacy")
+        self.assertEqual(gen.resolve_vae_mode("auto", Path("bin")), "auto")
+        with tempfile.TemporaryDirectory() as t:
+            self.assertIsNone(gen.find_cudnn(t))
+            (Path(t) / "sub").mkdir()
+            (Path(t) / "sub" / gen.CUDNN_DLL).write_bytes(b"x")
+            self.assertEqual(gen.find_cudnn(t), Path(t) / "sub")
+
+    def test_environment(self):
+        base = {"PATH": "x", "SD_VAE_TRY_FULL": "1", "GGML_CUDA_CUDNN_CONV2D": "1", "SD_VAE_VRAM_MARGIN_MB": "64"}
+        self.assertEqual(gen.engine_env("legacy", base), {"PATH": "x"})   # caller's engine switches never leak in
+        tiled = gen.engine_env("tiled", base)
+        self.assertEqual(tiled["GGML_CUDA_CUDNN_CONV2D"], "1")
+        self.assertEqual(tiled["SD_VAE_VRAM_MARGIN_MB"], "512")
+        self.assertNotIn("SD_VAE_TRY_FULL", tiled)
+        self.assertEqual(gen.engine_env("auto", base)["SD_VAE_TRY_FULL"], "1")
+        self.assertEqual(base["SD_VAE_VRAM_MARGIN_MB"], "64")             # input not modified
+
+
 class Args(unittest.TestCase):
     def test_defaults(self):
         a = gen.make_parser().parse_args(["--prompt", "x"])
-        self.assertEqual((a.width, a.height, a.seed), (768, 1344, 42))
+        self.assertEqual((a.width, a.height, a.seed, a.vae), (768, 1344, 42, "auto"))
+        with self.assertRaises(SystemExit):
+            gen.make_parser().parse_args(["--prompt", "x", "--vae", "fast"])
 
     def test_prompt_required_and_exclusive(self):
         p = gen.make_parser()
@@ -65,6 +114,7 @@ class Args(unittest.TestCase):
     def test_size_checks(self):
         self.assertEqual(gen.check_size(768, 1344), ([], []))
         self.assertEqual(gen.check_size(1344, 768), ([], []))
+        self.assertEqual(gen.check_size(1024, 1024), ([], []))
         errors, _ = gen.check_size(770, 1344)
         self.assertEqual(len(errors), 1)
         errors, _ = gen.check_size(128, 1344)
@@ -109,6 +159,41 @@ class LogParse(unittest.TestCase):
         s = gen.parse_log("")
         self.assertIsNone(s["sampling_s"])
         self.assertFalse(s["cuda"])
+        self.assertIsNone(s["vae_path"])
+        self.assertFalse(s["cudnn_used"])
+        self.assertFalse(s["vae_quality_drop"])
+
+    GATE = ("[W] CAPACITY need %s MB (pending 2816.0 + missing 94.6 + margin %s) / available 3211.4 MB"
+            " / residual %s MB / %s --- model_manager.cpp:1900\n")
+    CUDNN = "cudnn conv2d: x[1,128,1024,1024] algo 1 ws 32868 KiB\n"
+
+    def test_vae_full(self):
+        log = ("[I] decoding 1 latents --- image.cpp:691\n" + self.GATE % ("3166.6", "256.0", "44.8", "FITS")
+               + "[W] VAE path: full 1024x1024 (attempt 1) --- diffusion_engine.cpp:3139\n" + self.CUDNN)
+        s = gen.parse_vae(log)
+        self.assertEqual((s["vae_path"], s["vae_path_size"], s["vae_tile"]), ("full", [1024, 1024], None))
+        self.assertEqual(s["vae_gate_residual_mib"], 44.8)
+        self.assertTrue(s["cudnn_used"])
+        self.assertEqual(s["cudnn_workspace_max_kib"], 32868)
+        self.assertFalse(s["vae_full_fell_back"] or s["vae_quality_drop"])
+
+    def test_vae_full_falls_back_to_tile(self):
+        log = ("[I] decoding 1 latents --- image.cpp:691\n" + self.GATE % ("3310.6", "400.0", "-99.2", "SHORT")
+               + "[W] VAE untiled decode did not fit; falling back to the requested tile --- x\n"
+               + "[V] VAE decode tile size: 1024x768 pixels (128x96 latent) --- vae.hpp:348\n"
+               + self.GATE % ("2718.6", "512.0", "492.8", "FITS")
+               + "[W] VAE path: tile 1024x768 (attempt 2) --- diffusion_engine.cpp:3139\n" + self.CUDNN)
+        s = gen.parse_vae(log)
+        self.assertEqual((s["vae_path"], s["vae_tile"]), ("tile", [1024, 768]))
+        self.assertTrue(s["vae_full_fell_back"])
+        self.assertFalse(s["vae_quality_drop"])              # a planned step, not a quality drop
+        self.assertEqual(s["vae_gate_residual_mib"], -99.2)
+
+    def test_vae_floor_is_quality_drop(self):
+        log = ("[I] decoding 1 latents --- image.cpp:691\n"
+               "[W] VAE tile does not fit; falling back to the default-equivalent tile 384x672 --- x\n"
+               "[W] VAE path: floor 384x672 (attempt 2) --- x\n")
+        self.assertTrue(gen.parse_vae(log)["vae_quality_drop"])
 
 
 if __name__ == "__main__":

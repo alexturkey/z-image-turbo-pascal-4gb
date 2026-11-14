@@ -1,0 +1,67 @@
+Downloading z_image_turbo-Q8_0.gguf (6.13 GiB)
+  z_image_turbo-Q8_0.gguf 10% (9.0 MiB/s)
+  z_image_turbo-Q8_0.gguf 20% (8.2 MiB/s)
+  z_image_turbo-Q8_0.gguf 30% (8.5 MiB/s)
+  z_image_turbo-Q8_0.gguf 40% (8.7 MiB/s)
+  z_image_turbo-Q8_0.gguf 50% (8.9 MiB/s)
+  z_image_turbo-Q8_0.gguf 60% (8.8 MiB/s)
+  z_image_turbo-Q8_0.gguf 70% (8.7 MiB/s)
+  z_image_turbo-Q8_0.gguf 80% (8.7 MiB/s)
+  z_image_turbo-Q8_0.gguf 90% (8.7 MiB/s)
+  z_image_turbo-Q8_0.gguf 100% (8.7 MiB/s)
+  hashing z_image_turbo-Q8_0.gguf ... 10%
+  hashing z_image_turbo-Q8_0.gguf ... 20%
+  hashing z_image_turbo-Q8_0.gguf ... 30%
+  hashing z_image_turbo-Q8_0.gguf ... 40%
+  hashing z_image_turbo-Q8_0.gguf ... 50%
+  hashing z_image_turbo-Q8_0.gguf ... 60%
+  hashing z_image_turbo-Q8_0.gguf ... 70%
+  hashing z_image_turbo-Q8_0.gguf ... 80%
+  hashing z_image_turbo-Q8_0.gguf ... 90%
+  hashing z_image_turbo-Q8_0.gguf ... 100%
+MODEL_OK z_image_turbo-Q8_0.gguf
+Downloading Qwen3-4B-Instruct-2507-Q8_0.gguf (3.99 GiB)
+  Qwen3-4B-Instruct-2507-Q8_0.gguf 10% (9.4 MiB/s)
+  Qwen3-4B-Instruct-2507-Q8_0.gguf 20% (9.0 MiB/s)
+  Qwen3-4B-Instruct-2507-Q8_0.gguf 30% (8.2 MiB/s)
+  Qwen3-4B-Instruct-2507-Q8_0.gguf 40% (7.5 MiB/s)
+  Qwen3-4B-Instruct-2507-Q8_0.gguf 50% (7.8 MiB/s)
+  Qwen3-4B-Instruct-2507-Q8_0.gguf 60% (7.9 MiB/s)
+  Qwen3-4B-Instruct-2507-Q8_0.gguf 70% (7.8 MiB/s)
+  Qwen3-4B-Instruct-2507-Q8_0.gguf 80% (7.6 MiB/s)
+  Qwen3-4B-Instruct-2507-Q8_0.gguf 90% (7.6 MiB/s)
+  Qwen3-4B-Instruct-2507-Q8_0.gguf 100% (7.7 MiB/s)
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 10%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 20%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 30%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 40%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 50%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 60%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 70%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 80%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 90%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 100%
+MODEL_OK Qwen3-4B-Instruct-2507-Q8_0.gguf
+Downloading ae.safetensors (0.31 GiB)
+  ae.safetensors 10% (7.8 MiB/s)
+  ae.safetensors 20% (8.4 MiB/s)
+  ae.safetensors 30% (8.1 MiB/s)
+  ae.safetensors 40% (8.1 MiB/s)
+  ae.safetensors 50% (8.0 MiB/s)
+  ae.safetensors 60% (7.7 MiB/s)
+  ae.safetensors 70% (7.5 MiB/s)
+  ae.safetensors 80% (7.3 MiB/s)
+  ae.safetensors 90% (6.2 MiB/s)
+  ae.safetensors 100% (6.2 MiB/s)
+  hashing ae.safetensors ... 10%
+  hashing ae.safetensors ... 20%
+  hashing ae.safetensors ... 30%
+  hashing ae.safetensors ... 40%
+  hashing ae.safetensors ... 50%
+  hashing ae.safetensors ... 60%
+  hashing ae.safetensors ... 70%
+  hashing ae.safetensors ... 80%
+  hashing ae.safetensors ... 90%
+  hashing ae.safetensors ... 100%
+MODEL_OK ae.safetensors
+SETUP_OK

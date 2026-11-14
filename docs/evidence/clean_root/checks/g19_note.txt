@@ -1,0 +1,1 @@
+G19 note: SD_VAE_FULL_MARGIN_MB=100000 was set in the environment of the run; run.json engine_env does not list it (the key is not recorded); the effect shows in stages.vae_gate_residual_mib (-99653) and stages.vae_full_fell_back (true).

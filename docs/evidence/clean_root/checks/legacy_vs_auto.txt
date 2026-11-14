@@ -1,0 +1,7 @@
+file_sha256_equal false
+pixel_sha256_a    bf39b8c5388599c4a85f195782e089f28bad56ef91882d95c1f2c90971f2ab2e
+pixel_sha256_b    2b47812fb9df349fdfd9cc0cd5cdd677fb94bca77235b8f7be7bccda07c46636
+max_abs_diff      176
+mean_abs_diff     2.1969
+psnr_db           35.61
+DIFFERENT

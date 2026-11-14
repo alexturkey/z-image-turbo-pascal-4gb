@@ -1,0 +1,44 @@
+name: Bug report / Hata bildirimi
+description: Setup finished, but generating an image fails or gives a wrong result. / Kurulum bitti ama resim üretimi hata veriyor ya da yanlış sonuç çıkıyor.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Version / Sürüm
+      description: Release tag or `git log -1 --format=%h` / Release etiketi ya da `git log -1 --format=%h`
+      placeholder: "v0.2.0"
+    validations:
+      required: true
+  - type: input
+    id: gpu
+    attributes:
+      label: GPU, memory, driver / Ekran kartı, bellek, sürücü
+      description: "`nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader`"
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Command / Komut
+      placeholder: "python scripts/generate.py --prompt-file prompts/eiffel.txt"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected and what happened / Ne bekliyordunuz, ne oldu
+    validations:
+      required: true
+  - type: textarea
+    id: runjson
+    attributes:
+      label: run.json
+      description: From `outputs/<time>_<name>/run.json`. Remove the `command` field if it shows a personal path. / Kişisel yol görünüyorsa `command` alanını silin.
+      render: json
+  - type: textarea
+    id: log
+    attributes:
+      label: Last 40 lines of log.txt / log.txt son 40 satır
+      render: text

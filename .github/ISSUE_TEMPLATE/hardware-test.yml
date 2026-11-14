@@ -1,0 +1,71 @@
+name: Hardware test report / Donanım test raporu
+description: Tried it on your card? Share the result; we measured only one GTX 1050 Ti. / Kendi kartınızda denediniz mi? Sonucu yazın; biz yalnız bir GTX 1050 Ti ölçtük.
+title: "[hardware] <GPU> · <VRAM> · <RAM>"
+labels: ["hardware-test"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you! Every report helps, whether it worked or not. Leave any field you do not know empty.
+        The numbers are in `run.json` next to the image (`outputs/<time>_<name>/run.json`).
+
+        Teşekkürler! Çalışsa da çalışmasa da her rapor işe yarar. Bilmediğiniz alanı boş bırakın.
+        Sayılar resmin yanındaki `run.json` dosyasındadır (`outputs/<zaman>_<ad>/run.json`).
+  - type: input
+    id: gpu
+    attributes:
+      label: GPU, memory, driver / Ekran kartı, bellek, sürücü
+      description: "Output of / çıktısı: `nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader`"
+      placeholder: "NVIDIA GeForce GTX 1050 Ti, 4096 MiB, 581.29"
+    validations:
+      required: true
+  - type: input
+    id: ram
+    attributes:
+      label: RAM and Windows version / RAM ve Windows sürümü
+      placeholder: "16 GB, Windows 10 22H2 (10.0.19045)"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version / Sürüm
+      description: Release tag or `git log -1 --format=%h` / Release etiketi ya da `git log -1 --format=%h`
+      placeholder: "v0.2.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: engine
+    attributes:
+      label: Engine / Motor
+      options:
+        - Prebuilt zip from Releases (sm_61) / Releases'taki hazır zip (sm_61)
+        - Built from patches/ for my card / patches/ ile kendi kartım için derledim
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Command / Komut
+      placeholder: "python scripts/generate.py --prompt-file prompts/eiffel.txt"
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Result from run.json / run.json sonucu
+      description: "`result`, `seconds`, `vae_mode`, `stages`, `gpu_memory_used_peak_mib`, `ram_free_min_mib`, `image_pixel_sha256`. Remove the `command` field if it shows a personal path. / Kişisel yol görünüyorsa `command` alanını silin."
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes / Notlar
+      description: Anything that differed from docs/MEASUREMENTS.md, error lines, what you changed. / docs/MEASUREMENTS.md'den farklı olan her şey, hata satırları, değiştirdikleriniz.
+  - type: checkboxes
+    id: credit
+    attributes:
+      label: Credit / Teşekkür
+      options:
+        - label: You may list this result with my GitHub name. / Bu sonucu GitHub adımla listeleyebilirsiniz.

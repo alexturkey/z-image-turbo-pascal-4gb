@@ -1,0 +1,34 @@
+  hashing z_image_turbo-Q8_0.gguf ... 10%
+  hashing z_image_turbo-Q8_0.gguf ... 20%
+  hashing z_image_turbo-Q8_0.gguf ... 30%
+  hashing z_image_turbo-Q8_0.gguf ... 40%
+  hashing z_image_turbo-Q8_0.gguf ... 50%
+  hashing z_image_turbo-Q8_0.gguf ... 60%
+  hashing z_image_turbo-Q8_0.gguf ... 70%
+  hashing z_image_turbo-Q8_0.gguf ... 80%
+  hashing z_image_turbo-Q8_0.gguf ... 90%
+  hashing z_image_turbo-Q8_0.gguf ... 100%
+MODEL_OK z_image_turbo-Q8_0.gguf
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 10%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 20%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 30%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 40%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 50%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 60%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 70%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 80%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 90%
+  hashing Qwen3-4B-Instruct-2507-Q8_0.gguf ... 100%
+MODEL_OK Qwen3-4B-Instruct-2507-Q8_0.gguf
+  hashing ae.safetensors ... 10%
+  hashing ae.safetensors ... 20%
+  hashing ae.safetensors ... 30%
+  hashing ae.safetensors ... 40%
+  hashing ae.safetensors ... 50%
+  hashing ae.safetensors ... 60%
+  hashing ae.safetensors ... 70%
+  hashing ae.safetensors ... 80%
+  hashing ae.safetensors ... 90%
+  hashing ae.safetensors ... 100%
+MODEL_OK ae.safetensors
+SETUP_OK

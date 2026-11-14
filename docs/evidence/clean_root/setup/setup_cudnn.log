@@ -1,0 +1,23 @@
+Downloading cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip from NVIDIA (366.9 MiB)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 10% (2.4 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 20% (3.0 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 30% (3.2 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 40% (3.3 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 50% (3.4 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 60% (3.4 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 70% (3.4 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 80% (3.4 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 90% (3.5 MiB/s)
+  cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip 100% (3.5 MiB/s)
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 10%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 21%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 30%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 41%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 50%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 61%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 71%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 80%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 91%
+  hashing cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip ... 100%
+CUDNN_OK
+SETUP_OK

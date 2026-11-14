@@ -1,0 +1,14 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Q&A / Soru-Cevap (Discussions)
+    url: https://github.com/alexturkey/z-image-turbo-pascal-4gb/discussions/categories/q-a
+    about: Ask install and usage questions here first. / Kurulum ve kullanım soruları için önce buraya yazın.
+  - name: Show and tell / Sonuç paylaş (Discussions)
+    url: https://github.com/alexturkey/z-image-turbo-pascal-4gb/discussions/categories/show-and-tell
+    about: Timings on your card, images you made. / Kartınızdaki süreler, ürettiğiniz resimler.
+  - name: Ideas / Fikirler (Discussions)
+    url: https://github.com/alexturkey/z-image-turbo-pascal-4gb/discussions/categories/ideas
+    about: Talk through ideas that are still taking shape. / Henüz netleşmemiş fikirleri birlikte konuşalım.
+  - name: Security vulnerability / Güvenlik açığı
+    url: https://github.com/alexturkey/z-image-turbo-pascal-4gb/security/policy
+    about: Do not file a public issue; follow SECURITY.md. / Herkese açık issue açmayın; SECURITY.md'deki yolu izleyin.

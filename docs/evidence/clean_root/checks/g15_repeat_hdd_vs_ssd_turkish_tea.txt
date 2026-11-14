@@ -1,0 +1,7 @@
+file_sha256_equal true
+pixel_sha256_a    d939afdc5dce90c041bbe8e5ab7b7ba22b811285fcc5ce25c01a058411d982b2
+pixel_sha256_b    d939afdc5dce90c041bbe8e5ab7b7ba22b811285fcc5ce25c01a058411d982b2
+max_abs_diff      0
+mean_abs_diff     0.0
+psnr_db           inf
+SAME_PIXELS

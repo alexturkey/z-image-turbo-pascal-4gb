@@ -159,6 +159,136 @@ class EndToEnd(unittest.TestCase):
             self.assertEqual((t / "m" / "a.gguf").read_bytes(), b"a" * 5000)
 
 
+class Cudnn(unittest.TestCase):
+    """Optional cuDNN step against a tiny fake archive (no network). Consent is never assumed."""
+
+    def make(self, t):
+        import zlib
+        src = t / "src"
+        src.mkdir()
+        dll = {"cudnn64_9.dll": b"d" * 300, "cudnn_ops64_9.dll": b"o" * 700}
+        with zipfile.ZipFile(src / "eng.zip", "w") as z:
+            z.writestr("sd-cli.exe", b"x")
+        with zipfile.ZipFile(src / "cu.zip", "w") as z:
+            z.writestr("cudart64_12.dll", b"y")
+        with zipfile.ZipFile(src / "cudnn.zip", "w") as z:
+            for n, b in dll.items():
+                z.writestr("arch/bin/" + n, b)
+            z.writestr("arch/LICENSE", b"license text")
+            z.writestr("arch/include/cudnn.h", b"header: must not be extracted")
+
+        def entry(name):
+            data = (src / name).read_bytes()
+            return {"name": name, "url": (src / name).as_uri(), "bytes": len(data),
+                    "sha256": hashlib.sha256(data).hexdigest(), "license": "test"}
+        cud = entry("cudnn.zip")
+        cud.update({"version": "9.test", "license_url": "https://example.invalid/license",
+                    "license_member": "arch/LICENSE", "license_save_as": "NVIDIA_cuDNN_LICENSE.txt",
+                    "members": [{"path": "arch/bin/" + n, "bytes": len(b), "crc32": "%08x" % zlib.crc32(b)}
+                                for n, b in dll.items()]})
+        model_src = src / "a.gguf"
+        model_src.write_bytes(b"a" * 100)
+        lock = {"models": [entry("a.gguf")], "engine": [entry("eng.zip"), entry("cu.zip")], "cudnn": cud}
+        (t / "lock.json").write_text(json.dumps(lock), encoding="utf-8")
+        return ["--lock", str(t / "lock.json"), "--models-dir", str(t / "m"), "--bin-dir", str(t / "b")], lock
+
+    def test_no_cudnn_flag_skips(self):
+        with tempfile.TemporaryDirectory() as t:
+            t = Path(t)
+            args, lock = self.make(t)
+            self.assertEqual(setup.main(args + ["--no-cudnn"]), 0)
+            self.assertFalse(setup.cudnn_installed(t / "b", lock["cudnn"]))
+            self.assertFalse(list((t / "b").rglob(setup.CUDNN_RECORD)))   # not installed, no record
+            self.assertEqual(setup.main(args + ["--check"]), 0)               # --check never downloads
+            self.assertFalse(setup.cudnn_installed(t / "b", lock["cudnn"]))
+
+    class FakeStdin:
+        """Stands in for stdin so the tests do not depend on how they were started."""
+        def __init__(self, tty, text=""):
+            import io
+            self.tty, self.buf = tty, io.StringIO(text)
+        def isatty(self):
+            return self.tty
+        def readline(self, *a):
+            return self.buf.readline()
+
+    def setUp(self):
+        self._stdin = sys.stdin
+        sys.stdin = self.FakeStdin(False)          # default: no terminal
+    def tearDown(self):
+        sys.stdin = self._stdin
+
+    def run_lines(self, args, stdin=None):
+        import contextlib, io
+        if stdin is not None:
+            sys.stdin = stdin
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = setup.main(args)
+        sys.stdin = self.FakeStdin(False)
+        return code, [x for x in buf.getvalue().splitlines() if x.strip()]
+
+    def test_markers(self):
+        with tempfile.TemporaryDirectory() as t:
+            t = Path(t)
+            args, lock = self.make(t)
+            code, lines = self.run_lines(args + ["--only", "models"])
+            self.assertEqual((code, lines[-1]), (0, "SETUP_PART_OK models"))   # a part is not the whole setup
+            self.assertNotIn("SETUP_OK", lines)
+            code, lines = self.run_lines(args + ["--no-cudnn"])
+            self.assertEqual((code, lines[-1]), (0, "SETUP_OK"))
+            self.assertIn("CUDNN_SKIPPED (not installed; generate.py will use --vae legacy)", lines)
+            self.assertFalse(any("NVIDIA's license" in x for x in lines))      # nothing downloaded, nothing announced
+
+    def test_installed_by_default_and_announced(self):
+        for stdin in (self.FakeStdin(False), self.FakeStdin(True), self.FakeStdin(True, "no" + chr(10))):
+            with tempfile.TemporaryDirectory() as t:
+                t = Path(t)
+                args, lock = self.make(t)
+                code, lines = self.run_lines(args, stdin)                      # no flag: never asks, never waits
+                self.assertEqual((code, lines[-1]), (0, "SETUP_OK"))
+                self.assertIn("CUDNN_OK", lines)
+                told = [x for x in lines if x.startswith("Downloading NVIDIA cuDNN under NVIDIA's license: ")]
+                self.assertEqual(len(told), 1, lines)
+                self.assertIn(lock["cudnn"]["license_url"], told[0])
+                self.assertIn("Use --no-cudnn to skip.", told[0])
+                self.assertLess(lines.index(told[0]), lines.index("CUDNN_OK"))  # said before it happens
+                b = t / "b"
+                self.assertTrue(setup.cudnn_installed(b, lock["cudnn"]))
+                rec = json.loads((b / setup.CUDNN_RECORD).read_text(encoding="utf-8"))
+                self.assertEqual(rec["mode"], "default_download_disclosed")
+                self.assertNotIn("accepted_by", rec)                           # nobody was asked: no such claim
+                code, lines = self.run_lines(args)                             # second run: nothing to download
+                self.assertEqual((code, lines[-1]), (0, "SETUP_OK"))
+                self.assertFalse(any("NVIDIA's license" in x for x in lines))
+
+    def test_installed_with_flag(self):
+        with tempfile.TemporaryDirectory() as t:
+            t = Path(t)
+            args, lock = self.make(t)
+            self.assertEqual(setup.main(args + ["--accept-cudnn-license"]), 0)
+            b = t / "b"
+            self.assertTrue(setup.cudnn_installed(b, lock["cudnn"]))
+            self.assertEqual((b / "cudnn64_9.dll").read_bytes(), b"d" * 300)
+            self.assertEqual((b / "NVIDIA_cuDNN_LICENSE.txt").read_bytes(), b"license text")
+            self.assertFalse(list(b.rglob("cudnn.h")))        # only the listed members leave the archive
+            rec = json.loads((b / setup.CUDNN_RECORD).read_text(encoding="utf-8"))
+            self.assertEqual(rec["license_sha256"], hashlib.sha256(b"license text").hexdigest())
+            self.assertEqual(rec["archive_sha256"], lock["cudnn"]["sha256"])
+            self.assertEqual(rec["mode"], setup.CUDNN_MODE)   # the old flag changes nothing
+            self.assertRegex(rec["installed_utc"], r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$")
+            self.assertFalse((b / "_downloads").exists())
+            self.assertEqual(setup.main(args + ["--check"]), 0)
+
+    def test_wrong_member_is_refused(self):
+        with tempfile.TemporaryDirectory() as t:
+            t = Path(t)
+            args, lock = self.make(t)
+            lock["cudnn"]["members"][0]["crc32"] = "00000000"
+            (t / "lock.json").write_text(json.dumps(lock), encoding="utf-8")
+            self.assertEqual(setup.main(args + ["--accept-cudnn-license"]), 1)
+
+
 class Cli(unittest.TestCase):
     def test_help_exits_zero(self):
         with self.assertRaises(SystemExit) as cm:

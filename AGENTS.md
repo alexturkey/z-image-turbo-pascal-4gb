@@ -4,6 +4,7 @@ You are setting up **Z-Image-Turbo text-to-image on a Windows 10/11 PC with an N
 Follow the steps in order. Each step has **Command**, **Expected** and **If it fails**. Do not skip a check; if an
 expectation fails, use the step's fix or the troubleshooting table at the end instead of improvising.
 Messages to the user may be in the user's language; commands are language-neutral.
+How to run the job (hardware first, one folder, progress notes, stop file, one GPU job, no leftover processes, second opinion on decisions, ask before risky steps): [`docs/AGENT_METHOD.md`](docs/AGENT_METHOD.md). Read it first if the user is new to agents.
 Evidence labels used here: "measured on GTX 1050 Ti 4 GB" (we ran it), "not tested" (we did not) and, only in `docs/OTHER_GPUS.md`, "community test" (someone else ran it and published it; we did not repeat it; never this repository's result).
 
 ## 0. Decide first
@@ -17,6 +18,7 @@ Evidence labels used here: "measured on GTX 1050 Ti 4 GB" (we ran it), "not test
                                           expect the last line: IMAGE_OK <path>
 4. Open <path>. Done.
 5. Not this hardware, or a step failed: do not improvise. Not this hardware: read docs/OTHER_GPUS.md first
+   (AMD on Windows: its section 4; work by docs/AGENT_METHOD.md)
    (which path exists for which card, with labels). Then, or if a step failed: Read patches/README.md, docs/BUILD.md,
    docs/MEASUREMENTS.md and docs/TROUBLESHOOTING.md, then tell the user what you found and what the options are.
 ```
@@ -38,6 +40,8 @@ If the card is not a 4 GB Pascal card, say so to the user before you download an
 | Claim results for other GPUs, less than 16 GB RAM, Linux or macOS | Not tested by us. The community test in `docs/OTHER_GPUS.md` is someone else's single machine with a different engine; never present it as this repository's result. |
 | Delete or move files outside the folders you were given | Use only the repo folder, `--models-dir`, `--bin-dir` and `outputs/`. |
 | Commit, push or publish for the user | Only the user decides that. |
+
+The rows about the engine build and the offload/mmap/flash-attn options cover the released NVIDIA path in this file. On other hardware, `docs/OTHER_GPUS.md` uses an upstream engine and may change memory and backend options with a before/after measurement; the model files, steps, cfg, sampler, scheduler and "no negative prompt" stay the same everywhere.
 
 ## 2. Prerequisites
 
@@ -134,6 +138,7 @@ Prompt writing tips: `docs/PROMPTS.md`. One generation at a time.
 ## 6. If the hardware does not fit
 
 Different card, less than 16 GB RAM, Linux or macOS: do not try to make this work by editing the scripts. Everything the engine needs is open:
+- `docs/AGENT_METHOD.md`: how to run the job step by step without harming the machine (notes, locks, second opinion).
 - `docs/OTHER_GPUS.md`: which path for which card, what carries over (model files, settings) and what does not (scripts, engine zip), a community test on AMD with Linux, and how to report a result.
 - `patches/README.md`: the engine patches, their order, the CMake flags of the released engine.
 - `docs/BUILD.md`: how to build for another card, and what we did and did not test.

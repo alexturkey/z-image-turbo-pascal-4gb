@@ -143,6 +143,7 @@ No reducimos los pasos, no añadimos un prompt negativo ni activamos la caché: 
 
 - **Solo Windows.** El motor precompilado y estos scripts son solo para Windows.
 - **Una tarjeta, una máquina.** Medido únicamente en un portátil con GTX 1050 Ti de 4 GB (i7-7700HQ, 16 GB de RAM, Windows 10, controlador 581.29, modelos en un SSD). Otras GPU y controladores, máquinas con menos de 16 GB de RAM, Linux y macOS: **no probados**.
+- Otras tarjetas y sistemas (qué camino existe, y una prueba de la comunidad con una tarjeta AMD en Linux que no hicimos nosotros): [docs/OTHER_GPUS.md](docs/OTHER_GPUS.md).
 - **El motor está compilado solo para Pascal (sm_61).** Otras arquitecturas necesitan una compilación propia ([`docs/BUILD.md`](docs/BUILD.md)); no probamos ninguna.
 - **cuDNN:** medimos con la compilación para CUDA 11 de cuDNN 9.10.2.21. La compilación para CUDA 12 tiene archivos distintos y no se midió.
 - **La memoria va justa.** La RAM libre baja a unos pocos cientos de MiB; cierra otros programas y genera una imagen cada vez. No hemos visto que la memoria de la GPU se agote después de superar la comprobación de memoria del motor, y no probamos qué pasa entonces.

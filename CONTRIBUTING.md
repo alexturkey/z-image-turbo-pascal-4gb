@@ -7,6 +7,7 @@ We measured **one card** (GTX 1050 Ti 4 GB, 16 GB RAM, Windows 10), so the most 
 
 **Test your card, write a report.** No coding needed: run `python scripts/setup.py` and `python scripts/generate.py --prompt-file prompts/eiffel.txt`, then fill in the
 [Hardware test report](https://github.com/alexturkey/z-image-turbo-pascal-4gb/issues/new?template=hardware-test.yml) form: GPU, driver, RAM, and the numbers from `run.json` next to the picture (`outputs/<time>_<name>/run.json`).
+Not on Windows with NVIDIA? Read [`docs/OTHER_GPUS.md`](docs/OTHER_GPUS.md) first: it says which path exists for your card; the same form takes your result.
 Write even if it failed; an error is a finding too. Cards we have no data for are the most interesting: other 4 GB cards, 6 GB and 8 GB cards, machines with less than 16 GB RAM, other Windows or driver versions.
 
 **Other ways to help**
@@ -18,7 +19,7 @@ Write even if it failed; an error is a finding too. Cards we have no data for ar
 Rules:
 - The tests pass: `python -B -m unittest discover -s tests`.
 - **Image quality is not lowered.** The settings in `scripts/generate.py` (8 steps, cfg 1.0, Q8_0) are the tested point. A change that touches the pixels is accepted when the pixels are identical (`python scripts/compare.py A.png B.png` prints `SAME_PIXELS`) or when it is closer to the reference decode, with the before/after numbers (see "Quality" in `docs/MEASUREMENTS.md`).
-- Every new number names its command, hardware, date and number of runs. Do not write a number you did not measure; write "not tested".
+- Every new number names its command, hardware, date and number of runs. Do not write a number you did not measure; write "not tested". Exception: a published community result may be quoted in `docs/OTHER_GPUS.md`, labelled "community test", with its author, link, hardware, date and number of runs; never in `docs/MEASUREMENTS.md`.
 - No binary files in pull requests (exe, dll, zip, model files). The maintainer publishes engine packages on Releases.
 - No image of a real person, and no personal paths or names in files; run `python scripts/privacy_scan.py .` before you send.
 - Python 3.10, standard library only: the scripts have no dependencies.
@@ -34,6 +35,7 @@ Yalnız **tek bir kartı** ölçtük (GTX 1050 Ti 4 GB, 16 GB RAM, Windows 10); 
 
 **Kartını test et, rapor yaz.** Kod bilmen gerekmez: `python scripts/setup.py` ve `python scripts/generate.py --prompt-file prompts/eiffel.txt` komutlarını çalıştır, sonra
 [Donanım test raporu](https://github.com/alexturkey/z-image-turbo-pascal-4gb/issues/new?template=hardware-test.yml) formunu doldur: ekran kartı, sürücü, RAM ve resmin yanındaki `run.json` içindeki sayılar (`outputs/<zaman>_<ad>/run.json`).
+Windows ve NVIDIA dışındaysan önce [`docs/OTHER_GPUS.md`](docs/OTHER_GPUS.md) belgesini oku: kartın için hangi yol olduğunu söyler; sonucunu aynı form alır.
 Çalışmadıysa da yaz; hata da bulgudur. Verimiz olmayan kartlar en ilginç olanlar: öteki 4 GB kartlar, 6 GB ve 8 GB kartlar, 16 GB'tan az RAM'li makineler, başka Windows ya da sürücü sürümleri.
 
 **Başka yardım yolları**
@@ -45,7 +47,7 @@ Yalnız **tek bir kartı** ölçtük (GTX 1050 Ti 4 GB, 16 GB RAM, Windows 10); 
 Kurallar:
 - Testler geçer: `python -B -m unittest discover -s tests`.
 - **Görüntü kalitesi düşürülmez.** `scripts/generate.py` içindeki ayarlar (8 adım, cfg 1.0, Q8_0) denenmiş noktadır. Pikselleri değiştiren bir değişiklik, pikseller aynıysa (`python scripts/compare.py A.png B.png` çıktısı `SAME_PIXELS`) ya da referans çözüme daha yakınsa, önce/sonra sayılarıyla kabul edilir (`docs/MEASUREMENTS.md` içindeki "Quality" bölümüne bak).
-- Her yeni sayının komutu, donanımı, tarihi ve koşu sayısı yazılır. Ölçmediğin sayıyı yazma; "not tested" yaz.
+- Her yeni sayının komutu, donanımı, tarihi ve koşu sayısı yazılır. Ölçmediğin sayıyı yazma; "not tested" yaz. İstisna: yayımlanmış bir topluluk sonucu `docs/OTHER_GPUS.md` içinde "community test" etiketiyle, yazarı, bağlantısı, donanımı, tarihi ve koşu sayısıyla alıntılanabilir; `docs/MEASUREMENTS.md` içine asla.
 - PR'a ikili dosya (exe, dll, zip, model dosyası) girmez. Motor paketlerini bakımcı Releases'e koyar.
 - Gerçek bir kişinin görüntüsü ve dosyalarda kişisel yol ya da ad olmaz; göndermeden önce `python scripts/privacy_scan.py .` çalıştır.
 - Python 3.10, yalnız standart kitaplık: betiklerin bağımlılığı yok.

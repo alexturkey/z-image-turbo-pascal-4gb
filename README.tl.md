@@ -143,6 +143,7 @@ Hindi namin ibinababa ang mga hakbang, hindi kami nagdaragdag ng negative prompt
 
 - **Windows lang.** Para sa Windows lang ang prebuilt na engine at ang mga script na ito.
 - **Isang card, isang makina.** Sa isang laptop na GTX 1050 Ti 4 GB lang ito sinukat (i7-7700HQ, 16 GB na RAM, Windows 10, driver 581.29, mga model sa SSD). Ibang mga GPU at driver, mga makinang wala pang 16 GB na RAM, Linux at macOS: **hindi pa nasubukan**.
+- Ibang card at sistema (aling daan ang mayroon, at isang community test sa AMD card sa Linux na hindi namin pinatakbo mismo): [docs/OTHER_GPUS.md](docs/OTHER_GPUS.md).
 - **Para sa Pascal (sm_61) lang ang pagkaka-build ng engine.** Kailangan ng sarili mong build ang ibang arkitektura ([`docs/BUILD.md`](docs/BUILD.md)); wala kaming sinubukan.
 - **cuDNN:** sinukat namin gamit ang CUDA 11 build ng cuDNN 9.10.2.21. Iba ang mga file ng CUDA 12 build at hindi ito nasukat.
 - **Masikip ang memorya.** Bumababa ang libreng RAM sa ilang daang MiB; isara ang ibang mga programa, at isang larawan lang ang gawin sa bawat pagkakataon. Wala kaming nakitang naubusan ng memorya ang GPU matapos pumasa ang memory check ng engine, at hindi namin sinubukan kung ano ang nangyayari kapag ganoon.

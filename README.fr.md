@@ -143,6 +143,7 @@ Nous ne baissons pas le nombre d'étapes, n'ajoutons pas de prompt négatif et n
 
 - **Windows uniquement.** Le moteur précompilé et ces scripts ne fonctionnent que sous Windows.
 - **Une carte, une machine.** Mesuré uniquement sur un portable avec GTX 1050 Ti de 4 GB (i7-7700HQ, 16 GB de RAM, Windows 10, pilote 581.29, modèles sur un SSD). Autres GPU et pilotes, machines avec moins de 16 GB de RAM, Linux et macOS : **non testés**.
+- Autres cartes et systèmes (quelle voie existe, et un test communautaire sur une carte AMD sous Linux que nous n'avons pas exécuté nous-mêmes) : [docs/OTHER_GPUS.md](docs/OTHER_GPUS.md).
 - **Le moteur n'est compilé que pour Pascal (sm_61).** Les autres architectures demandent une compilation personnelle ([`docs/BUILD.md`](docs/BUILD.md)) ; nous n'en avons testé aucune.
 - **cuDNN :** nous avons mesuré avec le build CUDA 11 de cuDNN 9.10.2.21. Le build CUDA 12 contient d'autres fichiers et n'a pas été mesuré.
 - **La mémoire est juste.** La RAM libre tombe à quelques centaines de MiB ; fermez les autres programmes, générez une image à la fois. Nous n'avons jamais vu la mémoire GPU manquer après que la vérification de mémoire du moteur a réussi, et nous n'avons pas testé ce qui se passerait alors.

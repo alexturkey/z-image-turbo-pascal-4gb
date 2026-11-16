@@ -143,6 +143,7 @@ Emme vähennä askelia, lisää negatiivista kehotetta (negative prompt) emmekä
 
 - **Vain Windows.** Valmiiksi käännetty moottori ja nämä skriptit toimivat vain Windowsissa.
 - **Yksi kortti, yksi kone.** Mitattu vain GTX 1050 Ti 4 GB:n kannettavalla (i7-7700HQ, 16 GB RAM, Windows 10, ajuri 581.29, mallit SSD-levyllä). Muut GPU:t ja ajurit, koneet joissa on alle 16 GB RAM-muistia, Linux ja macOS: **ei testattu**.
+- Muut näytönohjaimet ja järjestelmät (mikä polku on olemassa, sekä yhteisön testi AMD-kortilla Linuxissa, jota emme itse ajaneet): [docs/OTHER_GPUS.md](docs/OTHER_GPUS.md).
 - **Moottori on käännetty vain Pascalille (sm_61).** Muut arkkitehtuurit tarvitsevat oman buildin ([`docs/BUILD.md`](docs/BUILD.md)); emme testanneet sellaista.
 - **cuDNN:** mittasimme cuDNN 9.10.2.21:n CUDA 11 -buildilla. CUDA 12 -buildissa on eri tiedostot, eikä sitä mitattu.
 - **Muisti on tiukalla.** Vapaa RAM putoaa muutamaan sataan MiB:iin; sulje muut ohjelmat ja aja yksi kuva kerrallaan. Emme ole nähneet GPU-muistin loppuvan sen jälkeen, kun moottorin muistitarkistus meni läpi, emmekä testanneet, mitä silloin tapahtuu.

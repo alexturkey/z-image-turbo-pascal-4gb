@@ -28,7 +28,7 @@ For the order of steps see [AGENTS.md](../AGENTS.md). Every message below is pri
 | Dialog about `vcruntime140_1.dll` or `MSVCP140.dll` | Microsoft Visual C++ runtime missing | Install `vc_redist.x64.exe` from https://aka.ms/vs/17/release/vc_redist.x64.exe. |
 | Dialog about a missing `cudnn...64_9.dll` | cuDNN is partly installed | Delete the `cudnn*64_9.dll` files next to `sd-cli.exe`, then run `python scripts/setup.py --only cudnn` (it downloads cuDNN under NVIDIA's license, see above) or use `--vae legacy`. |
 | `sd-cli.exe --help` prints nothing or crashes | Antivirus blocked the file, or a wrong engine build | Check `ENGINE_OK` in setup; allow the file in your antivirus. Other builds of the engine: not tested. |
-| Log shows no CUDA device | Driver too old or no NVIDIA GPU | `nvidia-smi` must work and report CUDA 12.8 or higher. |
+| Log shows no CUDA device | Driver too old or no NVIDIA GPU | `nvidia-smi` must work and report CUDA 12.8 or higher. Not an NVIDIA card: see [`OTHER_GPUS.md`](OTHER_GPUS.md). |
 | `ERROR: sd-cli.exe not found in <dir>. Run: python scripts/setup.py` | `--bin-dir` does not match the folder you gave to setup | Use the same `--bin-dir` for both scripts. |
 | `ERROR: missing model file <path>. Run: python scripts/setup.py` | `--models-dir` does not match, or setup did not finish | Use the same `--models-dir` for both scripts and finish setup. |
 

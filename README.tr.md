@@ -143,6 +143,7 @@ Adımları düşürmeyiz, olumsuz istem eklemeyiz, önbelleği açmayız: model 
 
 - **Yalnız Windows.** Hazır motor ve bu betikler yalnız Windows içindir.
 - **Bir kart, bir makine.** Yalnız bir GTX 1050 Ti 4 GB dizüstünde ölçüldü (i7-7700HQ, 16 GB RAM, Windows 10, sürücü 581.29, modeller SSD'de). Öteki GPU'lar ve sürücüler, 16 GB'tan az RAM'li makineler, Linux ve macOS: **denenmedi**.
+- Diğer kartlar ve sistemler (hangi yol var ve kendimiz çalıştırmadığımız, Linux'ta bir AMD kartla yapılmış topluluk testi): [docs/OTHER_GPUS.md](docs/OTHER_GPUS.md).
 - **Motor yalnız Pascal (sm_61) için derlendi.** Öteki mimariler kendi derlemeni ister ([`docs/BUILD.md`](docs/BUILD.md)); birini denemedik.
 - **cuDNN:** cuDNN 9.10.2.21'in CUDA 11 derlemesiyle ölçtük. CUDA 12 derlemesinin dosyaları farklıdır ve ölçülmedi.
 - **Bellek dar.** Boş RAM birkaç yüz MiB'a düşer; öteki programları kapat, her seferinde bir resim üret. Motorun bellek denetimi geçtikten sonra GPU belleğinin bittiğini görmedik ve o durumda ne olduğunu denemedik.

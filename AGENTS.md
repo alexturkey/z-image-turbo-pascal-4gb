@@ -4,7 +4,7 @@ You are setting up **Z-Image-Turbo text-to-image on a Windows 10/11 PC with an N
 Follow the steps in order. Each step has **Command**, **Expected** and **If it fails**. Do not skip a check; if an
 expectation fails, use the step's fix or the troubleshooting table at the end instead of improvising.
 Messages to the user may be in the user's language; commands are language-neutral.
-Evidence labels used here: "measured on GTX 1050 Ti 4 GB" (we ran it) and "not tested" (we did not).
+Evidence labels used here: "measured on GTX 1050 Ti 4 GB" (we ran it), "not tested" (we did not) and, only in `docs/OTHER_GPUS.md`, "community test" (someone else ran it and published it; we did not repeat it; never this repository's result).
 
 ## 0. Decide first
 
@@ -16,11 +16,12 @@ Evidence labels used here: "measured on GTX 1050 Ti 4 GB" (we ran it) and "not t
 3. python scripts/generate.py --prompt-file prompts/eiffel.txt
                                           expect the last line: IMAGE_OK <path>
 4. Open <path>. Done.
-5. Not this hardware, or a step failed: do not improvise. Read patches/README.md, docs/BUILD.md,
+5. Not this hardware, or a step failed: do not improvise. Not this hardware: read docs/OTHER_GPUS.md first
+   (which path exists for which card, with labels). Then, or if a step failed: Read patches/README.md, docs/BUILD.md,
    docs/MEASUREMENTS.md and docs/TROUBLESHOOTING.md, then tell the user what you found and what the options are.
 ```
 
-If the card is not a 4 GB Pascal card, say so to the user before you download anything (about 12 GB): the engine in this repository is built for compute capability 6.1 only and other cards are not tested.
+If the card is not a 4 GB Pascal card, say so to the user before you download anything (about 12 GB): the engine in this repository is built for compute capability 6.1 only and other cards are not tested by us. `docs/OTHER_GPUS.md` says which path exists for the user's card; one AMD card on Linux has a community test there (not ours, unpatched upstream engine).
 
 ## 1. Hard rules (do not do these, with reasons)
 
@@ -34,7 +35,7 @@ If the card is not a 4 GB Pascal card, say so to the user before you download an
 | Open a browser or other heavy program during a run | Free RAM fell to a few hundred MiB during measured runs (16 GB machine). The engine process peaked around 10 667–10 915 MiB. |
 | Replace the engine with another build | The engine zip carries the Pascal patches. Other builds: not tested. |
 | Put models on a spinning disk | Measured twice on one 2 TB laptop hard disk: 325 s and 378 s per picture (see `docs/MEASUREMENTS.md`); use an SSD. Other hard disks: not tested. |
-| Claim results for other GPUs, less than 16 GB RAM, Linux or macOS | Not tested. |
+| Claim results for other GPUs, less than 16 GB RAM, Linux or macOS | Not tested by us. The community test in `docs/OTHER_GPUS.md` is someone else's single machine with a different engine; never present it as this repository's result. |
 | Delete or move files outside the folders you were given | Use only the repo folder, `--models-dir`, `--bin-dir` and `outputs/`. |
 | Commit, push or publish for the user | Only the user decides that. |
 
@@ -133,6 +134,7 @@ Prompt writing tips: `docs/PROMPTS.md`. One generation at a time.
 ## 6. If the hardware does not fit
 
 Different card, less than 16 GB RAM, Linux or macOS: do not try to make this work by editing the scripts. Everything the engine needs is open:
+- `docs/OTHER_GPUS.md`: which path for which card, what carries over (model files, settings) and what does not (scripts, engine zip), a community test on AMD with Linux, and how to report a result.
 - `patches/README.md`: the engine patches, their order, the CMake flags of the released engine.
 - `docs/BUILD.md`: how to build for another card, and what we did and did not test.
 - `docs/MEASUREMENTS.md`: what was measured, so the user can compare.
@@ -159,5 +161,5 @@ More cases in `docs/TROUBLESHOOTING.md`.
 
 ## Maintenance
 
-- A change to settings, engine or models is accepted only with a before/after measurement on the same seed and a human look at the pictures. Record it in `docs/MEASUREMENTS.md` with the label "measured on ..." or "not tested".
+- A change to settings, engine or models is accepted only with a before/after measurement on the same seed and a human look at the pictures. Record it in `docs/MEASUREMENTS.md` with the label "measured on ..." or "not tested". A result someone else published goes to `docs/OTHER_GPUS.md` as "community test", with author, link, hardware, date and number of runs.
 - Do not add personal paths, names, e-mail addresses or machine-specific names to any file; run `python scripts/privacy_scan.py .` before the user commits. By default it does not scan `licenses/` (verbatim upstream texts) and prints `CLEAN: <n> file(s) scanned, 0 finding(s)`. With `--scan-licenses` it reports exactly one finding, an e-mail address in the upstream author's copyright line in `licenses/LICENSE-oniguruma-BSD-2-Clause.txt`; the BSD license requires us to keep it, so it is not a problem. Report any other finding to the user.

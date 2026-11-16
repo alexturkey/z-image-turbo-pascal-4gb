@@ -143,6 +143,7 @@ Vi reduserer ikke antall steg, legger ikke til noen negativ prompt og slår ikke
 
 - **Bare Windows.** Den ferdige motoren og disse skriptene finnes bare for Windows.
 - **Ett kort, én maskin.** Målt bare på en bærbar PC med GTX 1050 Ti 4 GB (i7-7700HQ, 16 GB RAM, Windows 10, driver 581.29, modeller på en SSD). Andre GPU-er og drivere, maskiner med mindre enn 16 GB RAM, Linux og macOS: **ikke testet**.
+- Andre kort og systemer (hvilken vei som finnes, og en fellesskapstest på et AMD-kort under Linux som vi ikke har kjørt selv): [docs/OTHER_GPUS.md](docs/OTHER_GPUS.md).
 - **Motoren er bare bygget for Pascal (sm_61).** Andre arkitekturer trenger et eget bygg ([`docs/BUILD.md`](docs/BUILD.md)). Vi har ikke testet noe slikt.
 - **cuDNN:** Vi målte med CUDA 11-bygget av cuDNN 9.10.2.21. CUDA 12-bygget har andre filer og ble ikke målt.
 - **Minnet er knapt.** Ledig RAM synker til noen få hundre MiB. Lukk andre programmer, og kjør ett bilde om gangen. Vi har ikke sett GPU-minnet gå tomt etter at motorens minnesjekk var bestått, og vi har ikke testet hva som skjer hvis det skulle skje.

@@ -142,6 +142,7 @@ python scripts/generate.py --prompt-file prompts/eiffel.txt --width 1344 --heigh
 
 - **仅限 Windows。** 预编译的引擎和这些脚本只支持 Windows。
 - **一张显卡，一台机器。** 只在一台 GTX 1050 Ti 4 GB 笔记本上测量过（i7-7700HQ，16 GB 内存，Windows 10，驱动 581.29，模型放在 SSD 上）。其他 GPU 和驱动、内存小于 16 GB 的机器、Linux 和 macOS：**未测试**。
+- 其他显卡和系统(有哪条路可走,以及一项我们自己未运行的、在 Linux 下 AMD 显卡上的社区测试):[docs/OTHER_GPUS.md](docs/OTHER_GPUS.md)。
 - **引擎只为 Pascal（sm_61）编译。** 其他架构需要你自己编译（[`docs/BUILD.md`](docs/BUILD.md)）；我们没有测试过。
 - **cuDNN：** 我们使用 cuDNN 9.10.2.21 的 CUDA 11 构建进行测量。CUDA 12 构建的文件不同，也没有测量过。
 - **内存很紧张。** 空闲内存会降到几百 MiB；请关闭其他程序，一次只生成一张图。引擎的显存检查通过之后，我们没有遇到过 GPU 显存耗尽的情况，也没有测试过耗尽时会发生什么。

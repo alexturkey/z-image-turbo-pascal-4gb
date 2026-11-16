@@ -161,6 +161,7 @@ The same prompt, seed and setup gave identical pixels in repeated runs: two pair
 - cuDNN CUDA 12 build (its files differ from the CUDA 11 build we used; speed and pixels may differ).
 - Other quantizations (Q4_0 etc.), other step counts, cfg other than 1.0.
 - The unpatched upstream engine on this card: we did not run it, so we cannot say whether it fits or how fast it is.
+- AMD and other non-NVIDIA cards. A community test on one AMD card under Linux (another engine, another machine) is in [`OTHER_GPUS.md`](OTHER_GPUS.md); its numbers are not ours and are not in these tables.
 - Prompt-following quality beyond the examples (village: the round doors came out as separate huts, not dug into the hill, so prompt match was partial).
 - Repeated runs for a spread: most rows are single runs.
 - GPU power draw (laptop `nvidia-smi` reports N/A). Earlier readings, development build: GPU utilisation about 86 %, temperature peak 66 C, clock about 1544 to 1582 MHz median with a software power cap in part of the samples.

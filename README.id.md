@@ -143,6 +143,7 @@ Kami tidak menurunkan jumlah langkah, tidak menambahkan negative prompt, dan tid
 
 - **Hanya Windows.** Mesin siap pakai dan skrip-skrip ini hanya untuk Windows.
 - **Satu kartu, satu mesin.** Diukur hanya pada laptop GTX 1050 Ti 4 GB (i7-7700HQ, RAM 16 GB, Windows 10, driver 581.29, model di SSD). GPU dan driver lain, mesin dengan RAM kurang dari 16 GB, Linux, dan macOS: **tidak diuji**.
+- Kartu dan sistem lain (jalur apa yang tersedia, dan uji komunitas pada kartu AMD di Linux yang tidak kami jalankan sendiri): [docs/OTHER_GPUS.md](docs/OTHER_GPUS.md).
 - **Mesin hanya dibangun untuk Pascal (sm_61).** Arsitektur lain memerlukan build buatan Anda sendiri ([`docs/BUILD.md`](docs/BUILD.md)); kami tidak menguji satu pun.
 - **cuDNN:** kami mengukur dengan build CUDA 11 dari cuDNN 9.10.2.21. Build CUDA 12 berisi berkas yang berbeda dan tidak diukur.
 - **Memori sangat mepet.** RAM bebas turun ke beberapa ratus MiB; tutup program lain, jalankan satu gambar dalam satu waktu. Kami belum pernah melihat memori GPU habis setelah pemeriksaan memori mesin lolos, dan kami tidak menguji apa yang terjadi saat itu.

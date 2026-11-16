@@ -143,6 +143,7 @@ Kami tidak mengurangkan bilangan langkah, tidak menambah negative prompt dan tid
 
 - **Windows sahaja.** Enjin siap pakai dan skrip ini hanya untuk Windows.
 - **Satu kad, satu mesin.** Diukur hanya pada komputer riba GTX 1050 Ti 4 GB (i7-7700HQ, RAM 16 GB, Windows 10, pemacu 581.29, model pada SSD). GPU dan pemacu lain, mesin dengan RAM kurang daripada 16 GB, Linux dan macOS: **tidak diuji**.
+- Kad dan sistem lain (laluan yang wujud, dan ujian komuniti pada kad AMD di Linux yang tidak kami jalankan sendiri): [docs/OTHER_GPUS.md](docs/OTHER_GPUS.md).
 - **Enjin hanya dibina untuk Pascal (sm_61).** Seni bina lain memerlukan binaan anda sendiri ([`docs/BUILD.md`](docs/BUILD.md)); kami tidak menguji satu pun.
 - **cuDNN:** kami mengukur dengan binaan CUDA 11 bagi cuDNN 9.10.2.21. Binaan CUDA 12 mempunyai fail yang berbeza dan tidak diukur.
 - **Memori sangat terhad.** RAM kosong jatuh kepada beberapa ratus MiB; tutup program lain, jalankan satu imej pada satu masa. Kami belum pernah melihat memori GPU kehabisan selepas semakan memori enjin lulus, dan kami tidak menguji apa yang berlaku ketika itu.

@@ -142,7 +142,8 @@ We do not lower the steps, add a negative prompt or enable caching: the model is
 ## Limits (read before you rely on it)
 
 - **Windows only.** The prebuilt engine and these scripts are Windows only.
-- **One card, one machine.** Measured only on a GTX 1050 Ti 4 GB laptop (i7-7700HQ, 16 GB RAM, Windows 10, driver 581.29, models on an SSD). Other GPUs and drivers, machines with less than 16 GB RAM, Linux and macOS: **not tested**.
+- **One card, one machine.** Measured only on a GTX 1050 Ti 4 GB laptop (i7-7700HQ, 16 GB RAM, Windows 10, driver 581.29, models on an SSD). Other GPUs and drivers, machines with less than 16 GB RAM, Linux and macOS: **not tested by us**.
+- Other cards and systems (which path exists, and a community test on an AMD card under Linux that we did not run ourselves): [docs/OTHER_GPUS.md](docs/OTHER_GPUS.md).
 - **The engine is built for Pascal (sm_61) only.** Other architectures need a build of your own ([`docs/BUILD.md`](docs/BUILD.md)); we did not test one.
 - **cuDNN:** we measured with the CUDA 11 build of cuDNN 9.10.2.21. The CUDA 12 build has different files and was not measured.
 - **Memory is tight.** Free RAM falls to a few hundred MiB; close other programs, run one picture at a time. We have not seen GPU memory run out after the engine's memory check passed, and we did not test what happens then.

@@ -1,7 +1,7 @@
 # Building the engine for your own card
 
 The release zip contains an engine built for **NVIDIA Pascal, compute capability 6.1 (sm_61)** only. If you have a different card, or you want to check what is in the zip, build it yourself from the sources and the patches in this repository.
-**What we tested:** one build for sm_61, on the measured GTX 1050 Ti laptop. **What we did not test:** any other architecture, Linux, macOS, Vulkan or ROCm builds. Read "What may not carry over" before you spend an hour compiling.
+**What we tested:** one build for sm_61, on the measured GTX 1050 Ti laptop. **What we did not test:** any other architecture, Linux, macOS, Vulkan or ROCm builds. A community member built the unpatched upstream engine with ROCm for an AMD card on Linux; that test and a path table for other cards are in [`OTHER_GPUS.md`](OTHER_GPUS.md). Whether our patches help on AMD is not tested. Read "What may not carry over" before you spend an hour compiling.
 
 ## What you need
 

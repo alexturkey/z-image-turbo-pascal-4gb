@@ -143,6 +143,7 @@ Hatupunguzi hatua, hatuongezi negative prompt wala hatuwashi caching: modeli ili
 
 - **Windows pekee.** Injini iliyotengenezwa tayari na hati hizi ni za Windows pekee.
 - **Kadi moja, mashine moja.** Imepimwa kwenye kompyuta mpakato moja tu ya GTX 1050 Ti GB 4 (i7-7700HQ, RAM ya GB 16, Windows 10, dereva 581.29, modeli kwenye SSD). GPU na dereva nyingine, mashine zenye RAM chini ya GB 16, Linux na macOS: **havijajaribiwa**.
+- Kadi na mifumo mingine (njia ipi ipo, na jaribio la jumuiya kwenye kadi ya AMD chini ya Linux ambalo hatukuliendesha sisi wenyewe): [docs/OTHER_GPUS.md](docs/OTHER_GPUS.md).
 - **Injini imejengwa kwa Pascal (sm_61) pekee.** Miundo mingine inahitaji muundo wako mwenyewe ([`docs/BUILD.md`](docs/BUILD.md)); hatukujaribu hata mmoja.
 - **cuDNN:** tulipima kwa muundo wa CUDA 11 wa cuDNN 9.10.2.21. Muundo wa CUDA 12 una faili tofauti na haukupimwa.
 - **Kumbukumbu ni finyu.** RAM huru hushuka hadi mamia machache ya MiB; funga programu nyingine, tengeneza picha moja kwa wakati. Hatujaona kumbukumbu ya GPU ikiisha baada ya ukaguzi wa kumbukumbu wa injini kupita, na hatukujaribu kinachotokea hapo.

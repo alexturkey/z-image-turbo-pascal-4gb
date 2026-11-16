@@ -8,22 +8,49 @@ body:
       value: |
         Thank you! Every report helps, whether it worked or not. Leave any field you do not know empty.
         The numbers are in `run.json` next to the image (`outputs/<time>_<name>/run.json`).
+        Not on Windows with NVIDIA, or you ran `sd-cli` directly? Welcome too: fill in OS, GPU API and engine, and paste the timing lines of the log instead of `run.json`. Paths by card: docs/OTHER_GPUS.md.
 
         Teşekkürler! Çalışsa da çalışmasa da her rapor işe yarar. Bilmediğiniz alanı boş bırakın.
         Sayılar resmin yanındaki `run.json` dosyasındadır (`outputs/<zaman>_<ad>/run.json`).
+        Windows ve NVIDIA dışında mısınız ya da `sd-cli`'yi doğrudan mı çalıştırdınız? Onu da bekliyoruz: işletim sistemi, GPU API ve motoru doldurun, `run.json` yerine günlükteki süre satırlarını yapıştırın. Karta göre yollar: docs/OTHER_GPUS.md.
   - type: input
     id: gpu
     attributes:
       label: GPU, memory, driver / Ekran kartı, bellek, sürücü
-      description: "Output of / çıktısı: `nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader`"
+      description: "NVIDIA: `nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader`. AMD (Linux): `rocminfo` or / ya da `sd-cli --list-devices`. Others: name, memory, driver / Diğerleri: ad, bellek, sürücü."
       placeholder: "NVIDIA GeForce GTX 1050 Ti, 4096 MiB, 581.29"
     validations:
       required: true
   - type: input
     id: ram
     attributes:
-      label: RAM and Windows version / RAM ve Windows sürümü
-      placeholder: "16 GB, Windows 10 22H2 (10.0.19045)"
+      label: RAM and OS version / RAM ve işletim sistemi sürümü
+      placeholder: "16 GB, Windows 10 22H2 (10.0.19045) / 32 GB, Ubuntu 24.04.5"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system / İşletim sistemi
+      options:
+        - Windows
+        - Linux
+        - macOS
+        - Other / Diğer
+    validations:
+      required: true
+  - type: dropdown
+    id: gpu_api
+    attributes:
+      label: GPU API / GPU API'si
+      options:
+        - CUDA (NVIDIA)
+        - ROCm / HIP (AMD)
+        - Vulkan
+        - Metal (Apple)
+        - SYCL (Intel)
+        - CPU only / Yalnız CPU
+        - Other / Diğer
     validations:
       required: true
   - type: input
@@ -41,21 +68,22 @@ body:
       options:
         - Prebuilt zip from Releases (sm_61) / Releases'taki hazır zip (sm_61)
         - Built from patches/ for my card / patches/ ile kendi kartım için derledim
+        - Upstream stable-diffusion.cpp without our patches (commit in Notes) / Yamasız upstream stable-diffusion.cpp (commit Notlar'da)
     validations:
       required: true
-  - type: input
+  - type: textarea
     id: command
     attributes:
       label: Command / Komut
       placeholder: "python scripts/generate.py --prompt-file prompts/eiffel.txt"
+      render: shell
     validations:
       required: true
   - type: textarea
     id: result
     attributes:
-      label: Result from run.json / run.json sonucu
-      description: "`result`, `seconds`, `vae_mode`, `stages`, `gpu_memory_used_peak_mib`, `ram_free_min_mib`, `image_pixel_sha256`. Remove the `command` field if it shows a personal path. / Kişisel yol görünüyorsa `command` alanını silin."
-      render: json
+      label: Result (run.json, or log timing lines) / Sonuç (run.json ya da günlükteki süre satırları)
+      description: "`result`, `seconds`, `vae_mode`, `stages`, `gpu_memory_used_peak_mib`, `ram_free_min_mib`, `image_pixel_sha256`. Remove the `command` field if it shows a personal path. / Kişisel yol görünüyorsa `command` alanını silin. Direct `sd-cli` run: paste the timing lines of the log, size and seed. / Doğrudan `sd-cli`: günlükteki süre satırları, boyut ve tohum."
     validations:
       required: true
   - type: textarea

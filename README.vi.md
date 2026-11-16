@@ -143,6 +143,7 @@ Chúng tôi không giảm số bước, không thêm negative prompt và không 
 
 - **Chỉ Windows.** Engine dựng sẵn và các script này chỉ dành cho Windows.
 - **Một card, một máy.** Chỉ được đo trên một laptop GTX 1050 Ti 4 GB (i7-7700HQ, 16 GB RAM, Windows 10, driver 581.29, các model trên SSD). Các GPU và driver khác, máy có dưới 16 GB RAM, Linux và macOS: **chưa được thử**.
+- Các card và hệ thống khác (có con đường nào, và một bài thử của cộng đồng trên card AMD dưới Linux mà chúng tôi không tự chạy): [docs/OTHER_GPUS.md](docs/OTHER_GPUS.md).
 - **Engine chỉ được build cho Pascal (sm_61).** Các kiến trúc khác cần bản build riêng của bạn ([`docs/BUILD.md`](docs/BUILD.md)); chúng tôi chưa thử bản nào.
 - **cuDNN:** chúng tôi đo với bản build CUDA 11 của cuDNN 9.10.2.21. Bản build CUDA 12 có các tệp khác và chưa được đo.
 - **Bộ nhớ rất chật.** RAM trống tụt xuống vài trăm MiB; hãy đóng các chương trình khác, mỗi lần chỉ tạo một ảnh. Chúng tôi chưa thấy bộ nhớ GPU cạn sau khi bước kiểm tra bộ nhớ của engine đã qua, và chúng tôi chưa thử điều gì xảy ra khi đó.

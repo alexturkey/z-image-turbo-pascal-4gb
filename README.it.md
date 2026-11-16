@@ -143,6 +143,7 @@ Non riduciamo i passi, non aggiungiamo un negative prompt e non attiviamo la cac
 
 - **Solo Windows.** Il motore precompilato e questi script sono solo per Windows.
 - **Una scheda, una macchina.** Misurato solo su un portatile con GTX 1050 Ti da 4 GB (i7-7700HQ, 16 GB di RAM, Windows 10, driver 581.29, modelli su SSD). Altre GPU e altri driver, macchine con meno di 16 GB di RAM, Linux e macOS: **non testati**.
+- Altre schede e sistemi (quale strada esiste, e un test della community su una scheda AMD con Linux che non abbiamo eseguito noi): [docs/OTHER_GPUS.md](docs/OTHER_GPUS.md).
 - **Il motore è compilato solo per Pascal (sm_61).** Le altre architetture richiedono una compilazione tua ([`docs/BUILD.md`](docs/BUILD.md)); non ne abbiamo testata nessuna.
 - **cuDNN:** abbiamo misurato con la build per CUDA 11 di cuDNN 9.10.2.21. La build per CUDA 12 ha file diversi e non è stata misurata.
 - **La memoria è al limite.** La RAM libera scende a poche centinaia di MiB; chiudi gli altri programmi e genera un'immagine alla volta. Non abbiamo visto la memoria GPU esaurirsi dopo che il controllo della memoria del motore era passato, e non abbiamo testato cosa succede in quel caso.

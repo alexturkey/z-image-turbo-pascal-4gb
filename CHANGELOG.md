@@ -3,6 +3,15 @@
 Format after [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [Semantic Versioning](https://semver.org/).
 Numbers come from [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md); where a number is not there, it is not claimed here.
 
+## [Unreleased]
+
+### Added
+- `docs/OTHER_GPUS.md`: which path for which card or system (measured by us, community test, not tested), what carries over and what does not, and a community test on an AMD RX 6600 XT with Ubuntu and ROCm, adapted from the report by Hakan ([hknklnc10](https://gist.github.com/hknklnc10/fa19ea3813238bd64853be2a814e4f18)). Thank you.
+- Pointers to it in the READMEs (all languages), `AGENTS.md`, `docs/BUILD.md`, `docs/MEASUREMENTS.md` and `CONTRIBUTING.md`.
+
+### Changed
+- The hardware test report form asks for the operating system, the GPU API and the engine, so reports from Linux, AMD and direct `sd-cli` runs fit.
+
 ## [0.2.0]
 
 Engine, VAE path, evidence and documents. The pictures of v0.2.0 are not byte-identical to v0.1.0 for the same prompt and seed, because the VAE path changed on purpose.

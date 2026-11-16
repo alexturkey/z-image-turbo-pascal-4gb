@@ -143,6 +143,7 @@ Nie zmniejszamy liczby kroków, nie dodajemy negatywnego promptu i nie włączam
 
 - **Tylko Windows.** Gotowy silnik i te skrypty działają wyłącznie w systemie Windows.
 - **Jedna karta, jedna maszyna.** Zmierzono tylko na laptopie z GTX 1050 Ti 4 GB (i7-7700HQ, 16 GB RAM-u, Windows 10, sterownik 581.29, modele na dysku SSD). Inne karty graficzne i sterowniki, maszyny z mniej niż 16 GB RAM-u, Linux i macOS: **nie testowano**.
+- Inne karty i systemy (jaka ścieżka istnieje oraz test społeczności na karcie AMD pod Linuksem, którego sami nie uruchamialiśmy): [docs/OTHER_GPUS.md](docs/OTHER_GPUS.md).
 - **Silnik jest zbudowany tylko dla Pascala (sm_61).** Inne architektury wymagają własnej kompilacji ([`docs/BUILD.md`](docs/BUILD.md)); żadnej nie testowaliśmy.
 - **cuDNN:** mierzyliśmy z kompilacją cuDNN 9.10.2.21 dla CUDA 11. Kompilacja dla CUDA 12 ma inne pliki i nie była mierzona.
 - **Pamięci jest mało.** Wolny RAM spada do kilkuset MiB; zamknij inne programy i generuj jeden obraz naraz. Nie widzieliśmy, żeby pamięć GPU się skończyła po przejściu kontroli pamięci przez silnik, i nie testowaliśmy, co się wtedy dzieje.

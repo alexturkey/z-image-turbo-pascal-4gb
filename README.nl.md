@@ -143,6 +143,7 @@ We verlagen de stappen niet, voegen geen negatieve prompt toe en zetten caching 
 
 - **Alleen Windows.** De kant-en-klare engine en deze scripts zijn alleen voor Windows.
 - **Eén kaart, één machine.** Alleen gemeten op een laptop met GTX 1050 Ti 4 GB (i7-7700HQ, 16 GB RAM, Windows 10, driver 581.29, modellen op een SSD). Andere GPU's en drivers, machines met minder dan 16 GB RAM, Linux en macOS: **niet getest**.
+- Andere kaarten en systemen (welke weg er is, en een communitytest op een AMD-kaart onder Linux die we niet zelf hebben uitgevoerd): [docs/OTHER_GPUS.md](docs/OTHER_GPUS.md).
 - **De engine is alleen voor Pascal (sm_61) gebouwd.** Andere architecturen vragen een eigen build ([`docs/BUILD.md`](docs/BUILD.md)); wij hebben er geen getest.
 - **cuDNN:** we hebben gemeten met de CUDA 11-build van cuDNN 9.10.2.21. De CUDA 12-build heeft andere bestanden en is niet gemeten.
 - **Het geheugen is krap.** Het vrije RAM zakt tot een paar honderd MiB; sluit andere programma's en maak één afbeelding tegelijk. We hebben niet gezien dat het GPU-geheugen opraakte nadat de geheugencontrole van de engine was gepasseerd, en we hebben niet getest wat er dan gebeurt.

@@ -143,6 +143,7 @@ Wir senken die Schritte nicht, fügen keinen Negativ-Prompt hinzu und aktivieren
 
 - **Nur Windows.** Die vorgebaute Engine und diese Skripte gibt es nur für Windows.
 - **Eine Karte, ein Rechner.** Gemessen nur auf einem Laptop mit GTX 1050 Ti 4 GB (i7-7700HQ, 16 GB RAM, Windows 10, Treiber 581.29, Modelle auf einer SSD). Andere GPUs und Treiber, Rechner mit weniger als 16 GB RAM, Linux und macOS: **nicht getestet**.
+- Andere Karten und Systeme (welcher Weg existiert, und ein Community-Test auf einer AMD-Karte unter Linux, den wir nicht selbst ausgeführt haben): [docs/OTHER_GPUS.md](docs/OTHER_GPUS.md).
 - **Die Engine ist nur für Pascal (sm_61) gebaut.** Andere Architekturen brauchen einen eigenen Build ([`docs/BUILD.md`](docs/BUILD.md)); wir haben keinen getestet.
 - **cuDNN:** Wir haben mit dem CUDA-11-Build von cuDNN 9.10.2.21 gemessen. Der CUDA-12-Build hat andere Dateien und wurde nicht gemessen.
 - **Der Speicher ist knapp.** Der freie RAM sinkt auf wenige hundert MiB; schließe andere Programme und erzeuge jeweils ein Bild. Wir haben nicht erlebt, dass der GPU-Speicher ausging, nachdem die Speicherprüfung der Engine bestanden war, und wir haben nicht getestet, was dann passiert.

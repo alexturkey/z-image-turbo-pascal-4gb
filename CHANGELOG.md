@@ -8,8 +8,11 @@ Numbers come from [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md); where a number
 ### Added
 - `docs/OTHER_GPUS.md`: which path for which card or system (measured by us, community test, not tested), what carries over and what does not, and a community test on an AMD RX 6600 XT with Ubuntu and ROCm, adapted from the report by Hakan ([hknklnc10](https://gist.github.com/hknklnc10/fa19ea3813238bd64853be2a814e4f18)). Thank you.
 - Pointers to it in the READMEs (all languages), `AGENTS.md`, `docs/BUILD.md`, `docs/MEASUREMENTS.md` and `CONTRIBUTING.md`.
+- `docs/AGENT_METHOD.md`: how an AI agent should run the job for a beginner: hardware inventory first, one project folder, progress notes so nothing is done twice, a stop file, one GPU job at a time, no leftover processes, roles and a second opinion on important decisions, what to ask the user first, evidence labels.
+- `docs/OTHER_GPUS.md` section 4: a suggested first path for AMD cards on Windows (upstream prebuilt Vulkan zip, then ROCm), not tested.
 
 ### Changed
+- `AGENTS.md`: the hard rules about the engine build and memory options are scoped to the released NVIDIA path; quality settings stay fixed everywhere.
 - The hardware test report form asks for the operating system, the GPU API and the engine, so reports from Linux, AMD and direct `sd-cli` runs fit.
 
 ## [0.2.0]

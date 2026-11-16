@@ -21,15 +21,15 @@ Three labels are used here and they are never mixed:
 | Other NVIDIA card, Windows | Build the engine from our patches with your CUDA architecture: [`BUILD.md`](BUILD.md). Several patches are tuned for Pascal; read "What may not carry over" there | not tested |
 | NVIDIA card, Linux | Build the engine yourself: our patches with [`BUILD.md`](BUILD.md) (its steps are written for Windows), or upstream "Build with CUDA" | not tested |
 | AMD card, Linux (ROCm) | Section 3 below: unpatched upstream engine, built with HIP, run directly with `sd-cli` | community test (one RX 6600 XT 8 GB) |
-| AMD card, Windows (ROCm / HIP SDK) | Upstream build guide, section "Build with HIPBLAS", Windows part: [docs/build.md](https://github.com/leejet/stable-diffusion.cpp/blob/master/docs/build.md) | not tested |
-| AMD, Intel or other card through Vulkan (Windows or Linux) | Upstream build guide, section "Build with Vulkan" | not tested |
+| AMD card, Windows | Section 4 below: upstream prebuilt Windows zip, Vulkan first, ROCm second; building with HIPBLAS ([upstream docs/build.md](https://github.com/leejet/stable-diffusion.cpp/blob/master/docs/build.md), Windows part) last | not tested |
+| AMD, Intel or other card through Vulkan (Windows or Linux) | Upstream publishes a prebuilt Windows Vulkan zip (section 4); otherwise the upstream build guide, section "Build with Vulkan" | not tested |
 | Intel Arc through SYCL | Upstream build guide, section "Build with SYCL" | not tested |
 | Apple Silicon Mac (Metal) | Upstream build guide, section "Build with Metal" | not tested |
 | No GPU | Upstream lists a CPU backend; speed with these 10 GB of model files unknown | not tested |
 
 The backend list (CPU, CUDA, Vulkan, Metal, OpenCL, SYCL) is from the upstream [stable-diffusion.cpp README](https://github.com/leejet/stable-diffusion.cpp); HIP (AMD) has its own section in the upstream build guide. Both were read on 2026-11-16. Upstream says these backends exist; it does not say how fast Z-Image-Turbo Q8_0 runs on them.
 
-If your card is in a "not tested" row and you try it, please report it (section 5): that is how a row moves to "community test".
+If your card is in a "not tested" row and you try it, please report it (section 6): that is how a row moves to "community test".
 
 ## 2. What carries over from this repository, and what does not
 
@@ -165,14 +165,36 @@ The report also lists what did **not** help on this card: a `GGML_CUDA_FORCE_CUB
 
 How to install ROCm 7.2.4 (see AMD's [ROCm installation guide](https://rocm.docs.amd.com/en/latest/install/rocm.html)), adding your user to the `render` and `video` groups (mentioned only under troubleshooting), how to get cmake 3.31 on Ubuntu 24.04, machines with less RAM than 31 GiB, other AMD cards and other ROCm versions. These are open; if you work one of them out, please report it.
 
-## 4. For AI agents
+## 4. AMD card on Windows: a suggested first path (not tested)
+
+> **Not tested by us, and no community test yet.** This is a reading of the upstream releases and build files (read on 2026-11-16), written so that an agent does not have to build anything first. If you try it, please report the result (section 6). Work by [`AGENT_METHOD.md`](AGENT_METHOD.md); the folder names below (`repo\`, `engine\`, `models\`, `outputs\`, `logs\`, `notes\`) are from its section 2.
+
+Upstream stable-diffusion.cpp publishes prebuilt Windows zips on its [releases page](https://github.com/leejet/stable-diffusion.cpp/releases), among them a **Vulkan** build (`sd-master-<commit>-bin-win-vulkan-x64.zip`) and a **ROCm** build (`sd-master-<commit>-bin-win-rocm-<version>-x64.zip`). Upstream releases often. Choose the newest release **once**, write its tag and the zip's SHA-256 into `notes\DECISIONS.md`, and keep using that tag; do not switch to a newer one silently.
+
+1. **Hardware first** ([`AGENT_METHOD.md`](AGENT_METHOD.md) section 1): card, video memory, AMD driver version. Do not install or change a driver without the user's approval.
+2. **Model files**, from the project folder: `python repo\scripts\setup.py --only models --models-dir models`. Its Preflight prints a GPU `WARNING` on AMD (it looks for NVIDIA); that is expected here: tell the user in one line and go on. The last line must be `SETUP_PART_OK models`. Do not run the full `setup.py` or `generate.py`.
+3. **Engine, first try Vulkan.** Download the Vulkan zip of the chosen release into `engine\` (`curl.exe -L -C - -o engine\<zip> <url>`), compare `Get-FileHash engine\<zip> -Algorithm SHA256` with the `sha256:` digest GitHub shows for that file (`gh api repos/leejet/stable-diffusion.cpp/releases/tags/<tag>`, field `assets[].digest`, or the release page), unpack it with `Expand-Archive engine\<zip> engine\vulkan`, find `sd-cli.exe` in it and run `sd-cli.exe --list-devices`. The card must be listed. That the Vulkan zip needs nothing besides the AMD graphics driver is our guess, not tested.
+4. **Fallback: ROCm.** If the card is not listed, or the first picture fails twice, try the ROCm zip of the same release in `engine\rocm\`, with the same checks. The upstream build workflow for this zip lists RDNA4 targets (`gfx1200;gfx1201`) among others and packs only a few HIP runtime DLLs into it; whether it runs with a normal AMD driver, without AMD's HIP SDK, is not tested. Installing the [HIP SDK](https://rocm.docs.amd.com/projects/install-on-windows/en/latest/reference/system-requirements.html) needs administrator rights and the user's approval. Building from source ("Build with HIPBLAS", Windows part, in the upstream [build guide](https://github.com/leejet/stable-diffusion.cpp/blob/master/docs/build.md)) comes last, and only after asking the user.
+5. **First picture**, from the project folder, hidden, logged and under the GPU lock (replace `engine\vulkan\sd-cli.exe` with the real path you found):
+   ```powershell
+   $args1 = '--diffusion-model models\z_image_turbo-Q8_0.gguf --llm models\Qwen3-4B-Instruct-2507-Q8_0.gguf --vae models\ae.safetensors --offload-to-cpu --mmap --sampling-method euler --scheduler simple --steps 8 --cfg-scale 1.0 --seed 42 --width 768 --height 1344 --output outputs\test_vulkan.png --prompt-file repo\prompts\eiffel.txt'
+   $p = Start-Process -FilePath engine\vulkan\sd-cli.exe -ArgumentList $args1 -WindowStyle Hidden -PassThru -RedirectStandardOutput logs\test_vulkan.txt -RedirectStandardError logs\test_vulkan.err
+   Set-Content logs\gpu.lock "$($p.Id) first picture"
+   $p.WaitForExit(); Remove-Item logs\gpu.lock
+   ```
+   Then read the end of both log files and open `outputs\test_vulkan.png`. One GPU job at a time.
+6. **Memory options.** Cards with 12 GB or more may not need `--offload-to-cpu`, which this repository uses for 4 GB; that is a guess, not a measurement. Change it only with a before/after run on the same seed and a look at both pictures ([`AGENT_METHOD.md`](AGENT_METHOD.md) section 9). Steps, cfg, sampler, scheduler and the model files stay as they are.
+
+## 5. For AI agents
 
 1. Find the user's row in section 1 before downloading anything, and tell the user its label in one line.
 2. Do not edit `scripts/` to make them run on another system (see [`AGENTS.md`](../AGENTS.md)). Call `sd-cli` directly with the settings from section 2.
-3. On AMD with Linux, follow section 3 and say plainly that it is a community test on one RX 6600 XT, not a measurement by this repository.
-4. Do not present any number from section 3 as this repository's result, and do not promise speed on a "not tested" row.
-5. When it is done, offer the user to send a hardware test report (section 5), with their consent.
+3. Work by [`AGENT_METHOD.md`](AGENT_METHOD.md) (hardware first, one folder, notes, one GPU job, second opinion, ask before risky steps).
+4. On AMD with Linux, follow section 3 and say plainly that it is a community test on one RX 6600 XT, not a measurement by this repository.
+5. On AMD with Windows, follow section 4 and say plainly that it is not tested.
+6. Do not present any number from section 3 as this repository's result, and do not promise speed on a "not tested" row.
+7. When it is done, offer the user to send a hardware test report (section 6), with their consent.
 
-## 5. Report your card
+## 6. Report your card
 
 Use the [Hardware test report](https://github.com/alexturkey/z-image-turbo-pascal-4gb/issues/new?template=hardware-test.yml) form. It has fields for the operating system, the GPU API (CUDA, ROCm/HIP, Vulkan, Metal, SYCL) and the engine you used, so a direct `sd-cli` run on Linux fits too. Include the command, the size, the seed and the timing lines from the log. A failure is a finding as well.

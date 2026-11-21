@@ -1,0 +1,9 @@
+[V] Initializing backend: MTL0 --- ggml_extend_backend.cpp:421
+[V] qwen3 compute buffer size: 23.89 MB(VRAM) on MTL0 (peak across 1 segment) --- execution_engine.cpp:725
+[I] get_learned_condition completed, taking 11.39s --- image.cpp:662
+[V] z_image compute buffer size: 794.26 MB(VRAM) on MTL0 (peak across 1 segment) --- execution_engine.cpp:725
+[I] sampling completed, taking 172.84s --- image.cpp:1037
+[V] vae compute buffer size: 6552.00 MB(VRAM) on MTL0 (peak across 1 segment) --- execution_engine.cpp:725
+[I] decode_first_stage completed, taking 10.87s --- image.cpp:757
+[I] generate_image completed in 195.13s --- image.cpp:1227
+[I] save result image 0 to '<REPO>/outputs/20261116_004521_eiffel/image.png' (success) --- main.cpp:508

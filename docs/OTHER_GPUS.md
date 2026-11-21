@@ -24,7 +24,7 @@ Three labels are used here and they are never mixed:
 | AMD card, Windows | Section 4 below: upstream prebuilt Windows zip, Vulkan first, ROCm second; building with HIPBLAS ([upstream docs/build.md](https://github.com/leejet/stable-diffusion.cpp/blob/master/docs/build.md), Windows part) last | not tested |
 | AMD, Intel or other card through Vulkan (Windows or Linux) | Upstream publishes a prebuilt Windows Vulkan zip (section 4); otherwise the upstream build guide, section "Build with Vulkan" | not tested |
 | Intel Arc through SYCL | Upstream build guide, section "Build with SYCL" | not tested |
-| Apple Silicon Mac (Metal) | Upstream build guide, section "Build with Metal" | not tested |
+| Apple Silicon Mac (Metal) | [Mac setup guide](../MACOS.md), using a pinned upstream Metal package; section 3a below | community test (one Apple M5, 16 GB) |
 | No GPU | Upstream lists a CPU backend; speed with these 10 GB of model files unknown | not tested |
 
 The backend list (CPU, CUDA, Vulkan, Metal, OpenCL, SYCL) is from the upstream [stable-diffusion.cpp README](https://github.com/leejet/stable-diffusion.cpp); HIP (AMD) has its own section in the upstream build guide. Both were read on 2026-11-16. Upstream says these backends exist; it does not say how fast Z-Image-Turbo Q8_0 runs on them.
@@ -164,6 +164,45 @@ The report also lists what did **not** help on this card: a `GGML_CUDA_FORCE_CUB
 ### Not covered by the report
 
 How to install ROCm 7.2.4 (see AMD's [ROCm installation guide](https://rocm.docs.amd.com/en/latest/install/rocm.html)), adding your user to the `render` and `video` groups (mentioned only under troubleshooting), how to get cmake 3.31 on Ubuntu 24.04, machines with less RAM than 31 GiB, other AMD cards and other ROCm versions. These are open; if you work one of them out, please report it.
+
+## 3a. Community test: Apple M5, macOS, Metal
+
+> **Community test, not a maintainer measurement.** Reported by
+> [eburakars](https://github.com/eburakars) from one Mac on **2026-11-16**.
+> This contribution publishes the [sanitized evidence](evidence/macos_m5/README.md).
+> The maintainer has not repeated it. Other Macs, lower memory sizes and other
+> macOS versions are not tested by this report.
+
+| Part | Reported setup |
+|---|---|
+| Machine | MacBook Air, Apple M5, 8 GPU cores, 16 GB unified memory, SSD |
+| OS | macOS 26.5.1, arm64 |
+| Engine | Official upstream Metal package `master-1088-32d516c`, commit `32d516c0197ed5ca31305b8575e14eb1451fad33`; no Pascal patches or cuDNN |
+| Models | The three original files in `models.lock.json`, size/SHA-256 verified |
+| Prompt, settings | `prompts/eiffel.txt`, seed 42, 768x1344, 8 steps, CFG 1.0, Euler/simple, offload, mmap, eager load, flash attention on, no negative prompt |
+
+One successful CLI run. The wrapper invocation, normalized engine arguments and
+timing lines are recorded in the evidence directory:
+
+| Wrapper wall time | Text encoding | Sampling | VAE decode | Engine generation stage |
+|---|---|---|---|---|
+| 196.4 s | 11.39 s | 172.84 s | 10.87 s | 195.13 s |
+
+The saved PNG was visually checked for a recognisable Eiffel Tower, and its decoded
+RGB SHA-256 was independently re-read:
+`5e64c6759bd3db39955459b8e3e6ec953281daf5a94adf3b596f91bb97527e7e`.
+No image binary is included. Peak process RAM and GPU memory were not recorded.
+
+This run used the original Python generation wrapper, with `--vae legacy` and a
+Mac-only `sd-cli.exe` symlink pointing to the native Mach-O executable. It is not
+the full Windows setup. The wrapper's Windows-only counters and VAE-path fields
+do not measure Metal; null/false values there are not evidence of a particular
+Metal decode path or of Windows-quality parity. The log confirms execution on `MTL0`.
+
+The [Mac setup guide](../MACOS.md) uses the native CLI directly for future runs.
+Its direct invocation was not separately timed. There is no same-hardware
+before/after comparison, repeated-seed test, or speed claim for other Macs.
+These numbers are not comparable with the maintainer's Windows/Pascal tables.
 
 ## 4. AMD card on Windows: a suggested first path (not tested)
 

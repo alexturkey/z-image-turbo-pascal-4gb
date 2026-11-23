@@ -52,6 +52,9 @@ them without downloading anything.
 The [upstream release](https://github.com/leejet/stable-diffusion.cpp/releases/tag/master-1088-32d516c)
 is `master-1088-32d516c`, commit `32d516c0197ed5ca31305b8575e14eb1451fad33`.
 Check the archive against its published SHA-256 before extracting it:
+(The maintainers compared the size and SHA-256 below with the digest GitHub shows for
+`sd-master-32d516c-bin-Darwin-macOS-26.7.2-arm64.zip` on the release page on 2026-11-23: they match.
+If the page ever shows a different digest, stop and open an issue.)
 
 ```sh
 python3 - <<'PY'

@@ -1,4 +1,4 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
   - name: Q&A / Soru-Cevap (Discussions)
     url: https://github.com/alexturkey/z-image-turbo-pascal-4gb/discussions/categories/q-a
@@ -12,3 +12,6 @@ contact_links:
   - name: Security vulnerability / Güvenlik açığı
     url: https://github.com/alexturkey/z-image-turbo-pascal-4gb/security/policy
     about: Do not file a public issue; follow SECURITY.md. / Herkese açık issue açmayın; SECURITY.md'deki yolu izleyin.
+  - name: Help and response times / Yardım ve yanıt süreleri
+    url: https://github.com/alexturkey/z-image-turbo-pascal-4gb/blob/main/SUPPORT.md
+    about: Where to go for what (goals, not commitments). / Hangi iş için nereye gidilir (hedef, taahhüt değil).

@@ -80,6 +80,14 @@ python scripts/generate.py --prompt-file prompts/eiffel.txt
 - **cuDNN varsayılan olarak kurulur ve bu deponun parçası değildir.** NVIDIA'nın kendi lisansı altındaki NVIDIA yazılımıdır ve NVIDIA ekran kartlı sistemler içindir ([lisans metni](https://docs.nvidia.com/deeplearning/cudnn/backend/latest/reference/eula.html)). NVIDIA'nın sunucusundan ödeme istenmeden ve oturum açmadan iner; lisansta ticari ya da kişisel kullanımı sınırlayan bir madde bulamadık. `setup.py` lisans adresini yazar, dosyayı indirir ve yalnız sekiz DLL'yi `sd-cli.exe`'nin yanına kopyalar. NVIDIA'nın lisansı, koşullarını kabul etmeyen kimsenin onu indirmemesi, kurmaması ve kullanmaması gerektiğini söyler; bu durumda `python scripts/setup.py --no-cudnn` çalıştır. cuDNN olmadan da her şey, daha yavaş olan v0.1.0 VAE yoluyla (`--vae legacy`) çalışır ve `generate.py` bunu söyler.
 - `generate.py`, `outputs/<YYYYmmdd_HHMMSS>_<name>/image.png`, `run.json` (süre, aşamalar, hangi VAE yolunun çalıştığı, GPU belleği tepesi, tam komut) ve `log.txt` yazar ve `IMAGE_OK <path>` yazdırır.
 
+## Disk düzeni ve kaldırma
+
+Betiklerin kurduğu her şey sizin seçtiğiniz klasörlerde durur: modeller `models/` klasörüne (ya da `--models-dir` ile verdiğinize), motor ve DLL'leri `bin/` klasörüne (ya da `--bin-dir`), her üretimin resmi ve notları `outputs/` altına gider. Varsayılan olarak üçü de depo klasörünün içindedir. Betikler yalnız Python standart kitaplığını kullanır: başka bir yerde pip ya da model önbelleği yoktur; sistem PATH'ine, kullanıcı profiline ve registry'ye hiçbir şey yazılmaz. Motorun zip dosyaları yalnız kurulum sürerken motor klasörünün geçici bir alt klasöründe durur, sonra silinir.
+
+Model dosyaları zaten sizde mi? Onları tutan klasörü `--models-dir` ile verin: sha256'sı doğru dosya korunur, yeniden indirilmez; yarım kalan indirme `.part` dosyasından sürer. Hiçbir şey yazılmadan önce nelerin ineceğini ve diskin yetip yetmediğini görmek için kurucuyu önce kuru çalıştırma seçeneğiyle çalıştırın (hiçbir şey yazmaz, ağ bağlantısı açmaz).
+
+**Kaldırma:** çalışan bir üretim varsa kapatın, sonra kullandığınız klasörleri silin (varsayılan: depo klasöründeki `models/`, `bin/` ve `outputs/`). Depo klasörünün kendisi yalnız betik ve belge tutar. Kaldırma bu kadar.
+
 ## Kullanım
 
 ```powershell

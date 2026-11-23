@@ -82,6 +82,28 @@ For the order of steps see [AGENTS.md](../AGENTS.md). Every message below is pri
 | Unreadable text inside the picture | Text in pictures was not tested | Add the text afterwards in an image editor. |
 | Your picture differs from the one in the README for the same prompt and seed | Different VAE path (`vae_path` in `run.json`), different engine or cuDNN build, or different size | Compare `PIXEL_SHA256` only with a run that used the same `vae_path`; use `python scripts/compare.py` to see how far apart two pictures are. |
 
+<a id="error-codes"></a>
+## Error codes
+
+The scripts print the message without a code. Each message has a stable code in [`hata_imzalari.json`](hata_imzalari.json) (plain text signatures, a first step in English and Turkish); `python scripts/tani.py --log <file>` looks them up for you. The message pieces are checked against the scripts by `tests/test_agents_hizli.py`.
+
+| Code | You see | First step |
+|---|---|---|
+| `ZIMG-E-SHA` | `sha256 mismatch` | Run the same command again; if it repeats, do not edit `models.lock.json`, open an issue. |
+| `ZIMG-E-INDIRME` | `download failed after 6 tries` | Run the same command again (it resumes); check network, proxy, firewall. |
+| `ZIMG-E-HTTP` | `HTTP 404 for <url>` | Running again will not help; open an issue with the file name and address. |
+| `ZIMG-E-DISK` | `... GiB is needed` | Free space or use another drive with `--models-dir` and `--bin-dir`. |
+| `ZIMG-E-KILIT` | `cannot read lock file` | Run from a complete copy of the repository. |
+| `ZIMG-E-MOTOR` | `sd-cli.exe not found in` | `python scripts/setup.py` (or `--only engine`). |
+| `ZIMG-E-CUDART` | `cudart64_*.dll not found` | Delete the engine folder, `python scripts/setup.py --only engine`. |
+| `ZIMG-E-CUDNN` | `cuDNN DLLs are incomplete` | `python scripts/setup.py --only cudnn`, or `--vae legacy`. |
+| `ZIMG-E-MODEL` | `missing model file` | `python scripts/setup.py` with the same `--models-dir`. |
+| `ZIMG-E-BOYUT` | `Fix: use the tested size` | Multiples of 16 from 256 to 2048, or no `--width`/`--height`. |
+| `ZIMG-E-ISTEM` | `the prompt is empty` / `cannot read prompt file` | Pass `--prompt` or an existing UTF-8 `--prompt-file`. |
+| `ZIMG-E-URETIM` | `FAILED: sd-cli exit code` | Read `log.txt` and `run.json` in the output folder; close other programs. |
+
+Check your machine without downloading anything: `python scripts/setup.py --dry-run` (ends with `DRYRUN_OK`, or with a disk `ERROR:` and exit code 3).
+
 ## Reporting a problem
 
 Open an issue with: GPU name and `nvidia-smi` driver version, Windows version, free RAM at start, the command, the last 30 lines of the log and `run.json`.

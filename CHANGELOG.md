@@ -11,10 +11,17 @@ Numbers come from [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md); where a number
 - `docs/AGENT_METHOD.md`: how an AI agent should run the job for a beginner: hardware inventory first, one project folder, progress notes so nothing is done twice, a stop file, one GPU job at a time, no leftover processes, roles and a second opinion on important decisions, what to ask the user first, evidence labels.
 - `docs/OTHER_GPUS.md` section 4: a suggested first path for AMD cards on Windows (upstream prebuilt Vulkan zip, then ROCm), not tested.
 - `docs/OTHER_GPUS.md` section 3b: community test on an RTX 2060 laptop 6 GB (Windows 11, unpatched upstream CUDA12 build), reported by @MuhammedGUVEN108 in issue #5; labelled `[user-reported, issue #5]`, not repeated by us. Thank you.
+- `python scripts/setup.py --dry-run`: prints what would be downloaded and whether the disk is big enough; writes nothing, creates no folder, opens no network connection. Ends with `DRYRUN_OK` (exit 0) or a disk `ERROR:` line (exit 3). Without the option nothing changes.
+- `scripts/denetim.py` (`--hizli`, `--tam`) with `scripts/on_kontrol.cmd`: quick pre-pull-request checks (hidden characters, privacy scan, fixed quality settings, pinned lock file, error code file); `scripts/tani.py`: a local diagnosis report that sends nothing and hides names; `kur.cmd`: double-click launcher for the installer (dry run first).
+- `docs/hata_imzalari.json` and an "Error codes" table in `docs/TROUBLESHOOTING.md`: a stable code (`ZIMG-E-...`) and a first step in English and Turkish for each script message; the message text itself is unchanged. `AGENTS_HIZLI.md` (quick card for agents), `llms.txt`, `GEMINI.md`, `.github/copilot-instructions.md`; `AGENTS.md` and `CLAUDE.md` now point to one source.
+- `PRIVACY.md`, `SUPPORT.md`, `.github/release.yml`, `.github/dependabot.yml` and a check workflow in report mode (runs on pull_request and on pushes to main, never pull_request_target) (`.github/workflows/denetim.yml`, actions pinned to commit SHAs, read-only permissions).
+- `SECURITY.md`: 7-day first-reply target (a goal, not a promise), supported versions, AI agent paragraph. `CONTRIBUTING.md`: first pull request in 5 steps, evidence labels, no-reply e-mail note, one language is enough. README (English and Turkish): "Disk layout and removal"; `AGENTS.md`: "Install layout and agent discipline". The other 27 README translations do not have the new section yet.
+- `scripts/repo_kapi.json`: the repository's settings for the repository kit.
 
 ### Changed
 - `AGENTS.md`: the hard rules about the engine build and memory options are scoped to the released NVIDIA path; quality settings stay fixed everywhere.
 - The hardware test report form asks for the operating system, the GPU API and the engine, so reports from Linux, AMD and direct `sd-cli` runs fit.
+- The issue chooser no longer offers a blank issue (the forms and the Discussions links cover every case).
 
 ## [0.2.0]
 

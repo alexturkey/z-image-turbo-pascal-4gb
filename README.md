@@ -80,6 +80,14 @@ python scripts/generate.py --prompt-file prompts/eiffel.txt
 - **cuDNN is installed by default and is not part of this repository.** It is NVIDIA software under NVIDIA's own license ([license text](https://docs.nvidia.com/deeplearning/cudnn/backend/latest/reference/eula.html)), for systems with NVIDIA GPUs. It downloads from NVIDIA's server without payment or sign-in, and we found no clause in the license that limits commercial or personal use. `setup.py` prints the license address, downloads the file and copies only eight DLLs next to `sd-cli.exe`. NVIDIA's license says that whoever does not accept its terms must not download, install or use it; in that case run `python scripts/setup.py --no-cudnn`. Without cuDNN everything works with the slower v0.1.0 VAE path (`--vae legacy`), and `generate.py` says so.
 - `generate.py` writes `outputs/<YYYYmmdd_HHMMSS>_<name>/image.png`, `run.json` (time, stages, which VAE path ran, peak GPU memory, the exact command) and `log.txt`, and prints `IMAGE_OK <path>`.
 
+## Disk layout and removal
+
+Everything the scripts install lives in folders you choose: the models go to `models/` (or the folder you pass with `--models-dir`), the engine and its DLLs go to `bin/` (or `--bin-dir`), and every run writes its picture and notes under `outputs/`. By default all three are inside the repository folder. The scripts use only the Python standard library: there is no pip or model cache anywhere else, and nothing is written to the system PATH, your user profile or the registry. The engine zip files sit in a temporary subfolder of the engine folder only while installing and are deleted afterwards.
+
+Already have the model files? Pass the folder that holds them with `--models-dir`: a file with the right sha256 is kept and not downloaded again, and an interrupted download continues from its `.part` file. To see what would be downloaded and whether the disk is big enough before anything is written, run the installer with its dry-run option first (it writes nothing and opens no network connection).
+
+**Removal:** close any running generation, then delete the folders you used (by default `models/`, `bin/` and `outputs/` in the repository folder). The repository folder itself holds only scripts and documents. That is the whole uninstall.
+
 ## Usage
 
 ```powershell

@@ -1,0 +1,237 @@
+{
+ "surum": 1,
+ "aciklama_en": "Stable error codes for the scripts. The scripts print the message (ERROR: ... Fix: ...) without a code; the code is found by matching the message text: imza = plain case-insensitive substrings (no regular expressions on purpose: no ReDoS on untrusted log text). kaynak_parca = a fixed piece of the message that must exist verbatim in the script (tests/test_agents_hizli.py checks it, so a reworded message cannot drift away from this file). scripts/tani.py uses this file to list the codes it finds in your log.",
+ "aciklama_tr": "Betikler icin kararli hata kodlari. Betikler iletiyi (ERROR: ... Fix: ...) kodsuz yazar; kod, ileti metniyle eslestirilerek bulunur: imza = duz, buyuk/kucuk harf duyarsiz alt dizeler (bilerek duzenli ifade yok: guvenilmeyen log metninde ReDoS olmaz). kaynak_parca = iletinin betikte aynen bulunmasi gereken sabit parcasi (tests/test_agents_hizli.py denetler; iletinin sozu degisirse bu dosyadan kayamaz). scripts/tani.py bu dosyayla log'unuzdaki kodlari listeler.",
+ "kodlar": [
+  {
+   "kod": "ZIMG-E-SHA",
+   "tur": "hata",
+   "yayinlayan": [
+    "setup.py"
+   ],
+   "baslik_en": "A downloaded file does not match its sha256",
+   "baslik_tr": "Indirilen dosya sha256 ile uyusmuyor",
+   "imza": [
+    "sha256 mismatch"
+   ],
+   "kaynak_parca": "sha256 mismatch (expected",
+   "ornek_log": [
+    "ERROR: z_image_turbo-Q8_0.gguf: sha256 mismatch (expected a, got b). The partial file was removed; run again. Fix: run the same command again (downloads resume); if it repeats, see docs/TROUBLESHOOTING.md."
+   ],
+   "ilk_adim_en": "Run the same command again (the damaged file was removed). If it repeats, stop, do not edit models.lock.json, and open an issue with the file name and the hash you got.",
+   "ilk_adim_tr": "Ayni komutu tekrar calistirin (bozuk dosya silindi). Tekrarlarsa durun, models.lock.json'u degistirmeyin, dosya adi ve aldiginiz ozetle issue acin.",
+   "capa": "docs/TROUBLESHOOTING.md#error-codes"
+  },
+  {
+   "kod": "ZIMG-E-INDIRME",
+   "tur": "hata",
+   "yayinlayan": [
+    "setup.py"
+   ],
+   "baslik_en": "A download failed after several tries",
+   "baslik_tr": "Indirme birkac denemeden sonra basarisiz",
+   "imza": [
+    "download failed after"
+   ],
+   "kaynak_parca": "download failed after %d tries",
+   "ornek_log": [
+    "ERROR: ae.safetensors: download failed after 6 tries (URLError). Run setup again to resume. Fix: run the same command again (downloads resume); if it repeats, see docs/TROUBLESHOOTING.md."
+   ],
+   "ilk_adim_en": "Run the same command again; it resumes from the .part file. Check the network, proxy and firewall (Hugging Face, GitHub and NVIDIA must be reachable).",
+   "ilk_adim_tr": "Ayni komutu tekrar calistirin; .part dosyasindan surer. Agi, vekil sunucuyu ve guvenlik duvarini denetleyin (Hugging Face, GitHub ve NVIDIA erisilebilir olmali).",
+   "capa": "docs/TROUBLESHOOTING.md#error-codes"
+  },
+  {
+   "kod": "ZIMG-E-HTTP",
+   "tur": "hata",
+   "yayinlayan": [
+    "setup.py"
+   ],
+   "baslik_en": "The pinned address no longer answers (HTTP 401, 403 or 404)",
+   "baslik_tr": "Sabit adres artik yanit vermiyor (HTTP 401, 403 ya da 404)",
+   "imza": [
+    ": HTTP 4"
+   ],
+   "kaynak_parca": ": HTTP %d for %s",
+   "ornek_log": [
+    "ERROR: ae.safetensors: HTTP 404 for https://example.invalid/x. Fix: run the same command again (downloads resume); if it repeats, see docs/TROUBLESHOOTING.md."
+   ],
+   "ilk_adim_en": "Running again will not help. Stop and open an issue with the file name and the address. If it is the cuDNN address, the setup can still finish with --no-cudnn.",
+   "ilk_adim_tr": "Tekrar calistirmak yardim etmez. Durun, dosya adi ve adresle issue acin. cuDNN adresiyse kurulum --no-cudnn ile yine bitebilir.",
+   "capa": "docs/TROUBLESHOOTING.md#error-codes"
+  },
+  {
+   "kod": "ZIMG-E-DISK",
+   "tur": "hata",
+   "yayinlayan": [
+    "setup.py"
+   ],
+   "baslik_en": "Not enough free disk space",
+   "baslik_tr": "Bos disk yetmiyor",
+   "imza": [
+    "GiB is needed"
+   ],
+   "kaynak_parca": "GiB is needed",
+   "ornek_log": [
+    "ERROR: D:\\models has 3.0 GiB free, about 11.0 GiB is needed. Fix: free disk space, or choose another drive with --models-dir / --bin-dir, then run the same command again."
+   ],
+   "ilk_adim_en": "Free space, or pass another drive with --models-dir and --bin-dir, then run the same command again.",
+   "ilk_adim_tr": "Yer acin ya da --models-dir ve --bin-dir ile baska bir surucu verin, sonra ayni komutu calistirin.",
+   "capa": "docs/TROUBLESHOOTING.md#error-codes"
+  },
+  {
+   "kod": "ZIMG-E-KILIT",
+   "tur": "hata",
+   "yayinlayan": [
+    "setup.py"
+   ],
+   "baslik_en": "The lock file cannot be read",
+   "baslik_tr": "Kilit dosyasi okunamiyor",
+   "imza": [
+    "cannot read lock file"
+   ],
+   "kaynak_parca": "cannot read lock file",
+   "ornek_log": [
+    "ERROR: cannot read lock file: x. Fix: run from a complete copy of the repository, or pass --lock FILE."
+   ],
+   "ilk_adim_en": "Run from a complete copy of the repository. Do not write a lock file yourself.",
+   "ilk_adim_tr": "Deponun tam bir kopyasindan calistirin. Kilit dosyasini kendiniz yazmayin.",
+   "capa": "docs/TROUBLESHOOTING.md#error-codes"
+  },
+  {
+   "kod": "ZIMG-E-MOTOR",
+   "tur": "hata",
+   "yayinlayan": [
+    "setup.py",
+    "generate.py"
+   ],
+   "baslik_en": "The engine (sd-cli.exe) is not installed or did not unpack",
+   "baslik_tr": "Motor (sd-cli.exe) kurulu degil ya da acilmadi",
+   "imza": [
+    "sd-cli.exe not found in"
+   ],
+   "kaynak_parca": "sd-cli.exe not found in",
+   "ornek_log": [
+    "ERROR: sd-cli.exe not found in D:\\bin. Run: python scripts/setup.py"
+   ],
+   "ilk_adim_en": "Run python scripts/setup.py (or --only engine). After a failed unpack, delete that folder first.",
+   "ilk_adim_tr": "python scripts/setup.py (ya da --only engine) calistirin. Acma hatasindan sonra once o klasoru silin.",
+   "capa": "docs/TROUBLESHOOTING.md#error-codes"
+  },
+  {
+   "kod": "ZIMG-E-CUDART",
+   "tur": "hata",
+   "yayinlayan": [
+    "setup.py"
+   ],
+   "baslik_en": "The CUDA runtime DLLs are missing after unpacking",
+   "baslik_tr": "Acmadan sonra CUDA calisma zamani DLL'leri yok",
+   "imza": [
+    "cudart64_*.dll not found"
+   ],
+   "kaynak_parca": "cudart64_*.dll not found",
+   "ornek_log": [
+    "ERROR: cudart64_*.dll not found in D:\\bin after unpacking. Fix: delete that folder and run python scripts/setup.py --only engine again."
+   ],
+   "ilk_adim_en": "Delete the engine folder and run python scripts/setup.py --only engine again.",
+   "ilk_adim_tr": "Motor klasorunu silin ve python scripts/setup.py --only engine komutunu tekrar calistirin.",
+   "capa": "docs/TROUBLESHOOTING.md#error-codes"
+  },
+  {
+   "kod": "ZIMG-E-CUDNN",
+   "tur": "hata",
+   "yayinlayan": [
+    "setup.py"
+   ],
+   "baslik_en": "The cuDNN DLLs are incomplete",
+   "baslik_tr": "cuDNN DLL'leri eksik",
+   "imza": [
+    "cuDNN DLLs are incomplete"
+   ],
+   "kaynak_parca": "cuDNN DLLs are incomplete",
+   "ornek_log": [
+    "ERROR: cuDNN DLLs are incomplete in D:\\bin. Fix: run python scripts/setup.py --only cudnn again; see docs/TROUBLESHOOTING.md."
+   ],
+   "ilk_adim_en": "Run python scripts/setup.py --only cudnn again. Or use --vae legacy (works without cuDNN).",
+   "ilk_adim_tr": "python scripts/setup.py --only cudnn komutunu tekrar calistirin. Ya da --vae legacy kullanin (cuDNN'siz calisir).",
+   "capa": "docs/TROUBLESHOOTING.md#error-codes"
+  },
+  {
+   "kod": "ZIMG-E-MODEL",
+   "tur": "hata",
+   "yayinlayan": [
+    "generate.py"
+   ],
+   "baslik_en": "A model file is missing",
+   "baslik_tr": "Bir model dosyasi yok",
+   "imza": [
+    "missing model file"
+   ],
+   "kaynak_parca": "missing model file",
+   "ornek_log": [
+    "ERROR: missing model file D:\\models\\ae.safetensors. Run: python scripts/setup.py"
+   ],
+   "ilk_adim_en": "Run python scripts/setup.py with the same --models-dir.",
+   "ilk_adim_tr": "Ayni --models-dir ile python scripts/setup.py calistirin.",
+   "capa": "docs/TROUBLESHOOTING.md#error-codes"
+  },
+  {
+   "kod": "ZIMG-E-BOYUT",
+   "tur": "hata",
+   "yayinlayan": [
+    "generate.py"
+   ],
+   "baslik_en": "The image size is not allowed",
+   "baslik_tr": "Resim boyutu gecersiz",
+   "imza": [
+    "Fix: use the tested size"
+   ],
+   "kaynak_parca": "Fix: use the tested size",
+   "ornek_log": [
+    "ERROR: width must be a multiple of 16. Fix: use the tested size (no --width/--height) or see docs/TROUBLESHOOTING.md."
+   ],
+   "ilk_adim_en": "Use multiples of 16 between 256 and 2048, or drop --width and --height (tested sizes: 768x1344, 1344x768, 1024x1024).",
+   "ilk_adim_tr": "256 ile 2048 arasinda 16'nin katlarini kullanin ya da --width ve --height vermeyin (denenen boyutlar: 768x1344, 1344x768, 1024x1024).",
+   "capa": "docs/TROUBLESHOOTING.md#error-codes"
+  },
+  {
+   "kod": "ZIMG-E-ISTEM",
+   "tur": "hata",
+   "yayinlayan": [
+    "generate.py"
+   ],
+   "baslik_en": "The prompt is empty or the prompt file cannot be read",
+   "baslik_tr": "Istem bos ya da istem dosyasi okunamiyor",
+   "imza": [
+    "the prompt is empty",
+    "cannot read prompt file"
+   ],
+   "kaynak_parca": "the prompt is empty",
+   "ornek_log": [
+    "ERROR: the prompt is empty. Fix: pass --prompt \"...\" or --prompt-file prompts/eiffel.txt"
+   ],
+   "ilk_adim_en": "Pass --prompt \"...\" or an existing UTF-8 file with --prompt-file.",
+   "ilk_adim_tr": "--prompt \"...\" verin ya da --prompt-file ile var olan bir UTF-8 dosya gosterin.",
+   "capa": "docs/TROUBLESHOOTING.md#error-codes"
+  },
+  {
+   "kod": "ZIMG-E-URETIM",
+   "tur": "hata",
+   "yayinlayan": [
+    "generate.py"
+   ],
+   "baslik_en": "The engine ran and failed",
+   "baslik_tr": "Motor calisti ve hata verdi",
+   "imza": [
+    "FAILED: sd-cli exit code"
+   ],
+   "kaynak_parca": "FAILED: sd-cli exit code",
+   "ornek_log": [
+    "FAILED: sd-cli exit code 1. Read outputs/x/log.txt and docs/TROUBLESHOOTING.md."
+   ],
+   "ilk_adim_en": "Read log.txt and run.json in the output folder; look for out-of-memory (close other programs, run one picture at a time) and see docs/TROUBLESHOOTING.md.",
+   "ilk_adim_tr": "Cikti klasorundeki log.txt ve run.json'u okuyun; bellek yetmedi mi bakin (diger programlari kapatin, tek resim uretin) ve docs/TROUBLESHOOTING.md'ye bakin.",
+   "capa": "docs/TROUBLESHOOTING.md#error-codes"
+  }
+ ]
+}

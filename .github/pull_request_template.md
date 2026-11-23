@@ -8,12 +8,16 @@
 
 
 ## Checklist / Kontrol listesi
+- [ ] `python -I -X utf8 scripts/denetim.py --hizli` says `SONUC: GECTI` / sonuç `SONUC: GECTI`
 - [ ] `python -B -m unittest discover -s tests` passes / geçiyor
 - [ ] Image quality is not lowered: pixels identical (`scripts/compare.py` says `SAME_PIXELS`), or closer to the reference with the numbers below / Görüntü kalitesi düşmedi: pikseller aynı ya da referansa daha yakın, sayılar aşağıda
 - [ ] No binary files added (exe, dll, zip, model files) / İkili dosya eklemedim
 - [ ] No new network call; if any, address and reason below / Yeni ağ çağrısı yok; varsa adresi ve nedeni aşağıda
 - [ ] No image of a real person added / Gerçek bir kişinin görüntüsünü eklemedim
 - [ ] Every new number names its command, hardware and date / Her yeni sayının komutu, donanımı ve tarihi yazılı
+
+## Evidence labels / Kanıt etiketleri
+Label each claim: [measured] [read] [computed] [user-reported] [guess] ([ölçtüm] [okudum] [hesap] [kullanıcı bildirdi] [tahmin]). One language is enough, a draft is fine. / Her iddiayı etiketleyin. Tek dil yeter, taslak PR olur.
 
 ## Notes / Notlar
 

@@ -1,0 +1,13 @@
+# Dependabot (kit KL-09). The github-actions block keeps the SHA-pinned actions current.
+# Add a pip block only if the repository has Python dependencies; hold back pins that are tied to a measured install
+# (ML stacks, CUDA wheels) with `ignore`, as the sister repositories do.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "bagimlilik"

@@ -22,6 +22,7 @@ Success lines: MODEL_OK <name>, ENGINE_OK, CUDART_OK, CUDNN_OK (or CUDNN_SKIPPED
 With --only the final line is SETUP_PART_OK <part> instead: one part is not the whole setup.
 --accept-cudnn-license is still accepted and does nothing (cuDNN is installed by default since v0.2.0).
 Exit code 0 on success.
+--dry-run prints the plan (what would be fetched, free disk) and writes nothing; it ends with DRYRUN_OK (exit 0) or an ERROR line (exit 3).
 Stop with Ctrl+C; run the same command again to continue where it stopped.
 """
 import argparse
@@ -287,7 +288,7 @@ def machine_report():
     return info
 
 
-def preflight(models_dir, bin_dir, out=print):
+def preflight(models_dir, bin_dir, out=print, create=True):
     """Print the machine facts next to what was measured. Only information: nothing here stops the setup."""
     info = machine_report()
     out("Preflight (measured on: GTX 1050 Ti 4 GB laptop, sm_61 / Pascal, 16 GB RAM, Windows 10; see docs/MEASUREMENTS.md)")
@@ -308,11 +309,61 @@ def preflight(models_dir, bin_dir, out=print):
             out("  WARNING  : the process uses about 11 GB (measured); less than 16 GB of RAM was never tested")
     for label, path in (("models", models_dir), ("engine", bin_dir)):
         try:
-            Path(path).mkdir(parents=True, exist_ok=True)
-            out("  Disk     : %.1f GiB free for %s in %s" % (shutil.disk_usage(path).free / 2**30, label, path))
+            if create:
+                Path(path).mkdir(parents=True, exist_ok=True)
+            out("  Disk     : %.1f GiB free for %s in %s" % (shutil.disk_usage(existing_parent(path)).free / 2**30, label, path))
         except OSError:
             out("  Disk     : cannot read free space for %s" % path)
     return info
+
+
+def existing_parent(path):
+    """The folder itself, or its nearest existing parent (so free space can be read without creating anything)."""
+    p = Path(path).absolute()
+    while not p.exists() and p.parent != p:
+        p = p.parent
+    return p
+
+
+def dry_run(lock, models_dir, bin_dir, no_cudnn, out=print):
+    """Everything setup would do, printed; writes nothing, creates no folder, opens no network connection.
+
+    Exit code 0 and the last line DRYRUN_OK when the free disk space is enough, 3 and an ERROR line when it is not.
+    """
+    preflight(models_dir, bin_dir, out, create=False)
+    need_models = need_bin = 0
+    for m in lock["models"]:
+        dest = Path(models_dir) / m["name"]
+        if dest.is_file() and dest.stat().st_size == m["bytes"]:
+            out("  would keep   %s (present, size matches; sha256 is read by a real run or --check)" % m["name"])
+            continue
+        part = Path(models_dir) / (m["name"] + ".part")
+        have = part.stat().st_size if part.is_file() else 0
+        need_models += max(m["bytes"] - have, 0)
+        out("  would fetch  %s (%.2f GiB%s)" % (m["name"], m["bytes"] / 2**30, ", resumes a .part file" if have else ""))
+    if not (find_sd_cli(bin_dir) and has_cudart(bin_dir)):
+        for e in lock["engine"]:
+            need_bin += e["bytes"] * 2
+            out("  would fetch  %s (%.1f MiB)" % (e["name"], e["bytes"] / 2**20))
+    c = lock.get("cudnn")
+    if isinstance(c, dict) and not no_cudnn and not cudnn_installed(bin_dir, c):
+        need_bin += c["bytes"] + sum(x["bytes"] for x in c["members"])
+        out("  would fetch  %s from NVIDIA (%.1f MiB), under NVIDIA's license: %s. --no-cudnn skips it."
+            % (c["name"], c["bytes"] / 2**20, c["license_url"]))
+    ok = True
+    for label, path, need in (("models", models_dir, need_models), ("engine", bin_dir, need_bin)):
+        if not need:
+            continue
+        free = shutil.disk_usage(existing_parent(path)).free
+        out("  Need     : about %.1f GiB for %s, %.1f GiB free" % (need / 2**30, label, free / 2**30))
+        if free < need + 512 * CHUNK:
+            ok = False
+            out("ERROR: %s has %.1f GiB free, about %.1f GiB is needed. Fix: free disk space, or choose another drive "
+                "with --models-dir / --bin-dir, then run the same command again." % (path, free / 2**30, need / 2**30))
+    if ok:
+        out("DRYRUN_OK (nothing was downloaded or written)")
+        return 0
+    return 3
 
 
 def main(argv=None):
@@ -322,6 +373,8 @@ def main(argv=None):
     ap.add_argument("--lock", default=str(ROOT / "models.lock.json"), help="lock file (default: models.lock.json)")
     ap.add_argument("--only", choices=("models", "engine", "cudnn"), help="do only one part")
     ap.add_argument("--check", action="store_true", help="verify files that are already there; download nothing")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="print what would be downloaded and whether the disk is enough; writes nothing, no network")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--accept-cudnn-license", action="store_true",
                    help="kept for old command lines; does nothing (cuDNN is installed by default)")
@@ -335,6 +388,8 @@ def main(argv=None):
         print("ERROR: cannot read lock file: %s. Fix: run from a complete copy of the repository, or pass --lock FILE." % e)
         return 2
     models_dir, bin_dir = Path(a.models_dir), Path(a.bin_dir)
+    if a.dry_run:
+        return dry_run(lock, models_dir, bin_dir, a.no_cudnn)
     do_models = a.only in (None, "models")
     do_engine = a.only in (None, "engine")
     do_cudnn = a.only in (None, "cudnn") and isinstance(lock.get("cudnn"), dict)

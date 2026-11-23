@@ -10,6 +10,7 @@ Numbers come from [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md); where a number
 - Pointers to it in the READMEs (all languages), `AGENTS.md`, `docs/BUILD.md`, `docs/MEASUREMENTS.md` and `CONTRIBUTING.md`.
 - `docs/AGENT_METHOD.md`: how an AI agent should run the job for a beginner: hardware inventory first, one project folder, progress notes so nothing is done twice, a stop file, one GPU job at a time, no leftover processes, roles and a second opinion on important decisions, what to ask the user first, evidence labels.
 - `docs/OTHER_GPUS.md` section 4: a suggested first path for AMD cards on Windows (upstream prebuilt Vulkan zip, then ROCm), not tested.
+- `docs/OTHER_GPUS.md` section 3b: community test on an RTX 2060 laptop 6 GB (Windows 11, unpatched upstream CUDA12 build), reported by @MuhammedGUVEN108 in issue #5; labelled `[user-reported, issue #5]`, not repeated by us. Thank you.
 
 ### Changed
 - `AGENTS.md`: the hard rules about the engine build and memory options are scoped to the released NVIDIA path; quality settings stay fixed everywhere.

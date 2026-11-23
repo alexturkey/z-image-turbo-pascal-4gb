@@ -18,6 +18,7 @@ Three labels are used here and they are never mixed:
 |---|---|---|
 | GTX 1050 Ti 4 GB, Windows | The normal setup in the [README](../README.md) | measured by us (one card) |
 | Other NVIDIA Pascal card (sm_61, for example GTX 1050, 1060, 1070, 1080), Windows | The same setup; the prebuilt engine zip targets sm_61 | not tested |
+| NVIDIA Turing card (RTX 20 series, sm_75), Windows | Upstream prebuilt Windows CUDA12 zip with its cudart zip, run directly with `sd-cli`; section 3b below. Our sm_61 zip is for Pascal and was not used there | community test (one RTX 2060 laptop 6 GB) |
 | Other NVIDIA card, Windows | Build the engine from our patches with your CUDA architecture: [`BUILD.md`](BUILD.md). Several patches are tuned for Pascal; read "What may not carry over" there | not tested |
 | NVIDIA card, Linux | Build the engine yourself: our patches with [`BUILD.md`](BUILD.md) (its steps are written for Windows), or upstream "Build with CUDA" | not tested |
 | AMD card, Linux (ROCm) | Section 3 below: unpatched upstream engine, built with HIP, run directly with `sd-cli` | community test (one RX 6600 XT 8 GB) |
@@ -203,6 +204,45 @@ The [Mac setup guide](../MACOS.md) uses the native CLI directly for future runs.
 Its direct invocation was not separately timed. There is no same-hardware
 before/after comparison, repeated-seed test, or speed claim for other Macs.
 These numbers are not comparable with the maintainer's Windows/Pascal tables.
+
+## 3b. Community test: NVIDIA RTX 2060 laptop 6 GB, Windows 11, upstream CUDA12 build
+
+> **Community test, not a maintainer measurement.** `[user-reported, issue #5]`
+> Reported by [MuhammedGUVEN108](https://github.com/MuhammedGUVEN108) in
+> [issue #5](https://github.com/alexturkey/z-image-turbo-pascal-4gb/issues/5) on **2026-11-21**
+> (the reporter ticked the box that allows listing the result with the GitHub name).
+> We did not repeat it and have no Turing card. Everything in the tables below is
+> copied from the report; the label means the numbers are the reporter's, not a doubt about them.
+
+| Part | Reported setup |
+|---|---|
+| Machine | NVIDIA GeForce RTX 2060 (laptop), 6144 MiB, driver 591.74; Intel i7-10750H, 32 GB RAM, NVMe SSD |
+| OS | Windows 11 Pro (10.0.26300) |
+| Repository version | `53b524f` |
+| Engine | Official upstream release `master-1106-532d2c1`, Windows CUDA12 x64 build (supports sm_75) with its cudart zip; no patches from `patches/`, no cuDNN. Our prebuilt sm_61 zip was not used because the card is Turing (sm_75) |
+| Models | The three files in `models.lock.json`, SHA-256 verified (`setup.py --only models --check` printed `SETUP_PART_OK models`) |
+| Settings | `prompts/eiffel.txt`, seed 42, 768x1344, Q8_0, 8 steps, CFG 1.0, Euler/simple, offload to CPU, mmap, eager load, flash attention on; full VAE decode, no tiling fallback |
+| How it was run | A small local wrapper around `sd-cli`, not `scripts/generate.py` |
+
+One run (the one in the issue):
+
+| Wall time | Text encoding | Sampling | VAE decode | Generation stage | Sampled peak GPU memory |
+|---|---|---|---|---|---|
+| 52.06 s | 2.71 s | 41.34 s | 2.08 s | 46.31 s | 4890 MiB (nvidia-smi sampling) |
+
+Pixel SHA-256 reported for that run: `85f3add6b9be171df3720ff95895c45f1757a841308d7a754b907e8d1fd3d1ad`.
+
+Same day, batch test reported by the same user: 25 different prompts at 768x1344, 1344x768 and
+1024x1024, one after another, **25/25 OK, 0 errors, 51 to 54 s each, 21.8 min in total**.
+
+What this report does not tell us (our notes from reading it, we did not run it):
+
+- `ram_free_min_mib` was not recorded, because `scripts/generate.py` was not used; the lowest free RAM during the run is unknown.
+- The first table is one run; the batch gives a range (51 to 54 s) but the per-picture sizes differ and were not listed separately here.
+- Whether the picture quality matches the Pascal path was not checked by us (no quality gate such as `doku_norm.py` was reported), and a different GPU and engine build are not expected to give the same pixels as the maintainer's tables.
+- Other Turing cards, other drivers and other RAM sizes are not covered. These numbers are not comparable with the maintainer's Windows/Pascal tables.
+
+If you can run `scripts/generate.py` on a card like this, its `run.json` (with `ram_free_min_mib`) would fill the gaps above; see section 6.
 
 ## 4. AMD card on Windows: a suggested first path (not tested)
 

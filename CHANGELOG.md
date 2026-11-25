@@ -5,7 +5,28 @@ Numbers come from [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md); where a number
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-25
+
+Faster pictures, same pictures.
+
+**Why it is faster.** The model does not fit into 4 GB of GPU memory, so the engine copies it to the card one part at a time. In v0.2.0 the GPU sat idle while each part was copied. Now, while the GPU is computing the current part, the engine already moves the weights of the next part to the card in the background, so the copy and the computation overlap and the GPU waits much less.
+
+**How much (measured on GTX 1050 Ti 4 GB, 768x1344, 8 steps, seed 42).** Through `generate.py` on a clean copy of the repository, a picture took 188.1 to 192.9 s, and the sampling stage took 158.5 to 161.2 s against 173.8 to 186.3 s in v0.2.0 (`docs/MEASUREMENTS.md`, Table 5). In the same clean copy, one picture took 188.1 s with the overlap and 204.5 s without it (one run each). In our development setup, in 12 alternating runs, the median picture took 177.0 s instead of 199.5 s (Table 4). The VAE stage (the last step, which turns the result into pixels) varies a lot from run to run on this machine (7.5 to 21.7 s), so the total gains less than the sampling in some runs.
+
+**The pictures are the same.** The pixels are byte-identical to v0.2.0 for the same prompt, seed and settings (checked on eiffel, turkish_tea and village). Steps, cfg, sampler, quantization and size did not change.
+
+**If your RAM is tight.** The overlap uses a 64 MB buffer of page-locked memory, which Windows cannot swap out. We did not measure what that costs on a machine that is short of memory. If yours is, run `python scripts/generate.py --no-overlap`: same picture, longer run.
+
+**Upgrading.** Run `python scripts/setup.py`. It downloads only the new engine zip (about 38 MB). It no longer downloads the 567 MB CUDA runtime again when that file has not changed (before, an upgrade fetched it again).
+
 ### Added
+- **`patches/sdcpp/0030-weight-copy-overlap.patch`** (MIT): the weight-copy / compute overlap (a worker thread and a small page-locked ring buffer). Off in the engine unless switched on by `SD_PREFETCH_THREAD=1`, `SD_STAGING_PINNED=1`, `SD_STAGING_PINNED_MB=64`; `generate.py` switches it on. Also in the patch and not measured (leave unset): `SD_STAGING_POOL_MB`, `SD_STAGING_PREEVICT`, `SD_PREFETCH_WRAP`; diagnostic: `SD_STAGING_VERIFY`.
+- `generate.py --no-overlap`: leave the three switches unset (stock copy path, same picture, longer run; use it when the machine is short of RAM). `run.json` gains `stages.copy_overlap_used`, `overlap_ring_tensors`, `overlap_ring_mib`, `overlap_fallback_tensors`.
+- `scripts/pack_engine.py`: packs the release zip the same way every time (same inputs, same bytes), prints the numbers for `models.lock.json`.
+- `docs/evidence/overlap/` and Tables 4 and 5 in `docs/MEASUREMENTS.md`; "Compare your build with the release" in `docs/BUILD.md` and "Reproducing the released binaries" in `patches/README.md`.
+- `docs/TROUBLESHOOTING.md`: the overlap on a machine short of RAM; `copy_overlap_used` false.
+
+### Added (since v0.2.0, documents and tools)
 - `docs/OTHER_GPUS.md`: which path for which card or system (measured by us, community test, not tested), what carries over and what does not, and a community test on an AMD RX 6600 XT with Ubuntu and ROCm, adapted from the report by Hakan ([hknklnc10](https://gist.github.com/hknklnc10/fa19ea3813238bd64853be2a814e4f18)). Thank you.
 - Pointers to it in the READMEs (all languages), `AGENTS.md`, `docs/BUILD.md`, `docs/MEASUREMENTS.md` and `CONTRIBUTING.md`.
 - `docs/AGENT_METHOD.md`: how an AI agent should run the job for a beginner: hardware inventory first, one project folder, progress notes so nothing is done twice, a stop file, one GPU job at a time, no leftover processes, roles and a second opinion on important decisions, what to ask the user first, evidence labels.
@@ -19,9 +40,19 @@ Numbers come from [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md); where a number
 - `scripts/repo_kapi.json`: the repository's settings for the repository kit.
 
 ### Changed
+- **Engine** (`sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip`, in this repository's v0.3.0 release): v0.2.0 engine plus patch 0030. `scripts/setup.py` now fetches only the zips whose sha256 changed when you upgrade (the 567 MB CUDA runtime is not downloaded again); `--dry-run` shows the same plan.
+- `docs/BUILD.md` and `patches/README.md`: the exact CMake flags (Ninja, Release, ...) and the line-ending trap with the `ggml` submodule (`core.autocrlf` in the submodule).
 - `AGENTS.md`: the hard rules about the engine build and memory options are scoped to the released NVIDIA path; quality settings stay fixed everywhere.
 - The hardware test report form asks for the operating system, the GPU API and the engine, so reports from Linux, AMD and direct `sd-cli` runs fit.
 - The issue chooser no longer offers a blank issue (the forms and the Discussions links cover every case).
+
+### Not changed
+- Steps (8), cfg (1.0), sampler, scheduler, quantization (Q8_0), size 768x1344 and the three model files; the pictures of the three examples we re-ran have the same `PIXEL_SHA256` as in v0.2.0.
+
+### Known limits
+- Measured only on a GTX 1050 Ti 4 GB laptop; the engine is built for sm_61 only.
+- The overlap was not measured with `--vae legacy`, and not on a machine that is short of RAM (the 64 MB page-locked ring cannot be swapped out; use `--no-overlap` there).
+- The VAE stage of the same one-piece decode took 7.5 to 21.7 s from run to run in our tests; we do not know why, so the total time moves by that much.
 
 ## [0.2.0]
 

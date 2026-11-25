@@ -1,0 +1,17 @@
+Preflight (measured on: GTX 1050 Ti 4 GB laptop, sm_61 / Pascal, 16 GB RAM, Windows 10; see docs/MEASUREMENTS.md)
+  GPU      : NVIDIA GeForce GTX 1050 Ti, 4096 MiB, driver 581.29
+  RAM      : 16266 MiB total
+  Disk     : 11.1 GiB free for models in C:\sinirsiz_foto_m
+  Disk     : 783.5 GiB free for engine in E:\t\sf030\bin
+MODEL_OK z_image_turbo-Q8_0.gguf
+MODEL_OK Qwen3-4B-Instruct-2507-Q8_0.gguf
+MODEL_OK ae.safetensors
+Downloading sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip (35.8 MiB)
+Downloading cudart-cuda12.8-win-x64.zip (540.7 MiB)
+ENGINE_OK
+CUDART_OK
+Downloading NVIDIA cuDNN under NVIDIA's license: https://docs.nvidia.com/deeplearning/cudnn/backend/latest/reference/eula.html. Use --no-cudnn to skip.
+Downloading cudnn-windows-x86_64-9.10.2.21_cuda11-archive.zip from NVIDIA (366.9 MiB)
+CUDNN_OK
+SETUP_OK
+rc=0

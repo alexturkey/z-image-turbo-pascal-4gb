@@ -10,7 +10,7 @@ English first, Türkçe below. Full rules and evidence: [`AGENTS.md`](AGENTS.md)
 4. A non-zero exit or any `ERROR:` line: take it to the user with the code and its first step from `docs/hata_imzalari.json`. Do not use a force flag to get past it.
 5. Tell the user in one line about NVIDIA cuDNN and its license address (`AGENTS.md`, section 1) before the download and let the user answer (legal or consent steps belong to the human; never type the acceptance yourself).
 6. Install: `python scripts/setup.py --models-dir <models folder> --bin-dir <engine folder>` (safe to re-run; verified files are skipped; an interrupted download continues).
-7. First success: `python scripts/generate.py --prompt-file prompts/eiffel.txt` (193-228 s per picture [measured, docs/MEASUREMENTS.md]). Long runs: start hidden in the background and poll; do not block.
+7. First success: `python scripts/generate.py --prompt-file prompts/eiffel.txt` (188-193 s per picture [measured, docs/MEASUREMENTS.md]). Long runs: start hidden in the background and poll; do not block.
 8. Exit 0 means the gate passed, nothing more: `SETUP_OK` and `IMAGE_OK` only show the files verify and the engine ran; open the picture and look at it, and check `run.json` (`AGENTS.md`, section 4).
 9. A rejected or not-run gate means the result is NOT accepted. Never report success.
 10. An `ERROR:` line: look it up in `docs/hata_imzalari.json`, give the user its first step, quote the code. Same error twice: stop, do not try a third time.
@@ -34,7 +34,7 @@ English first, Türkçe below. Full rules and evidence: [`AGENTS.md`](AGENTS.md)
 4. Sıfır olmayan çıkış ya da herhangi bir `ERROR:` satırı: kodu ve `docs/hata_imzalari.json`'ndaki ilk adımı kullanıcıya götür. Zorlayıcı bayrakla geçme.
 5. İndirmeden önce kullanıcıya NVIDIA cuDNN ve lisans adresini tek satırda söyle (`AGENTS.md`, bölüm 1), cevabı kullanıcı versin (hukuki ya da onay adımları insanındır; kabulü asla kendin yazma).
 6. Kurulum: `python scripts/setup.py --models-dir <models folder> --bin-dir <engine folder>` (tekrar çalıştırmak güvenli; doğrulanmış dosya atlanır; yarım indirme sürer).
-7. İlk başarı: `python scripts/generate.py --prompt-file prompts/eiffel.txt` (resim başına 193-228 sn [ölçtük, docs/MEASUREMENTS.md]). Uzun işleri gizli arka planda başlat, yoklayarak izle; bekleyerek kilitlenme.
+7. İlk başarı: `python scripts/generate.py --prompt-file prompts/eiffel.txt` (resim başına 188-193 sn [ölçtük, docs/MEASUREMENTS.md]). Uzun işleri gizli arka planda başlat, yoklayarak izle; bekleyerek kilitlenme.
 8. Çıkış 0 yalnız kapının geçtiği demektir: `SETUP_OK` ve `IMAGE_OK` yalnız dosyaların doğrulandığını ve motorun çalıştığını gösterir; resmi aç, bak ve `run.json`'u denetle (`AGENTS.md`, bölüm 4).
 9. Reddedilen ya da çalışmayan kapı: sonuç KABUL EDİLMEZ. Asla başarı bildirme.
 10. `ERROR:` satırı: `docs/hata_imzalari.json`'nda ara, ilk adımı kullanıcıya ver, kodu yaz. Aynı hata iki kez: dur, üçüncü kez deneme.

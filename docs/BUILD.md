@@ -30,7 +30,7 @@ git submodule update --init --recursive
 git -C ggml checkout d803c23
 ```
 
-Line endings matter: the patches apply to LF files. Use `core.autocrlf=false` as above.
+Line endings matter: the patches apply to LF files. `core.autocrlf=false` on the clone command is not enough when your system-wide git config sets `core.autocrlf=true` (the usual Git for Windows default): the `ggml` submodule is then checked out with CRLF and `git apply` fails on the `ggml` patches with "patch does not apply". Fix: `git -C ggml config core.autocrlf false`, then restore the files (`git -C ggml checkout-index -a -f`), or clone with the environment variables `GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.autocrlf GIT_CONFIG_VALUE_0=false` set.
 Both commits are as recorded in [`patches/README.md`](../patches/README.md) (table "Base").
 
 ## Apply the patches
@@ -41,7 +41,7 @@ Order and details are in [`patches/README.md`](../patches/README.md). In short, 
 cd ggml
 git apply <repo>\patches\ggml\0001-*.patch <repo>\patches\ggml\0002-*.patch <repo>\patches\ggml\0003-*.patch <repo>\patches\ggml\0006-*.patch <repo>\patches\ggml\0009-*.patch
 cd ..
-git apply <repo>\patches\sdcpp\0004-*.patch <repo>\patches\sdcpp\0012-*.patch <repo>\patches\sdcpp\0022b-*.patch <repo>\patches\sdcpp\0025-*.patch <repo>\patches\sdcpp\0027-*.patch <repo>\patches\sdcpp\0028b-*.patch <repo>\patches\sdcpp\0029-*.patch
+git apply <repo>\patches\sdcpp\0004-*.patch <repo>\patches\sdcpp\0012-*.patch <repo>\patches\sdcpp\0022b-*.patch <repo>\patches\sdcpp\0025-*.patch <repo>\patches\sdcpp\0027-*.patch <repo>\patches\sdcpp\0028b-*.patch <repo>\patches\sdcpp\0029-*.patch <repo>\patches\sdcpp\0030-*.patch
 ```
 
 Applying them in this order to a clean base gives the source tree the released engine was built from (checked file by file by comparing a tree built from the patches with the one we built from). If `git apply` complains, your base is not the commit above or the line endings changed.
@@ -51,19 +51,24 @@ Applying them in this order to a clean base gives the source tree the released e
 Use the "x64 Native Tools" prompt of your Visual Studio, with CUDA 12.8 on the path. The flags of the released engine, as recorded in [`patches/README.md`](../patches/README.md) ("CMake flags of the released engine"):
 
 ```
-cmake -B build ^
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release ^
   -DSD_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=61 ^
   -DGGML_NATIVE=OFF -DGGML_BACKEND_DL=ON ^
   -DSD_BUILD_SHARED_LIBS=ON -DSD_BUILD_SHARED_GGML_LIB=ON ^
+  -DSD_WEBP=OFF -DSD_WEBM=OFF -DSD_BUILD_EXAMPLES=ON -DGGML_BUILD_TESTS=OFF -DSD_CUDA_CUTLASS_PATH= ^
   -DGGML_CUDA_CUDNN_CONV2D_F32=ON ^
   -DCUDNN_INCLUDE_DIR=<cudnn include> -DCUDNN_LIBRARY=<cudnn.lib>
-cmake --build build
+cmake --build build --target sd-cli sd-server stable-diffusion ggml ggml-base ggml-cpu ggml-cuda
 ```
 
-(`^` continues a line in `cmd`; in PowerShell use a backtick or one long line. The generator and the build type are not recorded there; choose your own, for example `-G Ninja -DCMAKE_BUILD_TYPE=Release`.) The cuDNN headers and import library come from an NVIDIA cuDNN 9 archive; which build was used at compile time is not recorded here.
+(`^` continues a line in `cmd`; in PowerShell use a backtick or one long line. The generator is Ninja and the build type Release, as recorded in `patches/README.md`.) The cuDNN headers and import library come from an NVIDIA cuDNN 9 archive; which build was used at compile time is not recorded here.
 Without cuDNN, leave out the last three flags: the engine then runs without the cuDNN VAE path and `generate.py` uses `--vae legacy`.
 
 The engine ends up as `sd-cli.exe` and a few DLLs in `build/bin`. Put them in a folder together with the CUDA runtime DLLs (`cudart64_12.dll`, `cublas64_12.dll`, `cublasLt64_12.dll`) and, if you built with cuDNN, the eight cuDNN DLLs, and give that folder to `generate.py` with `--bin-dir`.
+
+## Compare your build with the release
+
+A rebuild is not byte-identical to the release zip: the compiler writes a time stamp into every DLL and exe and embeds the absolute path of the source folder. What can be compared: (1) the source tree (apply the patches to the two base commits, then compare with the tree you build from); (2) the pictures (same prompt, seed and settings give the same `PIXEL_SHA256` on the same card family); (3) the binaries, after building in a folder whose path has the same length as the release build's and zeroing the PE time stamp. The comparison we made for this release, with the method and the result, is in `docs/MEASUREMENTS.md` (Checks). `scripts/pack_engine.py` packs a folder of binaries into the release zip the same way every time (same inputs, same zip bytes).
 
 ## Other cards: what may not carry over
 
@@ -76,4 +81,5 @@ The engine ends up as `sd-cli.exe` and a few DLLs in `build/bin`. Put them in a 
 
 1. `sd-cli.exe --help` runs without a missing-DLL dialog.
 2. `python scripts/generate.py --prompt-file prompts/eiffel.txt --bin-dir <your folder>` prints `IMAGE_OK` and `run.json` has `"result": "OK"`.
-3. Compare `PIXEL_SHA256` with the table in [`MEASUREMENTS.md`](MEASUREMENTS.md). The same value is expected only on the same card family, the same cuDNN build and the same `stages.vae_path`; a different value does not by itself mean something is wrong. `python scripts/compare.py` shows how far apart two pictures are. If your numbers differ a lot, a "measurement report" issue is welcome.
+3. In `run.json`, `stages.copy_overlap_used` should be `true` (the weight-copy overlap of patch 0030 ran; the log has one `STAGING_PINNED total` line). With `--no-overlap` it is `false` and the picture is the same, only slower.
+4. Compare `PIXEL_SHA256` with the table in [`MEASUREMENTS.md`](MEASUREMENTS.md). The same value is expected only on the same card family, the same cuDNN build and the same `stages.vae_path`; a different value does not by itself mean something is wrong. `python scripts/compare.py` shows how far apart two pictures are. If your numbers differ a lot, a "measurement report" issue is welcome.

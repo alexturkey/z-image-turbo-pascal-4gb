@@ -38,11 +38,11 @@
   ],
   "engine": [
     {
-      "name": "sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip",
+      "name": "sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip",
       "role": "sd-cli.exe and sd-server.exe (stable-diffusion.cpp master-1088-32d516c + ggml d803c23 + the patches in patches/), built for sm_61 (Pascal) only",
-      "url": "https://github.com/alexturkey/z-image-turbo-pascal-4gb/releases/download/v0.2.0/sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip",
-      "bytes": 37541583,
-      "sha256": "9f33330a5e5370b202b46bb4b53dd38900d200b8beed6597230c39cfd4ed47c6",
+      "url": "https://github.com/alexturkey/z-image-turbo-pascal-4gb/releases/download/v0.3.0/sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip",
+      "bytes": 37554535,
+      "sha256": "f2e61a5744099aa2afad6288c11cc8cbc6e16378d39ee9eb2a035b4dd5aa2199",
       "license": "MIT (stable-diffusion.cpp, ggml, patches); bundled third-party notices in the zip"
     },
     {

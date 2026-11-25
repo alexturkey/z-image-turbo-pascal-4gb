@@ -88,13 +88,47 @@ class Vae(unittest.TestCase):
 
     def test_environment(self):
         base = {"PATH": "x", "SD_VAE_TRY_FULL": "1", "GGML_CUDA_CUDNN_CONV2D": "1", "SD_VAE_VRAM_MARGIN_MB": "64"}
-        self.assertEqual(gen.engine_env("legacy", base), {"PATH": "x"})   # caller's engine switches never leak in
+        legacy = gen.engine_env("legacy", base)
+        self.assertEqual({k: v for k, v in legacy.items() if k not in gen.OVERLAP_ENV}, {"PATH": "x"})   # caller's engine switches never leak in
+        self.assertEqual({k: legacy[k] for k in gen.OVERLAP_ENV}, gen.OVERLAP_ENV)   # overlap is on in every mode
+        self.assertEqual(gen.engine_env("legacy", base, overlap=False), {"PATH": "x"})
         tiled = gen.engine_env("tiled", base)
         self.assertEqual(tiled["GGML_CUDA_CUDNN_CONV2D"], "1")
         self.assertEqual(tiled["SD_VAE_VRAM_MARGIN_MB"], "512")
         self.assertNotIn("SD_VAE_TRY_FULL", tiled)
         self.assertEqual(gen.engine_env("auto", base)["SD_VAE_TRY_FULL"], "1")
         self.assertEqual(base["SD_VAE_VRAM_MARGIN_MB"], "64")             # input not modified
+
+
+class Overlap(unittest.TestCase):
+    def test_switches_are_the_three_measured_ones(self):
+        self.assertEqual(gen.OVERLAP_ENV, {"SD_PREFETCH_THREAD": "1", "SD_STAGING_PINNED": "1", "SD_STAGING_PINNED_MB": "64"})
+
+    def test_callers_own_values_are_replaced_or_removed(self):
+        base = {"PATH": "x", "SD_PREFETCH_THREAD": "0", "SD_STAGING_PINNED_MB": "999", "SD_PREFETCH_WRAP": "1"}
+        on = gen.engine_env("auto", base)
+        self.assertEqual(on["SD_PREFETCH_THREAD"], "1")
+        self.assertEqual(on["SD_STAGING_PINNED_MB"], "64")
+        off = gen.engine_env("auto", base, overlap=False)
+        for k in gen.OVERLAP_ENV:
+            self.assertNotIn(k, off)
+
+    def test_flag(self):
+        self.assertFalse(gen.make_parser().parse_args(["--prompt", "x"]).no_overlap)
+        self.assertTrue(gen.make_parser().parse_args(["--prompt", "x", "--no-overlap"]).no_overlap)
+
+    def test_quality_settings_unchanged(self):
+        self.assertEqual((gen.STEPS, gen.CFG), (8, "1.0"))
+
+    def test_parse_overlap(self):
+        line = "[I] STAGING_PINNED total: ring 3404 tensors 45791.4 MB, pageable fallback 0 tensors 0.0 MB --- model_manager_prefetch.cpp:680"
+        r = gen.parse_overlap(line)
+        self.assertEqual((r["copy_overlap_used"], r["overlap_ring_tensors"], r["overlap_ring_mib"], r["overlap_fallback_tensors"]),
+                         (True, 3404, 45791.4, 0))
+        none = gen.parse_overlap("nothing here")
+        self.assertFalse(none["copy_overlap_used"])
+        self.assertIsNone(none["overlap_ring_tensors"])
+        self.assertIn("copy_overlap_used", gen.parse_log(line))
 
 
 class Args(unittest.TestCase):

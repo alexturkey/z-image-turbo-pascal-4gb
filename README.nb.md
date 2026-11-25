@@ -31,18 +31,18 @@ Hvis du bruker en AI-kodeagent (Claude Code, Codex, Cursor og lignende), så pek
 
 ## Oversikt
 
-Sammenlignet med oppsettet i v0.1.0: Et bilde tar 193–228 s i stedet for 261.6 s, VAE-steget tar 8.3–15.9 s i stedet for 29.8 til 36.3 s, samme seed gir de samme pikslene, og hvert tall i denne README-en har en kommando og en fil bak seg.
+Sammenlignet med oppsettet i v0.1.0: Et bilde tar 188–193 s i stedet for 261.6 s, VAE-steget tar 12.5–21.7 s i stedet for 29.8 til 36.3 s, samme seed gir de samme pikslene, og hvert tall i denne README-en har en kommando og en fil bak seg.
 
-768x1344, seed 42, 8 steg, samme maskin. Tallene for v0.1.0 er fra v0.1.0-README-en (test fra ren rot og fem kjøringer). Tallene for v0.2.0 er fra testen fra ren rot i denne utgivelsen.
+768x1344, seed 42, 8 steg, samme maskin. Tallene for v0.1.0 er fra v0.1.0-README-en (test fra ren rot og fem kjøringer). Tallene for v0.3.0 er fra testen fra ren rot i denne utgivelsen.
 
-| | v0.1.0 (aldri publisert; gammelt oppsett) | v0.2.0 |
+| | v0.1.0 (aldri publisert; gammelt oppsett) | v0.3.0 |
 |---|---|---|
-| Tid for ett bilde (én `generate.py`-kjøring) | 261.6 s | 193–228 s |
-| VAE-dekoding (siste steg) | 29.8 til 36.3 s | 8.3–15.9 s |
+| Tid for ett bilde (én `generate.py`-kjøring) | 261.6 s | 188–193 s |
+| VAE-dekoding (siste steg) | 29.8 til 36.3 s | 12.5–21.7 s |
 | Nærhet til en referansedekoding (PSNR, høyere er bedre) | 38 til 43 dB | 71 til 73 dB |
 | Høyeste GPU-minne (nvidia-smi) | 2949 til 2957 MiB | 3057–3059 MiB |
-| Prosessminne, høyeste | 10.5 til 10.9 GB (slik det ble notert da) | 10 667–10 915 MiB |
-| Minste ledige RAM sett | 331 til 576 MiB | 418–545 MiB |
+| Prosessminne, høyeste | 10.5 til 10.9 GB (slik det ble notert da) | 10 489–11 203 MiB |
+| Minste ledige RAM sett | 331 til 576 MiB | 303–532 MiB |
 
 Slik leser du tabellen: Referansen er den samme latenten, dekodet på CPU-en som ett float32-stykke. PSNR sammenligner GPU-dekodingen vår med den (3 bilder). Den sier hvor nær VAE-steget ligger referansen. Den sier ikke hvor bra et bilde ser ut. Bildene fra v0.2.0 er ikke byte-identiske med dem fra v0.1.0 for samme prompt og seed, fordi VAE-veien er endret med vilje. Metode og det som ikke er målt: [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md).
 
@@ -110,7 +110,7 @@ Steg (8), cfg (1.0), sampler og scheduler er faste med vilje. Se [Hva den kjøre
 
 - **Hva modellforfatterne sier.** Modellkortet for Z-Image-Turbo sier at modellen "fits comfortably within 16G VRAM consumer devices" ([modellkort](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)). Det er en uttalelse om kort med 16 GB. Den offisielle README-en nevner også stable-diffusion.cpp som et alternativ fra tredjepart og siterer det for "as little as 4GB of VRAM" ([README](https://github.com/Tongyi-MAI/Z-Image)). Det er stable-diffusion.cpp-prosjektets eget utsagn, ikke et krav fra Z-Image-teamet.
 - **Hva vi målte.** Z-Image-Turbo Q8_0 (en fil på 6.6 GB) med Qwen3-4B Q8_0 som tekstencoder, 768x1344: GPU-toppen, målt av nvidia-smi hvert 2. sekund (en kort topp kan bli oversett), var 2949 til 2957 MiB (v0.1.0-motoren) og 3057–3059 MiB (v0.2.0-motoren) på et kort med 4096 MiB. Vektene (10 509 MiB; motorens logg skriver det som MB) blir liggende i systemets RAM. Motoren kopierer nettverket til GPU-en ett segment om gangen (en skive av nettverket): 36 segmenter, som i logglinjen `z_image using 36 segments`.
-- **Hva det koster.** Tid og systemminne: 193–228 s per bilde, og motorprosessen holder omtrent 10 667–10 915 MiB RAM (medregnet minnekartlagte modellsider) på en maskin med 16 GB, så ledig RAM synker til noen få hundre MiB mens den kjører.
+- **Hva det koster.** Tid og systemminne: 188–193 s per bilde, og motorprosessen holder omtrent 10 489–11 203 MiB RAM (medregnet minnekartlagte modellsider) på en maskin med 16 GB, så ledig RAM synker til noen få hundre MiB mens den kjører.
 - **Andres oppsett.** Andre forteller om Z-Image på kort med 4 GB med lavere kvantisering eller mindre størrelser (for eksempel anbefaler wikisiden i stable-diffusion.cpp for kort med 4 GB Q3_K eller Q4_0 i 1024x512). Der vi har sett etter (liste og dato i [`docs/RELATED.md`](docs/RELATED.md)) fant vi ikke noe publisert oppsett som kombinerer alle fire: et kort med 4 GB, Q8_0, 768x1344 eller større, og målt tid og GPU-minne. Det er en uttalelse om hvor vi har sett etter, ikke om alle steder.
 - **Hvem gjør hva.** At det får plass i 4 GB kommer fra stable-diffusion.cpp selv: `--offload-to-cpu`, `--mmap`, arbeid i skiver og flash attention (med den slått av trengte en kjøring 4205 MB og fikk ikke plass). Patchene våre er for hastighet og for et bedre VAE-steg, ikke for å få det til å passe. Vi har ikke kjørt den upatchede upstream-motoren på dette kortet, så vi kan ikke si om den får plass.
 
@@ -132,7 +132,7 @@ I tillegg: `--eager-load` (leser modellsidene inn på forhånd; 241.2 s til 220.
 | Diffusjonsmodell | `z_image_turbo-Q8_0.gguf` (6,577,440,704 B) | [leejet/Z-Image-Turbo-GGUF](https://huggingface.co/leejet/Z-Image-Turbo-GGUF), base [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) |
 | Tekstencoder | `Qwen3-4B-Instruct-2507-Q8_0.gguf` (4,280,405,600 B) | [unsloth/Qwen3-4B-Instruct-2507-GGUF](https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) |
 | VAE | `ae.safetensors` (335,304,388 B) | [Comfy-Org/Z-Image-Turbo](https://huggingface.co/Comfy-Org/Z-Image-Turbo), autoenkoder av FLUX.1-typen |
-| Motor | `sd-cli.exe`, stable-diffusion.cpp `32d516c` med patchene i [`patches/`](patches) | v0.2.0-utgivelsen av dette repoet (`sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip`) |
+| Motor | `sd-cli.exe`, stable-diffusion.cpp `32d516c` med patchene i [`patches/`](patches) | v0.3.0-utgivelsen av dette repoet (`sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip`) |
 | CUDA-runtime | `cudart`, `cublas`, `cublasLt` (12.8), uendret | zip fra utgivelsen wan22-pascal-4gb v0.1.0 |
 | cuDNN (installeres som standard; `--no-cudnn` hopper over det) | 8 DLL-filer, versjon 9.10.2.21 (CUDA 11-bygg) | NVIDIAs egen server, under NVIDIAs lisens. Ligger ikke her |
 

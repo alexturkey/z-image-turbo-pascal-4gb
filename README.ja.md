@@ -31,18 +31,18 @@ AI コーディングエージェント（Claude Code、Codex、Cursor など）
 
 ## 数字で見る
 
-v0.1.0 の構成と比べると、1 枚の生成に 193–228 s かかります（以前は 261.6 s）。VAE の段階は 8.3–15.9 s です（以前は 29.8 から 36.3 s）。同じシードなら同じピクセルになり、この README のすべての数字には、裏付けとなるコマンドとファイルがあります。
+v0.1.0 の構成と比べると、1 枚の生成に 188–193 s かかります（以前は 261.6 s）。VAE の段階は 12.5–21.7 s です（以前は 29.8 から 36.3 s）。同じシードなら同じピクセルになり、この README のすべての数字には、裏付けとなるコマンドとファイルがあります。
 
-768x1344、シード 42、8 ステップ、同じマシンでの計測です。v0.1.0 の数字は v0.1.0 の README（クリーンルートでのテストと 5 回の実行）から、v0.2.0 の数字は今回のリリースのクリーンルートでのテストからです。
+768x1344、シード 42、8 ステップ、同じマシンでの計測です。v0.1.0 の数字は v0.1.0 の README（クリーンルートでのテストと 5 回の実行）から、v0.3.0 の数字は今回のリリースのクリーンルートでのテストからです。
 
-| | v0.1.0（未公開、旧構成） | v0.2.0 |
+| | v0.1.0（未公開、旧構成） | v0.3.0 |
 |---|---|---|
-| 1 枚あたりの所要時間（`generate.py` の 1 回の実行） | 261.6 s | 193–228 s |
-| VAE デコード（最後の段階） | 29.8 から 36.3 s | 8.3–15.9 s |
+| 1 枚あたりの所要時間（`generate.py` の 1 回の実行） | 261.6 s | 188–193 s |
+| VAE デコード（最後の段階） | 29.8 から 36.3 s | 12.5–21.7 s |
 | 参照デコードへの近さ（PSNR、高いほど近い） | 38 から 43 dB | 71 から 73 dB |
 | GPU メモリのピーク（nvidia-smi） | 2949 から 2957 MiB | 3057–3059 MiB |
-| プロセスメモリのピーク | 10.5 から 10.9 GB（当時の記録のまま） | 10 667–10 915 MiB |
-| 観測した最小の空き RAM | 331 から 576 MiB | 418–545 MiB |
+| プロセスメモリのピーク | 10.5 から 10.9 GB（当時の記録のまま） | 10 489–11 203 MiB |
+| 観測した最小の空き RAM | 331 から 576 MiB | 303–532 MiB |
 
 読み方：参照とは、同じ latent を CPU で float32 のまま 1 つの塊としてデコードしたものです。PSNR は、私たちの GPU でのデコード結果をそれと比べた値です（3 枚）。VAE の段階がその参照にどれだけ近いかを示すもので、画像として良いかどうかを示すものではありません。同じプロンプトとシードでも、v0.2.0 の画像は v0.1.0 とバイト単位では一致しません。VAE の経路を意図的に変えたためです。計測方法と未計測の部分は [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md) にあります。
 
@@ -109,7 +109,7 @@ python scripts/generate.py --prompt-file prompts/eiffel.txt --width 1344 --heigh
 
 - **モデルの作者の説明。** Z-Image-Turbo のモデルカードには、このモデルは "fits comfortably within 16G VRAM consumer devices"（VRAM 16 GB の一般向けデバイスに余裕で収まる）と書かれています（[モデルカード](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)）。これは 16 GB のカードについての記述です。公式 README は stable-diffusion.cpp をサードパーティの選択肢として挙げ、"as little as 4GB of VRAM"（最小 4 GB の VRAM で）と紹介しています（[README](https://github.com/Tongyi-MAI/Z-Image)）。これは stable-diffusion.cpp プロジェクト側の主張であり、Z-Image チームが求める要件ではありません。
 - **私たちが計測したこと。** Z-Image-Turbo Q8_0（6.6 GB のファイル）と Qwen3-4B Q8_0 のテキストエンコーダ、768x1344 の条件で、nvidia-smi が 2 s ごとにサンプリングした GPU のピーク（短いスパイクは見逃す可能性があります）は、4096 MiB のカードで 2949 から 2957 MiB（v0.1.0 のエンジン）と 3057–3059 MiB（v0.2.0 のエンジン）でした。重み（10 509 MiB。エンジンのログでは MB と表示されます）はシステム RAM に残り、エンジンはネットワークを 1 セグメント（ネットワークの一部分）ずつ GPU にコピーします。ログの行 `z_image using 36 segments` にあるとおり、36 セグメントです。
-- **代償。** 時間とシステムメモリです。1 枚あたり 193–228 s かかり、16 GB のマシンではエンジンのプロセスが約 10 667–10 915 MiB の RAM を保持します（メモリマップされたモデルのページを含む）。そのため、実行中は空き RAM が数百 MiB まで下がります。
+- **代償。** 時間とシステムメモリです。1 枚あたり 188–193 s かかり、16 GB のマシンではエンジンのプロセスが約 10 489–11 203 MiB の RAM を保持します（メモリマップされたモデルのページを含む）。そのため、実行中は空き RAM が数百 MiB まで下がります。
 - **ほかの人たちの構成。** 4 GB のカードで、より低い量子化や小さいサイズで Z-Image を動かしたという報告もあります（たとえば stable-diffusion.cpp の wiki の 4 GB カード向けのページでは、1024x512 での Q3_K か Q4_0 を勧めています）。私たちが調べた範囲（一覧と日付は [`docs/RELATED.md`](docs/RELATED.md)）では、次の 4 つをすべて満たす公開済みの構成は見つかりませんでした。4 GB のカード、Q8_0、768x1344 かそれ以上のサイズ、そして計測された時間と GPU メモリです。これは私たちが調べた範囲についての記述であり、あらゆる場所についての記述ではありません。
 - **誰が何をしているか。** 4 GB に収まるのは stable-diffusion.cpp 自体の働きによるものです。`--offload-to-cpu`、`--mmap`、スライス単位の処理、そして flash attention です（これを切ると、ある実行は 4205 MB を必要とし、収まりませんでした）。私たちのパッチは速度とより良い VAE の段階のためのもので、収めるためのものではありません。パッチを当てていない上流のエンジンはこのカードでは動かしていないので、収まるかどうかは言えません。
 
@@ -131,7 +131,7 @@ stable-diffusion.cpp `master-1088-32d516c` の上に 3 つの変更を加えて�
 | 拡散モデル | `z_image_turbo-Q8_0.gguf` (6,577,440,704 B) | [leejet/Z-Image-Turbo-GGUF](https://huggingface.co/leejet/Z-Image-Turbo-GGUF)、ベースモデルは [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) |
 | テキストエンコーダ | `Qwen3-4B-Instruct-2507-Q8_0.gguf` (4,280,405,600 B) | [unsloth/Qwen3-4B-Instruct-2507-GGUF](https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) |
 | VAE | `ae.safetensors` (335,304,388 B) | [Comfy-Org/Z-Image-Turbo](https://huggingface.co/Comfy-Org/Z-Image-Turbo)、FLUX.1 系のオートエンコーダ |
-| エンジン | `sd-cli.exe`、stable-diffusion.cpp `32d516c` に [`patches/`](patches) のパッチを適用したもの | このリポジトリの v0.2.0 リリース（`sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip`） |
+| エンジン | `sd-cli.exe`、stable-diffusion.cpp `32d516c` に [`patches/`](patches) のパッチを適用したもの | このリポジトリの v0.3.0 リリース（`sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip`） |
 | CUDA ランタイム | `cudart`、`cublas`、`cublasLt`（12.8）、無改変 | wan22-pascal-4gb の v0.1.0 リリースの zip |
 | cuDNN（デフォルトでインストール。`--no-cudnn` で省略） | DLL 8 個、バージョン 9.10.2.21（CUDA 11 ビルド） | NVIDIA 自身のサーバー（NVIDIA のライセンスが適用）。ここには置きません |
 

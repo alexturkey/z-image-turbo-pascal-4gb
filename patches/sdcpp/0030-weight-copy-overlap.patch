@@ -1,0 +1,679 @@
+SPDX-License-Identifier: MIT
+Copyright 2026 Ali Haydar Ozturk. Derived from stable-diffusion.cpp / ggml (MIT).
+Subject: 0030-weight-copy-overlap
+Weight copy / compute overlap for the offloaded Z-Image run. Bundles the staging pool (SD_STAGING_POOL_MB), the prefetch worker thread (SD_PREFETCH_THREAD), the step-wrap prefetch (SD_PREFETCH_WRAP), the pre-evict step (SD_STAGING_PREEVICT) and the pinned ring (SD_STAGING_PINNED, SD_STAGING_PINNED_MB, SD_STAGING_VERIFY). All default off: with the variables unset the stock path runs. The released scripts set SD_PREFETCH_THREAD=1 SD_STAGING_PINNED=1 SD_STAGING_PINNED_MB=64.
+
+diff --git a/src/core/segment_weight_pipeline.cpp b/src/core/segment_weight_pipeline.cpp
+index 2df9a89..19de7f0 100644
+--- a/src/core/segment_weight_pipeline.cpp
++++ b/src/core/segment_weight_pipeline.cpp
+@@ -1,11 +1,34 @@
+ #include "core/segment_weight_pipeline.h"
+ 
++#include <cstdlib>
++#include <unordered_map>
+ #include <utility>
+ 
+ #include "core/ggml_graph_cut.h"
+ #include "device_residency_manager.h"
+ 
+ namespace sd {
++    // SD_PREFETCH_WRAP (default off): after the LAST parameter segment of a step, prefetch the NEXT step's first parameter segment
++    // and keep that block in the model manager across the step boundary (instead of clear() in the destructor). The next pipeline
++    // object of the same session picks it up (activate at its first segment). See patch 0018.
++    static bool prefetch_wrap_enabled() {
++        static const bool on = []() -> bool {
++            const char* e = std::getenv("SD_PREFETCH_WRAP");
++            return e != nullptr && std::atoi(e) > 0;
++        }();
++        return on;
++    }
++
++    struct WrapCarry {
++        size_t segment = SIZE_MAX;
++        std::vector<ggml_tensor*> params;
++    };
++
++    static std::unordered_map<uintptr_t, WrapCarry>& wrap_carry() {
++        static std::unordered_map<uintptr_t, WrapCarry> carry;
++        return carry;
++    }
++
+     static ggml_tensor* canonical_param(
+         ggml_tensor* tensor,
+         const std::unordered_set<const ggml_tensor*>& params) {
+@@ -40,10 +63,43 @@
+                 }
+             }
+         }
++        if (prefetch_wrap_enabled()) {
++            auto& carry = wrap_carry();
++            auto it     = carry.find(owner_id_);
++            if (it != carry.end()) {
++                auto manager = residency_manager_.lock();
++                bool ok      = enabled_ && manager != nullptr && manager->has_prefetched_params(owner_id_) &&
++                          it->second.segment < segment_params_.size();
++                if (ok) {
++                    const std::unordered_set<ggml_tensor*> want(segment_params_[it->second.segment].begin(),
++                                                                segment_params_[it->second.segment].end());
++                    for (ggml_tensor* tensor : it->second.params) {
++                        if (want.find(tensor) == want.end()) {
++                            ok = false;
++                            break;
++                        }
++                    }
++                }
++                if (ok) {
++                    queued_params_  = std::move(it->second.params);
++                    queued_segment_ = it->second.segment;
++                } else if (manager != nullptr) {
++                    manager->clear_prefetched_params(owner_id_);
++                }
++                carry.erase(it);
++            }
++        }
+     }
+ 
+     SegmentWeightPipeline::~SegmentWeightPipeline() {
+         segment_end();
++        if (wrap_queued_ && enabled_ && queued_segment_ != SIZE_MAX) {
++            // keep the block in the manager; the next step's pipeline resumes it (or the session end / any manager clear drops it)
++            wrap_carry()[owner_id_] = WrapCarry{queued_segment_, std::move(queued_params_)};
++            queued_params_.clear();
++            queued_segment_ = SIZE_MAX;
++            return;
++        }
+         clear();
+     }
+ 
+@@ -51,6 +107,15 @@
+         for (size_t next = segment_index + 1; next < segment_params_.size(); ++next) {
+             if (!segment_params_[next].empty()) {
+                 return next;
++            }
++        }
++        return SIZE_MAX;
++    }
++
++    size_t SegmentWeightPipeline::first_parameter_segment() const {
++        for (size_t first = 0; first < segment_params_.size(); ++first) {
++            if (!segment_params_[first].empty()) {
++                return first;
+             }
+         }
+         return SIZE_MAX;
+@@ -132,9 +197,17 @@
+             return;
+         }
+ 
+-        const size_t next_segment = next_parameter_segment(segment_index);
++        size_t next_segment = next_parameter_segment(segment_index);
++        bool wrap           = false;
+         if (next_segment == SIZE_MAX) {
+-            return;
++            if (!prefetch_wrap_enabled()) {
++                return;
++            }
++            next_segment = first_parameter_segment();
++            if (next_segment == SIZE_MAX || next_segment >= segment_index) {
++                return;
++            }
++            wrap = true;
+         }
+ 
+         std::unordered_set<ggml_tensor*> active_params(
+@@ -182,6 +255,7 @@
+             case WeightPrefetchResult::Scheduled:
+                 queued_params_  = std::move(params);
+                 queued_segment_ = next_segment;
++                wrap_queued_    = wrap;
+                 return;
+             case WeightPrefetchResult::AlreadyResident:
+                 return;
+diff --git a/src/core/segment_weight_pipeline.h b/src/core/segment_weight_pipeline.h
+index 67949ed..bcbcc0d 100644
+--- a/src/core/segment_weight_pipeline.h
++++ b/src/core/segment_weight_pipeline.h
+@@ -30,8 +30,10 @@
+         std::vector<ggml_tensor*> pinned_params_;
+         size_t queued_segment_ = SIZE_MAX;
+         bool enabled_          = true;
++        bool wrap_queued_      = false;  // SD_PREFETCH_WRAP: the queued block is the NEXT step's first parameter segment
+ 
+         size_t next_parameter_segment(size_t segment_index) const;
++        size_t first_parameter_segment() const;
+         std::vector<std::vector<ggml_tensor*>> preferred_eviction_order() const;
+         void disable();
+         void activate(size_t segment_index);
+diff --git a/src/device_residency_manager.h b/src/device_residency_manager.h
+index 7317410..c832636 100644
+--- a/src/device_residency_manager.h
++++ b/src/device_residency_manager.h
+@@ -123,6 +123,7 @@
+     virtual bool activate_prefetched_params(uintptr_t owner_id,
+                                             const std::vector<ggml_tensor*>& tensors) = 0;
+     virtual void clear_prefetched_params(uintptr_t owner_id)                          = 0;
++    virtual bool has_prefetched_params(uintptr_t owner_id) const { return false; }
+ };
+ 
+ // Transitional alias for model constructors that have not yet adopted the
+diff --git a/src/model_manager.cpp b/src/model_manager.cpp
+index 3f489a8..c772494 100644
+--- a/src/model_manager.cpp
++++ b/src/model_manager.cpp
+@@ -1194,7 +1194,7 @@
+     }
+ 
+     if (block.buffer != nullptr) {
+-        ggml_backend_buffer_free(block.buffer);
++        release_staging_buffer(block.buffer, block.compute_backend);
+         block.buffer = nullptr;
+     }
+     if (block.staging_ctx != nullptr) {
+@@ -1343,6 +1343,7 @@
+         state->applied_lora_epoch = UINT64_MAX;
+     }
+     release_compute_staging_blocks(true);
++    drain_staging_pool();
+     release_params_storage_blocks(true);
+ }
+ 
+@@ -2052,5 +2053,13 @@
+     const std::vector<ggml_tensor*>& required_params,
+     const std::vector<std::vector<ggml_tensor*>>& preferred_eviction_order,
+     const std::vector<ggml_tensor*>& protected_params) {
++    if (execution_engine()->ensure_capacity(*this, request, required_params, preferred_eviction_order, protected_params)) {
++        return true;
++    }
++    if (staging_pool_.empty()) {
++        return false;
++    }
++    // Pooled staging buffers still occupy device memory: give them back and retry once (stock behavior).
++    drain_staging_pool();
+     return execution_engine()->ensure_capacity(*this, request, required_params, preferred_eviction_order, protected_params);
+ }
+diff --git a/src/model_manager.h b/src/model_manager.h
+index f592a63..038bf34 100644
+--- a/src/model_manager.h
++++ b/src/model_manager.h
+@@ -2,6 +2,7 @@
+ #define __MODEL_MANAGER_H__
+ 
+ #include <cstdint>
++#include <future>
+ #include <list>
+ #include <map>
+ #include <memory>
+@@ -71,12 +72,29 @@
+         std::vector<std::pair<TensorState*, ggml_tensor*>> staged_tensors;
+     };
+ 
++    // Optional reuse pool for device staging buffers (SD_STAGING_POOL_MB, default 0 = off, see patch 0011).
++    struct StagingPoolEntry {
++        ggml_backend_buffer_type_t buft = nullptr;
++        ggml_backend_t compute_backend  = nullptr;
++        size_t size                     = 0;
++        ggml_backend_buffer_t buffer    = nullptr;
++    };
++    std::vector<StagingPoolEntry> staging_pool_;
++    size_t staging_pool_reuses_ = 0;
++    size_t staging_pool_fresh_  = 0;
++    ggml_backend_buffer_t alloc_staging_tensors(ggml_context* ctx,
++                                                ggml_backend_buffer_type_t buft,
++                                                ggml_backend_t compute_backend);
++    void release_staging_buffer(ggml_backend_buffer_t buffer, ggml_backend_t compute_backend);
++    void drain_staging_pool();
++
+     struct PrefetchBlock {
+         std::vector<TensorState*> states;
+         ggml_backend_t compute_backend  = nullptr;
+         ggml_backend_t transfer_backend = nullptr;
+         ggml_backend_event_t event      = nullptr;
+         bool submitted                  = false;
++        std::future<void> submit_done;  // SD_PREFETCH_THREAD=1: the worker that issues the async copies (valid() until joined)
+         std::vector<std::unique_ptr<ComputeStagingBlock>> staging_blocks;
+     };
+ 
+@@ -304,6 +322,7 @@
+     bool activate_prefetched_params(uintptr_t owner_id,
+                                     const std::vector<ggml_tensor*>& tensors) override;
+     void clear_prefetched_params(uintptr_t owner_id) override;
++    bool has_prefetched_params(uintptr_t owner_id) const override;
+ };
+ 
+ #endif  // __MODEL_MANAGER_H__
+diff --git a/src/model_manager_prefetch.cpp b/src/model_manager_prefetch.cpp
+index 4056b8f..6d6ab2d 100644
+--- a/src/model_manager_prefetch.cpp
++++ b/src/model_manager_prefetch.cpp
+@@ -1,10 +1,226 @@
+ #include "model_manager.h"
+ 
+ #include <algorithm>
++#include <cstdlib>
++#include <cstring>
++#include <future>
++#include <mutex>
+ #include <utility>
+ 
+ #include "core/ggml_extend_backend.h"
+ #include "core/util.h"
++
++// SD_STAGING_POOL_MB (default 0 = off): keep up to this many MB of freed device staging buffers for reuse
++// instead of cudaFree + cudaMalloc per segment. See patch 0011 for the safety argument.
++static size_t staging_pool_cap_bytes() {
++    static const size_t cap = []() -> size_t {
++        const char* e = std::getenv("SD_STAGING_POOL_MB");
++        if (e == nullptr) {
++            return 0;
++        }
++        const long v = std::strtol(e, nullptr, 10);
++        return v > 0 ? (static_cast<size_t>(v) << 20) : 0;
++    }();
++    return cap;
++}
++
++// SD_STAGING_PREEVICT (default 0 = off; needs SD_STAGING_POOL_MB > 0): when no pooled buffer of the exact size is available for a new
++// staging allocation, first hand the already-finished (unpinned) staged blocks of earlier segments back to the pool, then look again.
++// See patch 0021.
++static bool staging_preevict_enabled() {
++    static const bool on = []() -> bool {
++        const char* e = std::getenv("SD_STAGING_PREEVICT");
++        return e != nullptr && std::strtol(e, nullptr, 10) > 0;
++    }();
++    return on;
++}
++static size_t g_staging_preevict_hits = 0;
++
++ggml_backend_buffer_t ModelManager::alloc_staging_tensors(ggml_context* ctx,
++                                                          ggml_backend_buffer_type_t buft,
++                                                          ggml_backend_t compute_backend) {
++    if (staging_pool_cap_bytes() == 0) {
++        return ggml_backend_alloc_ctx_tensors_from_buft(ctx, buft);
++    }
++    for (int pass = 0; pass < (staging_preevict_enabled() ? 2 : 1); ++pass) {
++        if (pass == 1) {
++            // no exact-size match yet: earlier segments' blocks that nobody pins any more are given back (they are the same blocks the
++            // capacity eviction would hand back later); their buffers land in the pool, then the search runs once more
++            release_compute_staging_blocks(false);
++        }
++        if (staging_pool_.empty()) {
++            continue;
++        }
++        const size_t need = ggml_backend_alloc_ctx_tensors_from_buft_size(ctx, buft);
++        for (auto it = staging_pool_.begin(); it != staging_pool_.end(); ++it) {
++            if (it->buft != buft || it->compute_backend != compute_backend || it->size != need) {
++                continue;
++            }
++            ggml_backend_buffer_t buffer = it->buffer;
++            staging_pool_.erase(it);
++            // cudaFree used to be an implicit device-wide barrier: every kernel that read this memory had finished.
++            // Keep that guarantee before the memory is handed to new tensors.
++            ggml_backend_synchronize(compute_backend);
++            // Same layout the stock allocator produces: tensors in context order, each padded to the alignment.
++            ggml_tallocr talloc = ggml_tallocr_new(buffer);
++            bool ok             = true;
++            for (ggml_tensor* t = ggml_get_first_tensor(ctx); t != nullptr; t = ggml_get_next_tensor(ctx, t)) {
++                if (ggml_tallocr_alloc(&talloc, t) != GGML_STATUS_SUCCESS) {
++                    ok = false;
++                    break;
++                }
++            }
++            if (!ok) {
++                ggml_backend_buffer_free(buffer);
++                return nullptr;
++            }
++            ++staging_pool_reuses_;
++            if (pass == 1) {
++                ++g_staging_preevict_hits;
++            }
++            return buffer;
++        }
++    }
++    ++staging_pool_fresh_;
++    return ggml_backend_alloc_ctx_tensors_from_buft(ctx, buft);
++}
++
++void ModelManager::release_staging_buffer(ggml_backend_buffer_t buffer, ggml_backend_t compute_backend) {
++    if (buffer == nullptr) {
++        return;
++    }
++    const size_t cap  = staging_pool_cap_bytes();
++    const size_t size = ggml_backend_buffer_get_size(buffer);
++    if (cap == 0 || size > cap || ggml_backend_buffer_is_host(buffer) || compute_backend == nullptr) {
++        ggml_backend_buffer_free(buffer);
++        return;
++    }
++    size_t total = size;
++    for (const auto& entry : staging_pool_) {
++        total += entry.size;
++    }
++    while (total > cap && !staging_pool_.empty()) {
++        total -= staging_pool_.front().size;
++        ggml_backend_buffer_free(staging_pool_.front().buffer);
++        staging_pool_.erase(staging_pool_.begin());
++    }
++    staging_pool_.push_back({ggml_backend_buffer_get_type(buffer), compute_backend, size, buffer});
++}
++
++void ModelManager::drain_staging_pool() {
++    for (auto& entry : staging_pool_) {
++        ggml_backend_buffer_free(entry.buffer);
++    }
++    staging_pool_.clear();
++}
++
++// SD_PREFETCH_THREAD (default 0 = off): issue the next segment's cudaMemcpyAsync calls from a worker thread.
++// The source is pageable (mmap) memory, for which cudaMemcpyAsync returns only after the driver has staged the bytes,
++// i.e. the calling thread is blocked for roughly size/bandwidth. Inline, that block sits in the compute callback BEFORE the
++// current segment's kernels are launched, so the GPU idles. On a worker thread the main thread launches the kernels at once.
++// See patch 0016 for the safety argument.
++static bool prefetch_thread_enabled() {
++    static const bool on = []() -> bool {
++        const char* e = std::getenv("SD_PREFETCH_THREAD");
++        return e != nullptr && std::strtol(e, nullptr, 10) > 0;
++    }();
++    return on;
++}
++
++// SD_STAGING_PINNED (default 0 = off; needs SD_PREFETCH_THREAD=1): send the weights through a small page-locked (pinned) ring buffer.
++// The worker thread memcpy's each mmap (pageable) tensor into the ring and calls cudaMemcpyAsync from the pinned ring, so the driver does
++// not stage pageable memory inside the call (that call blocks the caller and, measured with 0016, also stalls the main thread's kernel
++// launches). SD_STAGING_PINNED_MB (default 64) sizes the ring; a tensor larger than the ring, or any allocation failure, silently
++// uses the old path. Bytes copied are identical; only the copy route changes. See patch 0023.
++// SD_STAGING_VERIFY=N (default 0 = off, diagnostic only): after the next N prefetched blocks have finished copying, read every staged
++// host-sourced tensor back from the card and memcmp it with the source (mmap) bytes; one INFO line per block and one total line at release.
++// Slow (reads the whole block back), meant for short runs. Works with or without SD_STAGING_PINNED. See patch 0023.
++static long staging_verify_blocks() {
++    static const long n = []() -> long {
++        const char* e = std::getenv("SD_STAGING_VERIFY");
++        return e != nullptr ? std::strtol(e, nullptr, 10) : 0;
++    }();
++    return n;
++}
++static size_t g_ring_tensors = 0, g_ring_bytes = 0, g_fb_tensors = 0, g_fb_bytes = 0;  // ring vs fallback counters (0023)
++static bool g_warned_nothread = false, g_warned_big = false;
++static long g_verify_left = -1;  // -1 = not initialised
++static size_t g_verify_blocks = 0, g_verify_tensors = 0, g_verify_bad = 0;
++
++struct PinnedRing {
++    std::mutex mutex;
++    ggml_backend_buffer_t buffer = nullptr;
++    uint8_t* base                = nullptr;
++    size_t size                  = 0;
++    size_t offset                = 0;
++    ggml_backend_t last_backend  = nullptr;  // backend whose copies may still read the ring
++    bool failed                  = false;
++};
++
++static PinnedRing& pinned_ring() {
++    static PinnedRing ring;
++    return ring;
++}
++
++static size_t pinned_ring_bytes() {
++    static const size_t bytes = []() -> size_t {
++        const char* e = std::getenv("SD_STAGING_PINNED");
++        if (e == nullptr || std::strtol(e, nullptr, 10) <= 0) {
++            return 0;
++        }
++        long mb = 64;
++        if (const char* m = std::getenv("SD_STAGING_PINNED_MB")) {
++            mb = std::strtol(m, nullptr, 10);
++        }
++        return mb > 0 ? (static_cast<size_t>(mb) << 20) : 0;
++    }();
++    return bytes;
++}
++
++// caller holds ring.mutex; true when the ring is usable
++static bool pinned_ring_ensure(PinnedRing& ring, ggml_backend_t transfer_backend) {
++    if (ring.buffer != nullptr) {
++        return true;
++    }
++    const size_t bytes = pinned_ring_bytes();
++    if (bytes == 0 || ring.failed || transfer_backend == nullptr) {
++        return false;
++    }
++    ggml_backend_buffer_type_t buft = ggml_backend_dev_host_buffer_type(ggml_backend_get_device(transfer_backend));
++    ggml_backend_buffer_t buffer    = buft != nullptr ? ggml_backend_buft_alloc_buffer(buft, bytes) : nullptr;
++    // ggml-cuda hands back a pageable buffer (not null) when cudaMallocHost fails: check the type, not just null.
++    if (buffer != nullptr && ggml_backend_buffer_get_type(buffer) != buft) {
++        LOG_WARN("SD_STAGING_PINNED: pinned host allocation of %zu MB failed (got a pageable buffer), ring disabled", bytes >> 20);
++        ggml_backend_buffer_free(buffer);
++        buffer = nullptr;
++    }
++    if (buffer == nullptr) {
++        LOG_WARN("SD_STAGING_PINNED: ring allocation failed, falling back to the pageable path");
++        ring.failed = true;
++        return false;
++    }
++    ring.buffer = buffer;
++    ring.base   = static_cast<uint8_t*>(ggml_backend_buffer_get_base(buffer));
++    ring.size   = bytes;
++    ring.offset = 0;
++    return true;
++}
++
++static void pinned_ring_release() {
++    PinnedRing& ring = pinned_ring();
++    std::lock_guard<std::mutex> lock(ring.mutex);
++    if (ring.buffer != nullptr) {
++        if (ring.last_backend != nullptr) {
++            ggml_backend_synchronize(ring.last_backend);
++        }
++        ggml_backend_buffer_free(ring.buffer);
++        ring.buffer = nullptr;
++        ring.base   = nullptr;
++        ring.size   = 0;
++        ring.offset = 0;
++    }
++    ring.last_backend = nullptr;
++}
+ 
+ ggml_backend_t ModelManager::prefetch_backend_for(ggml_backend_t compute_backend) {
+     auto existing = prefetch_backends_.find(compute_backend);
+@@ -29,6 +245,9 @@
+ }
+ 
+ void ModelManager::synchronize_prefetch_block(PrefetchBlock& block) {
++    if (block.submit_done.valid()) {
++        block.submit_done.get();  // join the worker first: it fills block.event
++    }
+     if (block.event != nullptr) {
+         ggml_backend_event_synchronize(block.event);
+         ggml_backend_event_free(block.event);
+@@ -36,6 +255,39 @@
+     } else if (block.submitted && block.transfer_backend != nullptr) {
+         ggml_backend_synchronize(block.transfer_backend);
+     }
++    if (g_verify_left < 0) {
++        g_verify_left = staging_verify_blocks();
++    }
++    if (block.submitted && g_verify_left > 0) {
++        --g_verify_left;
++        size_t checked = 0, bad = 0, bytes = 0;
++        std::vector<uint8_t> readback;
++        for (const auto& staging_block : block.staging_blocks) {
++            if (staging_block == nullptr) {
++                continue;
++            }
++            for (const auto& pair : staging_block->staged_tensors) {
++                TensorState* state          = pair.first;
++                ggml_tensor* staging_tensor = pair.second;
++                if (staging_tensor == nullptr || staging_tensor->buffer == nullptr ||
++                    !ggml_backend_buffer_is_host(state->tensor->buffer)) {
++                    continue;
++                }
++                const size_t nbytes = ggml_nbytes(state->tensor);
++                readback.resize(nbytes);
++                ggml_backend_tensor_get(staging_tensor, readback.data(), 0, nbytes);
++                ++checked;
++                bytes += nbytes;
++                if (std::memcmp(readback.data(), state->tensor->data, nbytes) != 0) {
++                    ++bad;
++                }
++            }
++        }
++        ++g_verify_blocks;
++        g_verify_tensors += checked;
++        g_verify_bad += bad;
++        LOG_INFO("STAGING_VERIFY block: %zu tensors, %.1f MB read back, %zu differ from source", checked, bytes / (1024.0 * 1024.0), bad);
++    }
+     block.transfer_backend = nullptr;
+ }
+ 
+@@ -47,7 +299,7 @@
+         }
+         staging_block->staged_tensors.clear();
+         if (staging_block->buffer != nullptr) {
+-            ggml_backend_buffer_free(staging_block->buffer);
++            release_staging_buffer(staging_block->buffer, staging_block->compute_backend);
+             staging_block->buffer = nullptr;
+         }
+         if (staging_block->staging_ctx != nullptr) {
+@@ -119,7 +371,7 @@
+             staging_block->staged_tensors.push_back({state, staging_tensor});
+         }
+         staging_block->buffer =
+-            ggml_backend_alloc_ctx_tensors_from_buft(staging_ctx, buffer_type);
++            alloc_staging_tensors(staging_ctx, buffer_type, block.compute_backend);
+         if (staging_block->buffer == nullptr) {
+             ggml_free(staging_ctx);
+             staging_block->staging_ctx = nullptr;
+@@ -162,29 +414,80 @@
+     }
+     auto& block     = *existing->second;
+     block.submitted = true;
+-    for (const auto& staging_block : block.staging_blocks) {
+-        for (const auto& pair : staging_block->staged_tensors) {
+-            TensorState* state          = pair.first;
+-            ggml_tensor* staging_tensor = pair.second;
+-            if (ggml_backend_buffer_is_host(state->tensor->buffer)) {
+-                ggml_backend_tensor_set_async(block.transfer_backend,
+-                                              staging_tensor,
+-                                              state->tensor->data,
+-                                              0,
+-                                              ggml_nbytes(state->tensor));
+-            } else {
+-                ggml_backend_tensor_copy_async(state->params_backend,
+-                                               block.transfer_backend,
+-                                               state->tensor,
+-                                               staging_tensor);
+-            }
+-        }
+-    }
+-
+-    ggml_backend_dev_t device = ggml_backend_get_device(block.transfer_backend);
+-    block.event               = ggml_backend_event_new(device);
+-    if (block.event != nullptr) {
+-        ggml_backend_event_record(block.event, block.transfer_backend);
++    PrefetchBlock* block_ptr = &block;  // the block lives in a unique_ptr; its address is stable until synchronize_prefetch_block joins
++    auto issue_copies = [block_ptr]() {
++        auto& block = *block_ptr;
++        PinnedRing& ring = pinned_ring();
++        std::unique_lock<std::mutex> ring_lock(ring.mutex, std::defer_lock);
++        bool use_ring = false;
++        if (pinned_ring_bytes() > 0 && !prefetch_thread_enabled() && !g_warned_nothread) {
++            g_warned_nothread = true;
++            LOG_WARN("SD_STAGING_PINNED=1 but SD_PREFETCH_THREAD is off: ring not used");
++        }
++        if (pinned_ring_bytes() > 0 && prefetch_thread_enabled()) {  // memcpy on the main thread would only move the cost
++            ring_lock.lock();
++            use_ring = pinned_ring_ensure(ring, block.transfer_backend);
++            if (use_ring) {
++                // A new block starts only after the previous block's event was waited for, but another backend may still read the ring.
++                if (ring.last_backend != nullptr) {
++                    ggml_backend_synchronize(ring.last_backend);
++                }
++                ring.offset       = 0;
++                ring.last_backend = block.transfer_backend;
++            }
++        }
++        for (const auto& staging_block : block.staging_blocks) {
++            for (const auto& pair : staging_block->staged_tensors) {
++                TensorState* state          = pair.first;
++                ggml_tensor* staging_tensor = pair.second;
++                if (ggml_backend_buffer_is_host(state->tensor->buffer)) {
++                    const size_t nbytes = ggml_nbytes(state->tensor);
++                    if (use_ring && nbytes <= ring.size) {
++                        const size_t padded = (nbytes + 255) & ~static_cast<size_t>(255);
++                        if (ring.offset + padded > ring.size) {
++                            ggml_backend_synchronize(block.transfer_backend);  // earlier copies finished reading the ring
++                            ring.offset = 0;
++                        }
++                        uint8_t* slot = ring.base + ring.offset;
++                        std::memcpy(slot, state->tensor->data, nbytes);
++                        ggml_backend_tensor_set_async(block.transfer_backend, staging_tensor, slot, 0, nbytes);
++                        ring.offset += padded;
++                        g_ring_tensors++;
++                        g_ring_bytes += nbytes;
++                        continue;
++                    }
++                    if (pinned_ring_bytes() > 0) {
++                        g_fb_tensors++;
++                        g_fb_bytes += nbytes;
++                        if (use_ring && !g_warned_big) {
++                            g_warned_big = true;
++                            LOG_WARN("SD_STAGING_PINNED: tensor of %zu MB larger than the ring (%zu MB), sent pageable", nbytes >> 20, ring.size >> 20);
++                        }
++                    }
++                    ggml_backend_tensor_set_async(block.transfer_backend,
++                                                  staging_tensor,
++                                                  state->tensor->data,
++                                                  0,
++                                                  nbytes);
++                } else {
++                    ggml_backend_tensor_copy_async(state->params_backend,
++                                                   block.transfer_backend,
++                                                   state->tensor,
++                                                   staging_tensor);
++                }
++            }
++        }
++
++        ggml_backend_dev_t device = ggml_backend_get_device(block.transfer_backend);
++        block.event               = ggml_backend_event_new(device);
++        if (block.event != nullptr) {
++            ggml_backend_event_record(block.event, block.transfer_backend);
++        }
++    };
++    if (prefetch_thread_enabled()) {
++        block.submit_done = std::async(std::launch::async, issue_copies);
++    } else {
++        issue_copies();
+     }
+ 
+     size_t total_size = 0;
+@@ -358,6 +661,10 @@
+     free_prefetch_block(*block);
+ }
+ 
++bool ModelManager::has_prefetched_params(uintptr_t owner_id) const {
++    return prefetch_blocks_.find(owner_id) != prefetch_blocks_.end();
++}
++
+ void ModelManager::clear_all_prefetched_params() {
+     for (auto& entry : prefetch_blocks_) {
+         free_prefetch_block(*entry.second);
+@@ -367,6 +674,20 @@
+ 
+ void ModelManager::release_prefetch() {
+     clear_all_prefetched_params();
++    pinned_ring_release();
++    if (g_ring_tensors + g_fb_tensors > 0) {
++        LOG_INFO("STAGING_PINNED total: ring %zu tensors %.1f MB, pageable fallback %zu tensors %.1f MB", g_ring_tensors,
++                 g_ring_bytes / 1048576.0, g_fb_tensors, g_fb_bytes / 1048576.0);
++        g_ring_tensors = g_ring_bytes = g_fb_tensors = g_fb_bytes = 0;
++    }
++    if (g_verify_blocks > 0) {
++        LOG_INFO("STAGING_VERIFY total: %zu blocks, %zu tensors, %zu differ from source", g_verify_blocks, g_verify_tensors, g_verify_bad);
++        g_verify_blocks = g_verify_tensors = g_verify_bad = 0;
++    }
++    drain_staging_pool();
++    if (staging_pool_reuses_ + staging_pool_fresh_ > 0 && staging_pool_cap_bytes() > 0) {
++        LOG_VERBOSE("staging pool: %zu reuses (%zu after pre-evict), %zu fresh allocations", staging_pool_reuses_, g_staging_preevict_hits, staging_pool_fresh_);
++    }
+     for (auto& entry : prefetch_backends_) {
+         if (entry.second != nullptr) {
+             ggml_backend_free(entry.second);

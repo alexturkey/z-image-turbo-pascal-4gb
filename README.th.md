@@ -31,18 +31,18 @@
 
 ## ภาพรวมเป็นตัวเลข
 
-เทียบกับโครงสร้างของ v0.1.0: หนึ่งภาพใช้เวลา 193–228 s แทนที่จะเป็น 261.6 s ขั้น VAE ใช้ 8.3–15.9 s แทนที่จะเป็น 29.8 ถึง 36.3 s ใช้ seed เดิมได้พิกเซลเดิม และทุกตัวเลขใน README นี้มีคำสั่งและไฟล์รองรับ
+เทียบกับโครงสร้างของ v0.1.0: หนึ่งภาพใช้เวลา 188–193 s แทนที่จะเป็น 261.6 s ขั้น VAE ใช้ 12.5–21.7 s แทนที่จะเป็น 29.8 ถึง 36.3 s ใช้ seed เดิมได้พิกเซลเดิม และทุกตัวเลขใน README นี้มีคำสั่งและไฟล์รองรับ
 
-768x1344, seed 42, 8 steps, เครื่องเดียวกัน ตัวเลขของ v0.1.0 มาจาก README ของ v0.1.0 (การทดสอบจาก clean root และการรัน 5 ครั้ง) ตัวเลขของ v0.2.0 มาจากการทดสอบ clean root ของรุ่นนี้
+768x1344, seed 42, 8 steps, เครื่องเดียวกัน ตัวเลขของ v0.1.0 มาจาก README ของ v0.1.0 (การทดสอบจาก clean root และการรัน 5 ครั้ง) ตัวเลขของ v0.3.0 มาจากการทดสอบ clean root ของรุ่นนี้
 
-| | v0.1.0 (ไม่เคยเผยแพร่ โครงสร้างเก่า) | v0.2.0 |
+| | v0.1.0 (ไม่เคยเผยแพร่ โครงสร้างเก่า) | v0.3.0 |
 |---|---|---|
-| เวลาต่อหนึ่งภาพ (การรัน `generate.py` หนึ่งครั้ง) | 261.6 s | 193–228 s |
-| VAE decode (ขั้นสุดท้าย) | 29.8 ถึง 36.3 s | 8.3–15.9 s |
+| เวลาต่อหนึ่งภาพ (การรัน `generate.py` หนึ่งครั้ง) | 261.6 s | 188–193 s |
+| VAE decode (ขั้นสุดท้าย) | 29.8 ถึง 36.3 s | 12.5–21.7 s |
 | ความใกล้เคียงกับ reference decode (PSNR ยิ่งสูงยิ่งใกล้) | 38 ถึง 43 dB | 71 ถึง 73 dB |
 | VRAM สูงสุด (nvidia-smi) | 2949 ถึง 2957 MiB | 3057–3059 MiB |
-| หน่วยความจำของโปรเซส ค่าสูงสุด | 10.5 ถึง 10.9 GB (ตามที่บันทึกไว้ตอนนั้น) | 10 667–10 915 MiB |
-| RAM ว่างต่ำสุดที่เห็น | 331 ถึง 576 MiB | 418–545 MiB |
+| หน่วยความจำของโปรเซส ค่าสูงสุด | 10.5 ถึง 10.9 GB (ตามที่บันทึกไว้ตอนนั้น) | 10 489–11 203 MiB |
+| RAM ว่างต่ำสุดที่เห็น | 331 ถึง 576 MiB | 303–532 MiB |
 
 วิธีอ่านตาราง: reference คือ latent ตัวเดียวกันที่ decode บน CPU เป็นก้อนเดียวแบบ float32 PSNR เทียบผลถอดรหัสบน GPU ของเรากับ reference นั้น (3 ภาพ) ค่านี้บอกว่าขั้น VAE ใกล้เคียงกับ reference แค่ไหน ไม่ได้บอกว่าภาพสวยหรือไม่ ภาพของ v0.2.0 ไม่ตรงกับ v0.1.0 ทุกไบต์เมื่อใช้ prompt และ seed เดียวกัน เพราะเราตั้งใจเปลี่ยนเส้นทางของ VAE วิธีวัดและส่วนที่ยังไม่ได้วัดอยู่ที่ [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md)
 
@@ -109,7 +109,7 @@ python scripts/generate.py --prompt-file prompts/eiffel.txt --width 1344 --heigh
 
 - **ผู้สร้างโมเดลบอกว่าอย่างไร** model card ของ Z-Image-Turbo ระบุว่าโมเดล "fits comfortably within 16G VRAM consumer devices" ([model card](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)) หมายถึงการ์ดขนาด 16 GB README ทางการยังระบุ stable-diffusion.cpp เป็นทางเลือกจากบุคคลที่สามและอ้างว่าใช้ "as little as 4GB of VRAM" ([README](https://github.com/Tongyi-MAI/Z-Image)) นั่นเป็นคำกล่าวอ้างของโปรเจกต์ stable-diffusion.cpp ไม่ใช่ข้อกำหนดของทีม Z-Image
 - **สิ่งที่เราวัดได้** Z-Image-Turbo Q8_0 (ไฟล์ขนาด 6.6 GB) กับ text encoder Qwen3-4B Q8_0 ที่ 768x1344 ค่าสูงสุดของ GPU ที่ nvidia-smi สุ่มอ่านทุก 2 s (ค่าพุ่งสั้นๆ อาจพลาดได้) อยู่ที่ 2949 ถึง 2957 MiB (เอนจิน v0.1.0) และ 3057–3059 MiB (เอนจิน v0.2.0) บนการ์ดขนาด 4096 MiB น้ำหนักโมเดล (10 509 MiB ล็อกของเอนจินพิมพ์เป็น MB) อยู่ใน RAM ของระบบ เอนจินคัดลอกเน็ตเวิร์กไปที่ GPU ทีละ segment (ชิ้นส่วนของเน็ตเวิร์ก) มี 36 segments ตามบรรทัดล็อก `z_image using 36 segments`
-- **ราคาที่ต้องจ่าย** คือเวลาและหน่วยความจำของระบบ: 193–228 s ต่อหนึ่งภาพ และโปรเซสของเอนจินถือ RAM ประมาณ 10 667–10 915 MiB (รวมหน้าโมเดลที่ memory-mapped) บนเครื่อง 16 GB ดังนั้น RAM ว่างจะลดเหลือไม่กี่ร้อย MiB ระหว่างที่รัน
+- **ราคาที่ต้องจ่าย** คือเวลาและหน่วยความจำของระบบ: 188–193 s ต่อหนึ่งภาพ และโปรเซสของเอนจินถือ RAM ประมาณ 10 489–11 203 MiB (รวมหน้าโมเดลที่ memory-mapped) บนเครื่อง 16 GB ดังนั้น RAM ว่างจะลดเหลือไม่กี่ร้อย MiB ระหว่างที่รัน
 - **วิธีของคนอื่น** มีรายงานว่ารัน Z-Image บนการ์ด 4 GB ได้ด้วย quantization ที่ต่ำกว่าหรือขนาดภาพที่เล็กกว่า (เช่น หน้า wiki ของ stable-diffusion.cpp สำหรับการ์ด 4 GB แนะนำ Q3_K หรือ Q4_0 ที่ 1024x512) ในที่ที่เราไปค้นดู (รายการและวันที่อยู่ใน [`docs/RELATED.md`](docs/RELATED.md)) เราไม่พบวิธีที่เผยแพร่แล้วซึ่งรวมครบทั้งสี่อย่าง คือการ์ด 4 GB, Q8_0, 768x1344 หรือใหญ่กว่า และมีการวัดเวลากับหน่วยความจำ GPU ไว้ นี่เป็นคำกล่าวเกี่ยวกับที่ที่เราค้นดู ไม่ใช่เกี่ยวกับทุกที่
 - **ใครทำอะไร** การทำให้ใส่ใน 4 GB ได้มาจาก stable-diffusion.cpp เอง คือ `--offload-to-cpu`, `--mmap`, การทำงานทีละชิ้น และ flash attention (เมื่อปิด flash attention การรันใช้ 4205 MB และใส่ไม่พอ) แพตช์ของเราทำเพื่อความเร็วและขั้น VAE ที่ดีขึ้น ไม่ได้ทำเพื่อให้ใส่ได้ เราไม่ได้รันเอนจิน upstream ที่ไม่มีแพตช์บนการ์ดใบนี้ จึงบอกไม่ได้ว่าใส่ได้หรือไม่
 
@@ -131,7 +131,7 @@ python scripts/generate.py --prompt-file prompts/eiffel.txt --width 1344 --heigh
 | โมเดล diffusion | `z_image_turbo-Q8_0.gguf` (6,577,440,704 B) | [leejet/Z-Image-Turbo-GGUF](https://huggingface.co/leejet/Z-Image-Turbo-GGUF), ฐาน [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) |
 | Text encoder | `Qwen3-4B-Instruct-2507-Q8_0.gguf` (4,280,405,600 B) | [unsloth/Qwen3-4B-Instruct-2507-GGUF](https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) |
 | VAE | `ae.safetensors` (335,304,388 B) | [Comfy-Org/Z-Image-Turbo](https://huggingface.co/Comfy-Org/Z-Image-Turbo), autoencoder แบบ FLUX.1 |
-| เอนจิน | `sd-cli.exe`, stable-diffusion.cpp `32d516c` พร้อมแพตช์ใน [`patches/`](patches) | release v0.2.0 ของรีโพนี้ (`sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip`) |
+| เอนจิน | `sd-cli.exe`, stable-diffusion.cpp `32d516c` พร้อมแพตช์ใน [`patches/`](patches) | release v0.3.0 ของรีโพนี้ (`sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip`) |
 | CUDA runtime | `cudart`, `cublas`, `cublasLt` (12.8) ไม่ได้แก้ไข | zip จาก release wan22-pascal-4gb v0.1.0 |
 | cuDNN (ติดตั้งโดยค่าเริ่มต้น; `--no-cudnn` ข้ามขั้นนี้) | DLL 8 ไฟล์ เวอร์ชัน 9.10.2.21 (บิลด์สำหรับ CUDA 11) | เซิร์ฟเวอร์ของ NVIDIA เอง ภายใต้สัญญาอนุญาตของ NVIDIA ไม่ได้เก็บไว้ที่นี่ |
 

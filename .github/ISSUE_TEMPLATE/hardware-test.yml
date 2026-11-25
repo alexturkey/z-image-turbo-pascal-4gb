@@ -58,7 +58,7 @@ body:
     attributes:
       label: Version / Sürüm
       description: Release tag or `git log -1 --format=%h` / Release etiketi ya da `git log -1 --format=%h`
-      placeholder: "v0.2.0"
+      placeholder: "v0.3.0"
     validations:
       required: true
   - type: dropdown

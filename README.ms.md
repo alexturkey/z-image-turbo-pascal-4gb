@@ -31,18 +31,18 @@ Jika anda menggunakan ejen pengekodan AI (Claude Code, Codex, Cursor dan seumpam
 
 ## Sepintas lalu
 
-Berbanding susunan v0.1.0: satu imej mengambil 193–228 s, bukan 261.6 s; peringkat VAE mengambil 8.3–15.9 s, bukan 29.8 hingga 36.3 s; seed yang sama menghasilkan piksel yang sama; dan setiap angka dalam README ini mempunyai arahan dan fail di belakangnya.
+Berbanding susunan v0.1.0: satu imej mengambil 188–193 s, bukan 261.6 s; peringkat VAE mengambil 12.5–21.7 s, bukan 29.8 hingga 36.3 s; seed yang sama menghasilkan piksel yang sama; dan setiap angka dalam README ini mempunyai arahan dan fail di belakangnya.
 
-768x1344, seed 42, 8 langkah (steps), mesin yang sama. Angka v0.1.0 datang daripada README v0.1.0 (ujian clean-root dan lima larian); angka v0.2.0 datang daripada ujian clean-root keluaran ini.
+768x1344, seed 42, 8 langkah (steps), mesin yang sama. Angka v0.1.0 datang daripada README v0.1.0 (ujian clean-root dan lima larian); angka v0.3.0 datang daripada ujian clean-root keluaran ini.
 
-| | v0.1.0 (tidak pernah diterbitkan; susunan lama) | v0.2.0 |
+| | v0.1.0 (tidak pernah diterbitkan; susunan lama) | v0.3.0 |
 |---|---|---|
-| Masa untuk satu imej (satu larian `generate.py`) | 261.6 s | 193–228 s |
-| Penyahkodan VAE (peringkat akhir) | 29.8 hingga 36.3 s | 8.3–15.9 s |
+| Masa untuk satu imej (satu larian `generate.py`) | 261.6 s | 188–193 s |
+| Penyahkodan VAE (peringkat akhir) | 29.8 hingga 36.3 s | 12.5–21.7 s |
 | Kedekatan dengan penyahkodan rujukan (PSNR, semakin tinggi semakin dekat) | 38 hingga 43 dB | 71 hingga 73 dB |
 | Puncak memori GPU (nvidia-smi) | 2949 hingga 2957 MiB | 3057–3059 MiB |
-| Memori proses, puncak | 10.5 hingga 10.9 GB (seperti yang direkodkan ketika itu) | 10 667–10 915 MiB |
-| RAM kosong terendah yang dilihat | 331 hingga 576 MiB | 418–545 MiB |
+| Memori proses, puncak | 10.5 hingga 10.9 GB (seperti yang direkodkan ketika itu) | 10 489–11 203 MiB |
+| RAM kosong terendah yang dilihat | 331 hingga 576 MiB | 303–532 MiB |
 
 Cara membacanya: rujukan ialah latent yang sama yang dinyahkod pada CPU sebagai satu keping float32; PSNR membandingkan penyahkodan GPU kami dengannya (3 imej). Ia menunjukkan betapa dekatnya peringkat VAE dengan rujukan itu. Ia tidak menunjukkan betapa cantiknya rupa sesuatu imej. Imej v0.2.0 tidak sama bait demi bait dengan v0.1.0 untuk prompt dan seed yang sama, kerana laluan VAE sengaja diubah. Kaedah dan bahagian yang tidak diukur: [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md).
 
@@ -110,7 +110,7 @@ Langkah (8), cfg (1.0), sampler dan scheduler sengaja ditetapkan; lihat [Apa yan
 
 - **Apa kata penulis model.** Model card Z-Image-Turbo menyatakan model ini "fits comfortably within 16G VRAM consumer devices" (muat dengan selesa pada peranti pengguna dengan VRAM 16 GB) ([model card](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)). Itu kenyataan tentang kad 16 GB. README rasminya juga menyenaraikan stable-diffusion.cpp sebagai pilihan pihak ketiga dan memetiknya untuk "as little as 4GB of VRAM" (VRAM serendah 4 GB) ([README](https://github.com/Tongyi-MAI/Z-Image)); itu tuntutan projek stable-diffusion.cpp, bukan syarat daripada pasukan Z-Image.
 - **Apa yang kami ukur.** Z-Image-Turbo Q8_0 (fail 6.6 GB) dengan text encoder Qwen3-4B Q8_0, 768x1344: puncak GPU, disampel oleh nvidia-smi setiap 2 s (lonjakan singkat mungkin terlepas), ialah 2949 hingga 2957 MiB (enjin v0.1.0) dan 3057–3059 MiB (enjin v0.2.0) pada kad 4096 MiB. Pemberat (10 509 MiB; log enjin mencetaknya sebagai MB) kekal dalam RAM sistem; enjin menyalin rangkaian ke GPU satu segmen (satu keping rangkaian) pada satu masa: 36 segmen, seperti dalam baris log `z_image using 36 segments`.
-- **Kosnya.** Masa dan memori sistem: 193–228 s bagi setiap imej, dan proses enjin memegang kira-kira 10 667–10 915 MiB RAM (termasuk halaman model yang dipetakan ke memori) pada mesin 16 GB, jadi RAM kosong jatuh kepada beberapa ratus MiB semasa ia berjalan.
+- **Kosnya.** Masa dan memori sistem: 188–193 s bagi setiap imej, dan proses enjin memegang kira-kira 10 489–11 203 MiB RAM (termasuk halaman model yang dipetakan ke memori) pada mesin 16 GB, jadi RAM kosong jatuh kepada beberapa ratus MiB semasa ia berjalan.
 - **Persediaan orang lain.** Orang lain melaporkan Z-Image pada kad 4 GB dengan kuantisasi yang lebih rendah atau saiz yang lebih kecil (contohnya halaman wiki stable-diffusion.cpp untuk kad 4 GB mengesyorkan Q3_K atau Q4_0 pada 1024x512). Di tempat yang kami periksa (senarai dan tarikh dalam [`docs/RELATED.md`](docs/RELATED.md)) kami tidak menemui persediaan terbit yang menggabungkan keempat-empatnya: kad 4 GB, Q8_0, 768x1344 atau lebih besar, serta masa dan memori GPU yang diukur. Ini kenyataan tentang tempat yang kami periksa, bukan tentang semua tempat.
 - **Siapa buat apa.** Muat dalam 4 GB datang daripada stable-diffusion.cpp sendiri: `--offload-to-cpu`, `--mmap`, bekerja secara kepingan, dan flash attention (apabila dimatikan, satu larian memerlukan 4205 MB dan tidak muat). Patch kami adalah untuk kelajuan dan peringkat VAE yang lebih baik, bukan untuk muat. Kami tidak menjalankan enjin upstream tanpa patch pada kad ini, jadi kami tidak dapat mengatakan sama ada ia muat.
 
@@ -132,7 +132,7 @@ Selain itu: `--eager-load` (membaca halaman model di awal; 241.2 s kepada 220.3 
 | Model resapan (diffusion) | `z_image_turbo-Q8_0.gguf` (6,577,440,704 B) | [leejet/Z-Image-Turbo-GGUF](https://huggingface.co/leejet/Z-Image-Turbo-GGUF), asas [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) |
 | Text encoder | `Qwen3-4B-Instruct-2507-Q8_0.gguf` (4,280,405,600 B) | [unsloth/Qwen3-4B-Instruct-2507-GGUF](https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) |
 | VAE | `ae.safetensors` (335,304,388 B) | [Comfy-Org/Z-Image-Turbo](https://huggingface.co/Comfy-Org/Z-Image-Turbo), autoencoder jenis FLUX.1 |
-| Enjin | `sd-cli.exe`, stable-diffusion.cpp `32d516c` dengan patch dalam [`patches/`](patches) | keluaran v0.2.0 repositori ini (`sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip`) |
+| Enjin | `sd-cli.exe`, stable-diffusion.cpp `32d516c` dengan patch dalam [`patches/`](patches) | keluaran v0.3.0 repositori ini (`sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip`) |
 | Runtime CUDA | `cudart`, `cublas`, `cublasLt` (12.8), tidak diubah suai | zip daripada keluaran v0.1.0 wan22-pascal-4gb |
 | cuDNN (dipasang secara lalai; `--no-cudnn` melangkaunya) | 8 DLL, versi 9.10.2.21 (binaan CUDA 11) | pelayan NVIDIA sendiri, di bawah lesen NVIDIA; tidak disimpan di sini |
 

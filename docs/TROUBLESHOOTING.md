@@ -52,8 +52,10 @@ For the order of steps see [AGENTS.md](../AGENTS.md). Every message below is pri
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Free RAM near zero, the machine feels stuck | The engine process peaked around 10 667–10 915 MiB resident on a 16 GB machine; free RAM fell to a few hundred MiB (measured) | Close browsers and other programs before starting; do not run two jobs. Machines with less than 16 GB: not tested. `generate.py` warns when less than 8000 MiB are free. |
+| Free RAM near zero, the machine feels stuck | The engine process peaked around 10 489–11 203 MiB resident on a 16 GB machine; free RAM fell to a few hundred MiB (measured) | Close browsers and other programs before starting; do not run two jobs. Machines with less than 16 GB: not tested. `generate.py` warns when less than 8000 MiB are free. |
 | The run ends early or disappears while free RAM is a few hundred MiB | Free RAM is very low while the engine runs; one of our runs was stopped this way (see `docs/MEASUREMENTS.md`) | Close other programs and make one picture at a time. |
+| Low on RAM (free RAM only a few hundred MiB, the machine swaps or the run is killed) and the weight-copy overlap is on | The overlap holds a 64 MB page-locked (pinned) memory ring that Windows cannot swap out, and the engine process peaked about 440 MiB higher in one comparison of two runs (10 614 and 11 052 MiB); we did not find out how much of that is the ring (not measured) | Run `python scripts/generate.py ... --no-overlap`: the stock copy path, the same picture, a longer run. `run.json` then has `stages.copy_overlap_used` false and the log has no `STAGING_PINNED total` line |
+| `stages.copy_overlap_used` is `false` without `--no-overlap` | The engine in `bin/` is older than v0.3.0 (run `python scripts/setup.py`), or the 64 MB pinned allocation failed (the log says so: `SD_STAGING_PINNED: ... falling back to the pageable path`) | Update the engine; the picture is the same either way, only the time differs |
 | Process killed, out of memory | Not enough free RAM or VRAM, another GPU program running | Close other programs, run alone. Check `Get-Process sd-cli` for a leftover process and end it. |
 | Black picture or noise | Not seen in our runs. Likely a damaged model file or changed settings (not tested) | Re-run `setup.py` to re-verify files; use the default settings (8 steps, cfg 1.0, euler, simple). Do not add a negative prompt. |
 | Very slow start | Model files on a spinning disk | Use an SSD. We measured two runs on one 2 TB laptop hard disk: 325 and 378 s per picture, see `docs/MEASUREMENTS.md`. |
@@ -70,7 +72,7 @@ For the order of steps see [AGENTS.md](../AGENTS.md). Every message below is pri
 | The v0.1.0 VAE path for one picture | `python scripts/generate.py ... --vae legacy` |
 | Always large tiles, never the one-piece try | `--vae tiled` |
 | No cuDNN at all | delete the eight `cudnn*64_9.dll` files next to `sd-cli.exe` (`generate.py` then uses `legacy` by itself) |
-| The old engine | not supported: the v0.2.0 engine is the one in `models.lock.json` |
+| The old engine | not supported: the engine in `models.lock.json` is the supported one |
 | Engine switches (`SD_VAE_TRY_FULL` and others, listed in [`patches/README.md`](../patches/README.md)) | `generate.py` clears them from the environment and sets its own, so a run is reproducible. To experiment, call `sd-cli.exe` yourself (see the exact command in `run.json`). |
 
 ## Picture quality

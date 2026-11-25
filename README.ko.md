@@ -31,18 +31,18 @@ AI 코딩 에이전트(Claude Code, Codex, Cursor 등)를 쓴다면 [`AGENTS.md`
 
 ## 한눈에 보기
 
-v0.1.0 구성과 비교하면, 이미지 한 장에 261.6 s 대신 193–228 s가 걸리고, VAE 단계는 29.8 ~ 36.3 s 대신 8.3–15.9 s가 걸립니다. 같은 시드는 같은 픽셀을 만들며, 이 README의 모든 숫자에는 그 뒤에 명령어와 파일이 있습니다.
+v0.1.0 구성과 비교하면, 이미지 한 장에 261.6 s 대신 188–193 s가 걸리고, VAE 단계는 29.8 ~ 36.3 s 대신 12.5–21.7 s가 걸립니다. 같은 시드는 같은 픽셀을 만들며, 이 README의 모든 숫자에는 그 뒤에 명령어와 파일이 있습니다.
 
-768x1344, 시드 42, 8 스텝, 같은 컴퓨터입니다. v0.1.0 수치는 v0.1.0 README(클린 루트 테스트와 5회 실행)에서, v0.2.0 수치는 이번 릴리스의 클린 루트 테스트에서 가져왔습니다.
+768x1344, 시드 42, 8 스텝, 같은 컴퓨터입니다. v0.1.0 수치는 v0.1.0 README(클린 루트 테스트와 5회 실행)에서, v0.3.0 수치는 이번 릴리스의 클린 루트 테스트에서 가져왔습니다.
 
-| | v0.1.0 (미공개, 이전 구성) | v0.2.0 |
+| | v0.1.0 (미공개, 이전 구성) | v0.3.0 |
 |---|---|---|
-| 이미지 한 장에 걸리는 시간 (`generate.py` 1회 실행) | 261.6 s | 193–228 s |
-| VAE 디코딩 (마지막 단계) | 29.8 ~ 36.3 s | 8.3–15.9 s |
+| 이미지 한 장에 걸리는 시간 (`generate.py` 1회 실행) | 261.6 s | 188–193 s |
+| VAE 디코딩 (마지막 단계) | 29.8 ~ 36.3 s | 12.5–21.7 s |
 | 기준 디코딩과의 근접도 (PSNR, 높을수록 가까움) | 38 ~ 43 dB | 71 ~ 73 dB |
 | GPU 메모리 최고치 (nvidia-smi) | 2949 ~ 2957 MiB | 3057–3059 MiB |
-| 프로세스 메모리, 최고치 | 10.5 ~ 10.9 GB (당시 기록 그대로) | 10 667–10 915 MiB |
-| 관측된 가장 낮은 여유 RAM | 331 ~ 576 MiB | 418–545 MiB |
+| 프로세스 메모리, 최고치 | 10.5 ~ 10.9 GB (당시 기록 그대로) | 10 489–11 203 MiB |
+| 관측된 가장 낮은 여유 RAM | 331 ~ 576 MiB | 303–532 MiB |
 
 읽는 방법: 기준은 같은 latent를 CPU에서 float32 한 덩어리로 디코딩한 결과입니다. PSNR은 저희 GPU 디코딩을 그 기준과 비교한 값입니다(이미지 3장). VAE 단계가 그 기준에 얼마나 가까운지를 알려 줄 뿐, 이미지가 얼마나 좋아 보이는지는 알려 주지 않습니다. 같은 프롬프트와 시드라도 v0.2.0 이미지는 v0.1.0과 바이트 단위로 같지 않습니다. VAE 경로를 의도적으로 바꿨기 때문입니다. 측정 방법과 측정하지 않은 부분: [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md).
 
@@ -110,7 +110,7 @@ python scripts/generate.py --prompt-file prompts/eiffel.txt --width 1344 --heigh
 
 - **모델 제작자의 설명.** Z-Image-Turbo 모델 카드에는 모델이 "fits comfortably within 16G VRAM consumer devices"(16 GB VRAM 소비자용 장치에 여유 있게 들어간다)라고 적혀 있습니다([모델 카드](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)). 이것은 16 GB 카드에 대한 서술입니다. 공식 README는 stable-diffusion.cpp도 서드파티 선택지로 나열하며 "as little as 4GB of VRAM"(VRAM 4 GB만으로도)이라고 인용합니다([README](https://github.com/Tongyi-MAI/Z-Image)). 이는 stable-diffusion.cpp 프로젝트의 주장이지 Z-Image 팀의 요구 사항이 아닙니다.
 - **저희가 측정한 것.** Z-Image-Turbo Q8_0(6.6 GB 파일)과 Qwen3-4B Q8_0 텍스트 인코더, 768x1344에서 nvidia-smi가 2 s마다 샘플링한 GPU 최고치(짧은 급등은 놓칠 수 있습니다)는 4096 MiB 카드에서 2949 ~ 2957 MiB(v0.1.0 엔진), 3057–3059 MiB(v0.2.0 엔진)였습니다. 가중치(10 509 MiB, 엔진 로그에는 MB로 출력됨)는 시스템 RAM에 남아 있고, 엔진은 네트워크를 한 번에 한 세그먼트(네트워크의 한 조각)씩 GPU로 복사합니다. 로그의 `z_image using 36 segments` 줄처럼 36개 세그먼트입니다.
-- **치르는 비용.** 시간과 시스템 메모리입니다. 이미지 한 장에 193–228 s가 걸리고, 16 GB 컴퓨터에서 엔진 프로세스가 RAM을 약 10 667–10 915 MiB(메모리 매핑된 모델 페이지 포함) 차지하므로, 실행 중에는 여유 RAM이 수백 MiB로 떨어집니다.
+- **치르는 비용.** 시간과 시스템 메모리입니다. 이미지 한 장에 188–193 s가 걸리고, 16 GB 컴퓨터에서 엔진 프로세스가 RAM을 약 10 489–11 203 MiB(메모리 매핑된 모델 페이지 포함) 차지하므로, 실행 중에는 여유 RAM이 수백 MiB로 떨어집니다.
 - **다른 사람들의 구성.** 다른 사용자들은 4 GB 카드에서 더 낮은 양자화나 더 작은 크기로 Z-Image를 돌렸다고 보고합니다(예를 들어 4 GB 카드용 stable-diffusion.cpp 위키 페이지는 1024x512에서 Q3_K 또는 Q4_0을 권합니다). 저희가 찾아본 곳([`docs/RELATED.md`](docs/RELATED.md)에 목록과 날짜)에서는 4 GB 카드, Q8_0, 768x1344 이상, 측정된 시간과 GPU 메모리라는 네 가지를 모두 갖춘 공개 구성을 찾지 못했습니다. 이것은 저희가 찾아본 곳에 대한 서술이며, 모든 곳에 대한 서술이 아닙니다.
 - **누가 무엇을 하는가.** 4 GB에 들어가게 하는 것은 stable-diffusion.cpp 자체입니다. `--offload-to-cpu`, `--mmap`, 조각 단위 처리, 그리고 flash attention이 그 역할을 합니다(flash attention을 끄면 한 번의 실행에 4205 MB가 필요해 들어가지 않았습니다). 저희 패치는 속도와 더 나은 VAE 단계를 위한 것이지 메모리에 맞추기 위한 것이 아닙니다. 패치하지 않은 업스트림 엔진은 이 카드에서 실행해 보지 않았으므로, 그것이 들어가는지는 말할 수 없습니다.
 
@@ -132,7 +132,7 @@ stable-diffusion.cpp `master-1088-32d516c` 위에 세 가지를 바꿨습니다(
 | 디퓨전 모델 | `z_image_turbo-Q8_0.gguf` (6,577,440,704 B) | [leejet/Z-Image-Turbo-GGUF](https://huggingface.co/leejet/Z-Image-Turbo-GGUF), 기반 모델 [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) |
 | 텍스트 인코더 | `Qwen3-4B-Instruct-2507-Q8_0.gguf` (4,280,405,600 B) | [unsloth/Qwen3-4B-Instruct-2507-GGUF](https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) |
 | VAE | `ae.safetensors` (335,304,388 B) | [Comfy-Org/Z-Image-Turbo](https://huggingface.co/Comfy-Org/Z-Image-Turbo), FLUX.1 계열 오토인코더 |
-| 엔진 | `sd-cli.exe`, stable-diffusion.cpp `32d516c`에 [`patches/`](patches)의 패치를 적용 | 이 저장소의 v0.2.0 릴리스 (`sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip`) |
+| 엔진 | `sd-cli.exe`, stable-diffusion.cpp `32d516c`에 [`patches/`](patches)의 패치를 적용 | 이 저장소의 v0.3.0 릴리스 (`sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip`) |
 | CUDA 런타임 | `cudart`, `cublas`, `cublasLt` (12.8), 수정하지 않음 | wan22-pascal-4gb v0.1.0 릴리스의 zip |
 | cuDNN (기본으로 설치됨, `--no-cudnn`으로 건너뜀) | DLL 8개, 버전 9.10.2.21 (CUDA 11 빌드) | NVIDIA 자체 서버, NVIDIA의 라이선스에 따라 받음. 여기에는 저장하지 않음 |
 

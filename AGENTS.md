@@ -35,7 +35,7 @@ If the card is not a 4 GB Pascal card, say so to the user before you download an
 | Change the sd-cli settings (`--steps 8`, `--cfg-scale 1.0`, euler, simple, offload, mmap, flash-attn) | They are the tested point (measured on GTX 1050 Ti 4 GB). The model is a distilled 8-step model. Do not lower steps for speed and do not add a negative prompt. |
 | Edit `models.lock.json` hashes or URLs to make a check pass | A mismatch means a different or damaged file. Stop and tell the user; re-download once, never edit the lock. |
 | Run two generations at the same time | One 4 GB GPU and very little free RAM; the second job would run out of memory or slow both. |
-| Open a browser or other heavy program during a run | Free RAM fell to a few hundred MiB during measured runs (16 GB machine). The engine process peaked around 10 667–10 915 MiB. |
+| Open a browser or other heavy program during a run | Free RAM fell to a few hundred MiB during measured runs (16 GB machine). The engine process peaked around 10 489–11 203 MiB. |
 | Replace the engine with another build | The engine zip carries the Pascal patches. Other builds: not tested. |
 | Put models on a spinning disk | Measured twice on one 2 TB laptop hard disk: 325 s and 378 s per picture (see `docs/MEASUREMENTS.md`); use an SSD. Other hard disks: not tested. |
 | Claim results for other GPUs, less than 16 GB RAM, Linux or macOS | Not tested by us. The community test in `docs/OTHER_GPUS.md` is someone else's single machine with a different engine; never present it as this repository's result. |
@@ -85,7 +85,7 @@ Every command below that takes `--models-dir` and `--bin-dir` must get the same 
 3. `--accept-cudnn-license` is still accepted for old command lines and changes nothing. Before the download `setup.py` prints one line (the license address and `Use --no-cudnn to skip.`) and records the license text, `mode: default_download_disclosed` and `installed_utc` in `cudnn_license_record.json` (the file records a disclosed default, not a decision by the user).
 4. Do not edit the record or the license file. If the user does not want cuDNN, use `--no-cudnn`; everything still works with the slower v0.1.0 VAE path (`CUDNN_SKIPPED`).
 
-Run S3 and S5 detached or with a tool timeout of at least 60 minutes for S3 (downloads are about 12.2 GB; it took 29 minutes once, on our connection) and at least 15 minutes for S5 (one picture took 193–228 s when measured). Do not start anything else on the machine meanwhile.
+Run S3 and S5 detached or with a tool timeout of at least 60 minutes for S3 (downloads are about 12.2 GB; it took 29 minutes once, on our connection) and at least 15 minutes for S5 (one picture took 188–193 s when measured). Do not start anything else on the machine meanwhile.
 Downloads use `.part` files and resume: running the same command again continues an interrupted download. Revisions are pinned in `models.lock.json`; never `main` or `latest`.
 
 ### The Preflight block (S3)

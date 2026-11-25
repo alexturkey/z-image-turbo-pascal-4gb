@@ -31,18 +31,18 @@
 
 ## 数据一览
 
-与 v0.1.0 的目录结构相比：生成一张图需要 193–228 s，而不是 261.6 s；VAE 阶段需要 8.3–15.9 s，而不是 29.8 到 36.3 s；相同的种子得到相同的像素；本 README 中的每个数字背后都有对应的命令和文件。
+与 v0.1.0 的目录结构相比：生成一张图需要 188–193 s，而不是 261.6 s；VAE 阶段需要 12.5–21.7 s，而不是 29.8 到 36.3 s；相同的种子得到相同的像素；本 README 中的每个数字背后都有对应的命令和文件。
 
-768x1344，种子 42，8 步，同一台机器。v0.1.0 的数字来自 v0.1.0 的 README（干净根目录测试和五次运行）；v0.2.0 的数字来自本版本的干净根目录测试。
+768x1344，种子 42，8 步，同一台机器。v0.1.0 的数字来自 v0.1.0 的 README（干净根目录测试和五次运行）；v0.3.0 的数字来自本版本的干净根目录测试。
 
-| | v0.1.0（未发布；旧结构） | v0.2.0 |
+| | v0.1.0（未发布；旧结构） | v0.3.0 |
 |---|---|---|
-| 生成一张图的耗时（一次 `generate.py` 运行） | 261.6 s | 193–228 s |
-| VAE 解码（最后一个阶段） | 29.8 到 36.3 s | 8.3–15.9 s |
+| 生成一张图的耗时（一次 `generate.py` 运行） | 261.6 s | 188–193 s |
+| VAE 解码（最后一个阶段） | 29.8 到 36.3 s | 12.5–21.7 s |
 | 与参考解码的接近程度（PSNR，越高越接近） | 38 到 43 dB | 71 到 73 dB |
 | GPU 显存峰值（nvidia-smi） | 2949 到 2957 MiB | 3057–3059 MiB |
-| 进程内存峰值 | 10.5 到 10.9 GB（按当时的记录） | 10 667–10 915 MiB |
-| 观察到的最低空闲内存 | 331 到 576 MiB | 418–545 MiB |
+| 进程内存峰值 | 10.5 到 10.9 GB（按当时的记录） | 10 489–11 203 MiB |
+| 观察到的最低空闲内存 | 331 到 576 MiB | 303–532 MiB |
 
 怎么看这张表：参考结果是把同一个 latent 在 CPU 上以 float32 整块解码得到的；PSNR 是拿我们的 GPU 解码结果与它比较（3 张图）。它说明 VAE 阶段与这个参考有多接近，并不说明一张图好不好看。同样的提示词和种子，v0.2.0 的图与 v0.1.0 的图并非逐字节相同，因为 VAE 路径是有意改动的。测量方法和尚未测量的部分见 [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md)。
 
@@ -109,7 +109,7 @@ python scripts/generate.py --prompt-file prompts/eiffel.txt --width 1344 --heigh
 
 - **模型作者怎么说。** Z-Image-Turbo 的模型卡写道，该模型 "fits comfortably within 16G VRAM consumer devices"（可以轻松放进 16 GB 显存的消费级设备）（[模型卡](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)）。这说的是 16 GB 显卡。官方 README 还把 stable-diffusion.cpp 列为第三方方案，并引述其 "as little as 4GB of VRAM"（最低只需 4 GB 显存）（[README](https://github.com/Tongyi-MAI/Z-Image)）；这是 stable-diffusion.cpp 项目自己的说法，不是 Z-Image 团队提出的要求。
 - **我们测到了什么。** Z-Image-Turbo Q8_0（一个 6.6 GB 的文件）搭配 Qwen3-4B Q8_0 文本编码器，768x1344：由 nvidia-smi 每 2 s 采样一次的 GPU 显存峰值（短暂的尖峰可能漏掉），在 4096 MiB 的显卡上是 2949 到 2957 MiB（v0.1.0 引擎）和 3057–3059 MiB（v0.2.0 引擎）。权重（10 509 MiB；引擎日志中把它写作 MB）留在系统内存中；引擎每次把网络的一个分段（网络的一个切片）复制到 GPU：共 36 段，正如日志行 `z_image using 36 segments` 所示。
-- **代价是什么。** 时间和系统内存：每张图 193–228 s，在 16 GB 的机器上引擎进程占用约 10 667–10 915 MiB 内存（包括内存映射的模型页面），所以运行期间空闲内存会降到几百 MiB。
+- **代价是什么。** 时间和系统内存：每张图 188–193 s，在 16 GB 的机器上引擎进程占用约 10 489–11 203 MiB 内存（包括内存映射的模型页面），所以运行期间空闲内存会降到几百 MiB。
 - **别人的配置。** 也有人报告在 4 GB 显卡上跑 Z-Image，用的是更低的量化或更小的尺寸（例如 stable-diffusion.cpp wiki 中针对 4 GB 显卡的页面，建议在 1024x512 下使用 Q3_K 或 Q4_0）。在我们查过的地方（清单和日期见 [`docs/RELATED.md`](docs/RELATED.md)），没有找到同时满足这四项的公开配置：4 GB 显卡、Q8_0、768x1344 或更大的尺寸，以及实测的耗时和 GPU 显存。这只是对我们查过的范围的陈述，不代表所有地方。
 - **谁做了什么。** 能放进 4 GB 靠的是 stable-diffusion.cpp 本身：`--offload-to-cpu`、`--mmap`、分段处理，以及 flash attention（关闭它时，一次运行需要 4205 MB，放不下）。我们的补丁是为了速度和更好的 VAE 阶段，不是为了放得下。我们没有在这张显卡上运行未打补丁的上游引擎，所以无法说它能否放得下。
 
@@ -131,7 +131,7 @@ python scripts/generate.py --prompt-file prompts/eiffel.txt --width 1344 --heigh
 | 扩散模型 | `z_image_turbo-Q8_0.gguf` (6,577,440,704 B) | [leejet/Z-Image-Turbo-GGUF](https://huggingface.co/leejet/Z-Image-Turbo-GGUF)，基础模型 [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) |
 | 文本编码器 | `Qwen3-4B-Instruct-2507-Q8_0.gguf` (4,280,405,600 B) | [unsloth/Qwen3-4B-Instruct-2507-GGUF](https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) |
 | VAE | `ae.safetensors` (335,304,388 B) | [Comfy-Org/Z-Image-Turbo](https://huggingface.co/Comfy-Org/Z-Image-Turbo)，FLUX.1 类型的自编码器 |
-| 引擎 | `sd-cli.exe`，stable-diffusion.cpp `32d516c` 加上 [`patches/`](patches) 中的补丁 | 本仓库的 v0.2.0 发布版（`sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip`） |
+| 引擎 | `sd-cli.exe`，stable-diffusion.cpp `32d516c` 加上 [`patches/`](patches) 中的补丁 | 本仓库的 v0.3.0 发布版（`sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip`） |
 | CUDA 运行时 | `cudart`、`cublas`、`cublasLt`（12.8），未经修改 | wan22-pascal-4gb v0.1.0 发布版中的 zip |
 | cuDNN（默认安装；`--no-cudnn` 则跳过） | 8 个 DLL，版本 9.10.2.21（CUDA 11 构建） | NVIDIA 自己的服务器，适用 NVIDIA 的许可证；不存放在本仓库 |
 

@@ -101,6 +101,54 @@ class Download(unittest.TestCase):
         self.assertEqual(dest.read_bytes(), self.payload)
 
 
+class EngineUpgrade(unittest.TestCase):
+    ENGINE = {"name": "engine-v0.3.0.zip", "sha256": "a" * 64}
+    CUDART = {"name": "cudart.zip", "sha256": "b" * 64}
+
+    def todo(self, installed, sd_cli=True, cudart=True):
+        names = setup.engine_entries_to_install([self.ENGINE, self.CUDART], installed, sd_cli, cudart)
+        return [e["name"] for e in names]
+
+    def test_upgrade_keeps_the_unchanged_cuda_runtime(self):
+        old = {"engine-v0.2.0.zip": "c" * 64, "cudart.zip": "b" * 64}
+        self.assertEqual(self.todo(old), ["engine-v0.3.0.zip"])
+
+    def test_nothing_to_do_when_the_marker_matches(self):
+        self.assertEqual(self.todo({"engine-v0.3.0.zip": "a" * 64, "cudart.zip": "b" * 64}), [])
+
+    def test_same_name_other_hash_is_fetched_again(self):
+        self.assertEqual(self.todo({"engine-v0.3.0.zip": "d" * 64, "cudart.zip": "b" * 64}), ["engine-v0.3.0.zip"])
+
+    def test_everything_when_marker_or_files_are_missing(self):
+        both = ["engine-v0.3.0.zip", "cudart.zip"]
+        self.assertEqual(self.todo(None), both)
+        self.assertEqual(self.todo("broken"), both)
+        marker = {"engine-v0.3.0.zip": "a" * 64, "cudart.zip": "b" * 64}
+        self.assertEqual(self.todo(marker, sd_cli=False), both)
+        self.assertEqual(self.todo(marker, cudart=False), both)
+
+
+class DryRunUpgrade(unittest.TestCase):
+    def test_dry_run_lists_only_the_zip_an_upgrade_would_fetch(self):
+        import contextlib
+        import io
+        lock = {"models": [], "engine": [
+            {"name": "engine-v0.3.0.zip", "bytes": 1000, "sha256": "a" * 64, "url": "https://x/e"},
+            {"name": "cudart.zip", "bytes": 5000, "sha256": "b" * 64, "url": "https://x/c"}]}
+        with tempfile.TemporaryDirectory() as t:
+            b = Path(t) / "bin"
+            b.mkdir()
+            (b / "sd-cli.exe").write_bytes(b"x")
+            (b / "cudart64_12.dll").write_bytes(b"y")
+            (b / ".engine_installed.json").write_text(json.dumps({"engine-v0.2.0.zip": "c" * 64, "cudart.zip": "b" * 64}), encoding="utf-8")
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                rc = setup.dry_run(lock, Path(t) / "m", b, True)
+            self.assertEqual(rc, 0)
+            self.assertIn("would fetch  engine-v0.3.0.zip", buf.getvalue())
+            self.assertNotIn("cudart.zip", buf.getvalue())
+
+
 class Zip(unittest.TestCase):
     def test_extract_and_find(self):
         with tempfile.TemporaryDirectory() as t:

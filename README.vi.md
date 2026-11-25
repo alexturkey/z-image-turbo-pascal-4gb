@@ -31,18 +31,18 @@ Nếu bạn dùng một AI coding agent (Claude Code, Codex, Cursor và những 
 
 ## Tóm tắt qua số liệu
 
-So với bố cục v0.1.0: một ảnh mất 193–228 s thay vì 261.6 s, giai đoạn VAE mất 8.3–15.9 s thay vì 29.8 đến 36.3 s, cùng một seed cho ra cùng các điểm ảnh, và mỗi con số trong README này đều có một lệnh và một tệp đứng sau.
+So với bố cục v0.1.0: một ảnh mất 188–193 s thay vì 261.6 s, giai đoạn VAE mất 12.5–21.7 s thay vì 29.8 đến 36.3 s, cùng một seed cho ra cùng các điểm ảnh, và mỗi con số trong README này đều có một lệnh và một tệp đứng sau.
 
-768x1344, seed 42, 8 bước, cùng một máy. Số của v0.1.0 lấy từ README của v0.1.0 (clean-root test và năm lần chạy); số của v0.2.0 lấy từ clean-root test của bản phát hành này.
+768x1344, seed 42, 8 bước, cùng một máy. Số của v0.1.0 lấy từ README của v0.1.0 (clean-root test và năm lần chạy); số của v0.3.0 lấy từ clean-root test của bản phát hành này.
 
-| | v0.1.0 (chưa từng được công bố; bố cục cũ) | v0.2.0 |
+| | v0.1.0 (chưa từng được công bố; bố cục cũ) | v0.3.0 |
 |---|---|---|
-| Thời gian cho một ảnh (một lần chạy `generate.py`) | 261.6 s | 193–228 s |
-| Giải mã VAE (giai đoạn cuối) | 29.8 đến 36.3 s | 8.3–15.9 s |
+| Thời gian cho một ảnh (một lần chạy `generate.py`) | 261.6 s | 188–193 s |
+| Giải mã VAE (giai đoạn cuối) | 29.8 đến 36.3 s | 12.5–21.7 s |
 | Độ gần với bản giải mã tham chiếu (PSNR, càng cao càng gần) | 38 đến 43 dB | 71 đến 73 dB |
 | Bộ nhớ GPU đỉnh (nvidia-smi) | 2949 đến 2957 MiB | 3057–3059 MiB |
-| Bộ nhớ tiến trình, đỉnh | 10.5 đến 10.9 GB (như đã ghi lúc đó) | 10 667–10 915 MiB |
-| RAM trống thấp nhất đã thấy | 331 đến 576 MiB | 418–545 MiB |
+| Bộ nhớ tiến trình, đỉnh | 10.5 đến 10.9 GB (như đã ghi lúc đó) | 10 489–11 203 MiB |
+| RAM trống thấp nhất đã thấy | 331 đến 576 MiB | 303–532 MiB |
 
 Cách đọc: bản tham chiếu là chính latent đó được giải mã trên CPU thành một khối float32; PSNR so sánh bản giải mã GPU của chúng tôi với nó (3 ảnh). Nó cho biết giai đoạn VAE gần bản tham chiếu đến mức nào. Nó không cho biết một bức ảnh trông đẹp đến đâu. Ảnh của v0.2.0 không giống từng byte với v0.1.0 cho cùng prompt và seed, vì đường VAE đã được thay đổi có chủ ý. Phương pháp và những phần chưa đo: [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md).
 
@@ -110,7 +110,7 @@ Số bước (8), cfg (1.0), sampler và scheduler được cố định có ch�
 
 - **Các tác giả model nói gì.** Model card của Z-Image-Turbo nói rằng model "fits comfortably within 16G VRAM consumer devices" (vừa thoải mái trên các thiết bị tiêu dùng có 16 GB VRAM) ([model card](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)). Đó là phát biểu về các card 16 GB. README chính thức cũng liệt kê stable-diffusion.cpp như một lựa chọn của bên thứ ba và trích dẫn nó với "as little as 4GB of VRAM" (chỉ cần 4 GB VRAM) ([README](https://github.com/Tongyi-MAI/Z-Image)); đó là tuyên bố của dự án stable-diffusion.cpp, không phải yêu cầu của nhóm Z-Image.
 - **Chúng tôi đã đo gì.** Z-Image-Turbo Q8_0 (một tệp 6.6 GB) với text encoder Qwen3-4B Q8_0, 768x1344: đỉnh GPU, do nvidia-smi lấy mẫu mỗi 2 s (một đợt tăng ngắn có thể bị bỏ sót), là 2949 đến 2957 MiB (engine v0.1.0) và 3057–3059 MiB (engine v0.2.0) trên card 4096 MiB. Các trọng số (10 509 MiB; log của engine in ra là MB) nằm lại trong RAM hệ thống; engine chép mạng sang GPU từng segment một (một lát của mạng): 36 segment, như dòng log `z_image using 36 segments`.
-- **Cái giá phải trả.** Thời gian và bộ nhớ hệ thống: 193–228 s mỗi ảnh, và tiến trình engine giữ khoảng 10 667–10 915 MiB RAM (kể cả các trang model ánh xạ bộ nhớ) trên máy 16 GB, nên RAM trống tụt xuống vài trăm MiB trong lúc chạy.
+- **Cái giá phải trả.** Thời gian và bộ nhớ hệ thống: 188–193 s mỗi ảnh, và tiến trình engine giữ khoảng 10 489–11 203 MiB RAM (kể cả các trang model ánh xạ bộ nhớ) trên máy 16 GB, nên RAM trống tụt xuống vài trăm MiB trong lúc chạy.
 - **Cách cài của người khác.** Những người khác báo cáo chạy Z-Image trên card 4 GB với lượng tử hóa thấp hơn hoặc kích thước nhỏ hơn (ví dụ, trang wiki của stable-diffusion.cpp dành cho card 4 GB khuyên dùng Q3_K hoặc Q4_0 ở 1024x512). Ở những nơi chúng tôi đã tìm (danh sách và ngày trong [`docs/RELATED.md`](docs/RELATED.md)), chúng tôi không thấy cách cài nào đã được công bố mà kết hợp cả bốn điều: card 4 GB, Q8_0, 768x1344 hoặc lớn hơn, và thời gian cùng bộ nhớ GPU đã đo. Đó là phát biểu về những nơi chúng tôi đã tìm, không phải về mọi nơi.
 - **Ai làm gì.** Việc vừa trong 4 GB đến từ chính stable-diffusion.cpp: `--offload-to-cpu`, `--mmap`, xử lý theo từng lát, và flash attention (khi tắt nó, một lần chạy cần 4205 MB và không vừa). Các bản vá của chúng tôi dành cho tốc độ và một giai đoạn VAE tốt hơn, không phải để cho vừa. Chúng tôi chưa chạy engine upstream chưa vá trên card này, nên không thể nói liệu nó có vừa hay không.
 
@@ -132,7 +132,7 @@ Ngoài ra: `--eager-load` (đọc trước các trang model; 241.2 s xuống 220
 | Diffusion model | `z_image_turbo-Q8_0.gguf` (6,577,440,704 B) | [leejet/Z-Image-Turbo-GGUF](https://huggingface.co/leejet/Z-Image-Turbo-GGUF), bản gốc [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) |
 | Text encoder | `Qwen3-4B-Instruct-2507-Q8_0.gguf` (4,280,405,600 B) | [unsloth/Qwen3-4B-Instruct-2507-GGUF](https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) |
 | VAE | `ae.safetensors` (335,304,388 B) | [Comfy-Org/Z-Image-Turbo](https://huggingface.co/Comfy-Org/Z-Image-Turbo), autoencoder kiểu FLUX.1 |
-| Engine | `sd-cli.exe`, stable-diffusion.cpp `32d516c` kèm các bản vá trong [`patches/`](patches) | bản phát hành v0.2.0 của repository này (`sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip`) |
+| Engine | `sd-cli.exe`, stable-diffusion.cpp `32d516c` kèm các bản vá trong [`patches/`](patches) | bản phát hành v0.3.0 của repository này (`sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip`) |
 | CUDA runtime | `cudart`, `cublas`, `cublasLt` (12.8), không sửa đổi | tệp zip từ bản phát hành wan22-pascal-4gb v0.1.0 |
 | cuDNN (cài đặt theo mặc định; `--no-cudnn` bỏ qua) | 8 DLL, phiên bản 9.10.2.21 (bản build CUDA 11) | máy chủ riêng của NVIDIA, theo giấy phép của NVIDIA; không lưu ở đây |
 

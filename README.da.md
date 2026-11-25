@@ -31,18 +31,18 @@ Hvis du bruger en AI-kodeagent (Claude Code, Codex, Cursor og lignende), så peg
 
 ## Overblik
 
-Sammenlignet med v0.1.0-opsætningen: Et billede tager 193–228 s i stedet for 261.6 s, VAE-trinnet tager 8.3–15.9 s i stedet for 29.8 til 36.3 s, samme seed giver de samme pixels, og hvert tal i denne README har en kommando og en fil bag sig.
+Sammenlignet med v0.1.0-opsætningen: Et billede tager 188–193 s i stedet for 261.6 s, VAE-trinnet tager 12.5–21.7 s i stedet for 29.8 til 36.3 s, samme seed giver de samme pixels, og hvert tal i denne README har en kommando og en fil bag sig.
 
-768x1344, seed 42, 8 trin, samme maskine. Tallene for v0.1.0 stammer fra v0.1.0-README'en (test fra ren rod og fem kørsler). Tallene for v0.2.0 stammer fra testen fra ren rod i denne udgave.
+768x1344, seed 42, 8 trin, samme maskine. Tallene for v0.1.0 stammer fra v0.1.0-README'en (test fra ren rod og fem kørsler). Tallene for v0.3.0 stammer fra testen fra ren rod i denne udgave.
 
-| | v0.1.0 (aldrig offentliggjort; gammel opsætning) | v0.2.0 |
+| | v0.1.0 (aldrig offentliggjort; gammel opsætning) | v0.3.0 |
 |---|---|---|
-| Tid til ét billede (én `generate.py`-kørsel) | 261.6 s | 193–228 s |
-| VAE-afkodning (sidste trin) | 29.8 til 36.3 s | 8.3–15.9 s |
+| Tid til ét billede (én `generate.py`-kørsel) | 261.6 s | 188–193 s |
+| VAE-afkodning (sidste trin) | 29.8 til 36.3 s | 12.5–21.7 s |
 | Nærhed til en referenceafkodning (PSNR, højere er bedre) | 38 til 43 dB | 71 til 73 dB |
 | Højeste GPU-hukommelse (nvidia-smi) | 2949 til 2957 MiB | 3057–3059 MiB |
-| Proceshukommelse, højeste | 10.5 til 10.9 GB (som den blev noteret dengang) | 10 667–10 915 MiB |
-| Mindste ledige RAM set | 331 til 576 MiB | 418–545 MiB |
+| Proceshukommelse, højeste | 10.5 til 10.9 GB (som den blev noteret dengang) | 10 489–11 203 MiB |
+| Mindste ledige RAM set | 331 til 576 MiB | 303–532 MiB |
 
 Sådan læses tabellen: Referencen er den samme latent, afkodet på CPU'en som ét float32-stykke. PSNR sammenligner vores GPU-afkodning med den (3 billeder). Den fortæller, hvor tæt VAE-trinnet ligger på referencen. Den fortæller ikke, hvor godt et billede ser ud. Billederne fra v0.2.0 er ikke byte-identiske med dem fra v0.1.0 for samme prompt og seed, fordi VAE-vejen med vilje er ændret. Metode og det, der ikke er målt: [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md).
 
@@ -110,7 +110,7 @@ Trin (8), cfg (1.0), sampler og scheduler er med vilje faste. Se [Hvad den køre
 
 - **Hvad modelforfatterne siger.** Modelkortet for Z-Image-Turbo siger, at modellen "fits comfortably within 16G VRAM consumer devices" ([modelkort](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)). Det er en udtalelse om kort med 16 GB. Den officielle README nævner også stable-diffusion.cpp som en mulighed fra tredjepart og citerer den for "as little as 4GB of VRAM" ([README](https://github.com/Tongyi-MAI/Z-Image)). Det er stable-diffusion.cpp-projektets egen påstand, ikke et krav fra Z-Image-teamet.
 - **Hvad vi målte.** Z-Image-Turbo Q8_0 (en fil på 6.6 GB) med en Qwen3-4B Q8_0 som tekstencoder, 768x1344: GPU-toppen, målt af nvidia-smi hvert 2. sekund (en kort spids kan blive overset), var 2949 til 2957 MiB (v0.1.0-motoren) og 3057–3059 MiB (v0.2.0-motoren) på et kort med 4096 MiB. Vægtene (10 509 MiB; motorens log skriver det som MB) bliver i systemets RAM. Motoren kopierer netværket til GPU'en ét segment ad gangen (en skive af netværket): 36 segmenter, som i loglinjen `z_image using 36 segments`.
-- **Hvad det koster.** Tid og systemhukommelse: 193–228 s pr. billede, og motorprocessen holder omkring 10 667–10 915 MiB RAM (inklusive hukommelseskortlagte modelsider) på en maskine med 16 GB, så den ledige RAM falder til nogle få hundrede MiB, mens den kører.
+- **Hvad det koster.** Tid og systemhukommelse: 188–193 s pr. billede, og motorprocessen holder omkring 10 489–11 203 MiB RAM (inklusive hukommelseskortlagte modelsider) på en maskine med 16 GB, så den ledige RAM falder til nogle få hundrede MiB, mens den kører.
 - **Andres opsætninger.** Andre beretter om Z-Image på kort med 4 GB med lavere kvantisering eller mindre størrelser (for eksempel anbefaler wikisiden i stable-diffusion.cpp for kort med 4 GB Q3_K eller Q4_0 i 1024x512). Der, hvor vi har kigget (liste og dato i [`docs/RELATED.md`](docs/RELATED.md)), fandt vi ikke en offentliggjort opsætning, der kombinerer alle fire: et kort med 4 GB, Q8_0, 768x1344 eller større og målt tid og GPU-hukommelse. Det er en udtalelse om, hvor vi har kigget, ikke om alle steder.
 - **Hvem gør hvad.** At det passer i 4 GB kommer fra stable-diffusion.cpp selv: `--offload-to-cpu`, `--mmap`, arbejde i skiver og flash attention (med den slået fra krævede en kørsel 4205 MB og passede ikke). Vores patches er til hastighed og til et bedre VAE-trin, ikke til at få det til at passe. Vi har ikke kørt den upatchede upstream-motor på dette kort, så vi kan ikke sige, om den passer.
 
@@ -132,7 +132,7 @@ Desuden: `--eager-load` (læser modelsiderne ind på forhånd; 241.2 s til 220.3
 | Diffusionsmodel | `z_image_turbo-Q8_0.gguf` (6,577,440,704 B) | [leejet/Z-Image-Turbo-GGUF](https://huggingface.co/leejet/Z-Image-Turbo-GGUF), base [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) |
 | Tekstencoder | `Qwen3-4B-Instruct-2507-Q8_0.gguf` (4,280,405,600 B) | [unsloth/Qwen3-4B-Instruct-2507-GGUF](https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) |
 | VAE | `ae.safetensors` (335,304,388 B) | [Comfy-Org/Z-Image-Turbo](https://huggingface.co/Comfy-Org/Z-Image-Turbo), autoencoder af FLUX.1-typen |
-| Motor | `sd-cli.exe`, stable-diffusion.cpp `32d516c` med patchene i [`patches/`](patches) | v0.2.0-udgivelsen af dette repository (`sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip`) |
+| Motor | `sd-cli.exe`, stable-diffusion.cpp `32d516c` med patchene i [`patches/`](patches) | v0.3.0-udgivelsen af dette repository (`sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip`) |
 | CUDA-runtime | `cudart`, `cublas`, `cublasLt` (12.8), uændret | zip fra udgivelsen wan22-pascal-4gb v0.1.0 |
 | cuDNN (installeres som standard; `--no-cudnn` springer det over) | 8 DLL-filer, version 9.10.2.21 (CUDA 11-build) | NVIDIAs egen server, under NVIDIAs licens. Ligger ikke her |
 

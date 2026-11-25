@@ -31,18 +31,18 @@ Se você usa um agente de programação com IA (Claude Code, Codex, Cursor e sim
 
 ## Em resumo
 
-Em relação à estrutura da v0.1.0: uma imagem leva 193–228 s em vez de 261.6 s, a etapa do VAE leva 8.3–15.9 s em vez de 29.8 a 36.3 s, a mesma seed gera os mesmos pixels e por trás de cada número deste README há um comando e um arquivo.
+Em relação à estrutura da v0.1.0: uma imagem leva 188–193 s em vez de 261.6 s, a etapa do VAE leva 12.5–21.7 s em vez de 29.8 a 36.3 s, a mesma seed gera os mesmos pixels e por trás de cada número deste README há um comando e um arquivo.
 
-768x1344, seed 42, 8 passos, mesma máquina. Os números da v0.1.0 vêm do README da v0.1.0 (teste em raiz limpa e cinco execuções); os da v0.2.0 vêm do teste em raiz limpa desta versão.
+768x1344, seed 42, 8 passos, mesma máquina. Os números da v0.1.0 vêm do README da v0.1.0 (teste em raiz limpa e cinco execuções); os da v0.3.0 vêm do teste em raiz limpa desta versão.
 
-| | v0.1.0 (nunca publicada; estrutura antiga) | v0.2.0 |
+| | v0.1.0 (nunca publicada; estrutura antiga) | v0.3.0 |
 |---|---|---|
-| Tempo para uma imagem (uma execução de `generate.py`) | 261.6 s | 193–228 s |
-| Decodificação do VAE (última etapa) | 29.8 a 36.3 s | 8.3–15.9 s |
+| Tempo para uma imagem (uma execução de `generate.py`) | 261.6 s | 188–193 s |
+| Decodificação do VAE (última etapa) | 29.8 a 36.3 s | 12.5–21.7 s |
 | Proximidade de uma decodificação de referência (PSNR, quanto maior, melhor) | 38 a 43 dB | 71 a 73 dB |
 | Pico de memória da GPU (nvidia-smi) | 2949 a 2957 MiB | 3057–3059 MiB |
-| Memória do processo, pico | 10.5 a 10.9 GB (como registrado na época) | 10 667–10 915 MiB |
-| Menor RAM livre observada | 331 a 576 MiB | 418–545 MiB |
+| Memória do processo, pico | 10.5 a 10.9 GB (como registrado na época) | 10 489–11 203 MiB |
+| Menor RAM livre observada | 331 a 576 MiB | 303–532 MiB |
 
 Como ler: a referência é o mesmo latent decodificado na CPU em uma peça só, em float32; o PSNR compara com ela a nossa decodificação na GPU (3 imagens). Ele diz quão perto a etapa do VAE está dessa referência. Não diz se uma imagem é boa de ver. As imagens da v0.2.0 não são idênticas byte a byte às da v0.1.0 para o mesmo prompt e a mesma seed, porque o caminho do VAE mudou de propósito. Método e o que não foi medido: [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md).
 
@@ -110,7 +110,7 @@ Os passos (8), o cfg (1.0), o sampler e o scheduler são fixos de propósito; ve
 
 - **O que os autores do modelo dizem.** O model card do Z-Image-Turbo diz que o modelo "fits comfortably within 16G VRAM consumer devices" (cabe com folga em dispositivos de consumo com 16 GB de VRAM) ([model card](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)). Essa é uma afirmação sobre placas de 16 GB. O README oficial também lista o stable-diffusion.cpp como uma opção de terceiros e o cita com "as little as 4GB of VRAM" (com apenas 4 GB de VRAM) ([README](https://github.com/Tongyi-MAI/Z-Image)); essa é uma afirmação do projeto stable-diffusion.cpp, não um requisito da equipe do Z-Image.
 - **O que medimos.** Z-Image-Turbo Q8_0 (um arquivo de 6.6 GB) com um text encoder Qwen3-4B Q8_0, 768x1344: o pico da GPU, amostrado pelo nvidia-smi a cada 2 s (um pico curto pode passar despercebido), ficou entre 2949 e 2957 MiB (motor v0.1.0) e em 3057–3059 MiB (motor v0.2.0) numa placa de 4096 MiB. Os pesos (10 509 MiB; o log do motor imprime como MB) ficam na RAM do sistema; o motor copia a rede para a GPU um segmento por vez (uma fatia da rede): 36 segmentos, como na linha de log `z_image using 36 segments`.
-- **O que custa.** Tempo e memória do sistema: 193–228 s por imagem, e o processo do motor ocupa cerca de 10 667–10 915 MiB de RAM (incluindo as páginas do modelo mapeadas em memória) numa máquina de 16 GB, então a RAM livre cai para algumas centenas de MiB enquanto ele roda.
+- **O que custa.** Tempo e memória do sistema: 188–193 s por imagem, e o processo do motor ocupa cerca de 10 489–11 203 MiB de RAM (incluindo as páginas do modelo mapeadas em memória) numa máquina de 16 GB, então a RAM livre cai para algumas centenas de MiB enquanto ele roda.
 - **As configurações de outras pessoas.** Outras pessoas relatam rodar o Z-Image em placas de 4 GB com quantização mais baixa ou tamanhos menores (por exemplo, a página da wiki do stable-diffusion.cpp para placas de 4 GB recomenda Q3_K ou Q4_0 em 1024x512). Nos lugares onde procuramos (lista e data em [`docs/RELATED.md`](docs/RELATED.md)), não encontramos uma configuração publicada que combine os quatro itens: uma placa de 4 GB, Q8_0, 768x1344 ou maior, e tempo e memória da GPU medidos. Isso é uma afirmação sobre onde procuramos, não sobre todos os lugares.
 - **Quem faz o quê.** Caber em 4 GB vem do próprio stable-diffusion.cpp: `--offload-to-cpu`, `--mmap`, o trabalho em fatias e a flash attention (com ela desligada, uma execução precisou de 4205 MB e não coube). Os nossos patches servem para ganhar velocidade e uma etapa de VAE melhor, não para caber. Não rodamos o motor original sem patches nesta placa, então não podemos dizer se ele cabe.
 
@@ -132,7 +132,7 @@ Além disso: `--eager-load` (lê as páginas do modelo antecipadamente; de 241.2
 | Modelo de difusão | `z_image_turbo-Q8_0.gguf` (6,577,440,704 B) | [leejet/Z-Image-Turbo-GGUF](https://huggingface.co/leejet/Z-Image-Turbo-GGUF), base [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) |
 | Text encoder | `Qwen3-4B-Instruct-2507-Q8_0.gguf` (4,280,405,600 B) | [unsloth/Qwen3-4B-Instruct-2507-GGUF](https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) |
 | VAE | `ae.safetensors` (335,304,388 B) | [Comfy-Org/Z-Image-Turbo](https://huggingface.co/Comfy-Org/Z-Image-Turbo), autoencoder do tipo FLUX.1 |
-| Motor | `sd-cli.exe`, stable-diffusion.cpp `32d516c` com os patches em [`patches/`](patches) | a versão v0.2.0 deste repositório (`sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip`) |
+| Motor | `sd-cli.exe`, stable-diffusion.cpp `32d516c` com os patches em [`patches/`](patches) | a versão v0.3.0 deste repositório (`sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip`) |
 | Runtime do CUDA | `cudart`, `cublas`, `cublasLt` (12.8), sem modificação | zip da versão v0.1.0 do wan22-pascal-4gb |
 | cuDNN (instalado por padrão; `--no-cudnn` pula) | 8 DLLs, versão 9.10.2.21 (build para CUDA 11) | servidor da própria NVIDIA, sob a licença da NVIDIA; não fica guardado aqui |
 

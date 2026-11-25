@@ -31,18 +31,18 @@ Bir yapay zekâ kodlama ajanı kullanıyorsan (Claude Code, Codex, Cursor ve ben
 
 ## Bir bakışta
 
-v0.1.0 düzenine göre: bir resim 261.6 s yerine 193–228 s sürüyor, VAE aşaması 29.8 ile 36.3 s yerine 8.3–15.9 s sürüyor, aynı tohum aynı pikselleri veriyor ve bu README'deki her sayının arkasında bir komut ve bir dosya var.
+v0.1.0 düzenine göre: bir resim 261.6 s yerine 188–193 s sürüyor, VAE aşaması 29.8 ile 36.3 s yerine 12.5–21.7 s sürüyor, aynı tohum aynı pikselleri veriyor ve bu README'deki her sayının arkasında bir komut ve bir dosya var.
 
-768x1344, tohum 42, 8 adım, aynı makine. v0.1.0 sayıları v0.1.0 README'sinden (temiz kök testi ve beş koşu); v0.2.0 sayıları bu sürümün temiz kök testinden.
+768x1344, tohum 42, 8 adım, aynı makine. v0.1.0 sayıları v0.1.0 README'sinden (temiz kök testi ve beş koşu); v0.3.0 sayıları bu sürümün temiz kök testinden.
 
-| | v0.1.0 (yayımlanmadı; eski düzen) | v0.2.0 |
+| | v0.1.0 (yayımlanmadı; eski düzen) | v0.3.0 |
 |---|---|---|
-| Bir resim için süre (bir `generate.py` koşusu) | 261.6 s | 193–228 s |
-| VAE çözme (son aşama) | 29.8 ile 36.3 s | 8.3–15.9 s |
+| Bir resim için süre (bir `generate.py` koşusu) | 261.6 s | 188–193 s |
+| VAE çözme (son aşama) | 29.8 ile 36.3 s | 12.5–21.7 s |
 | Referans çözüme yakınlık (PSNR, yüksek olan daha yakın) | 38 ile 43 dB | 71 ile 73 dB |
 | GPU belleği tepesi (nvidia-smi) | 2949 ile 2957 MiB | 3057–3059 MiB |
-| İşlem belleği, tepe | 10.5 ile 10.9 GB (o zaman kaydedildiği gibi) | 10 667–10 915 MiB |
-| Görülen en düşük boş RAM | 331 ile 576 MiB | 418–545 MiB |
+| İşlem belleği, tepe | 10.5 ile 10.9 GB (o zaman kaydedildiği gibi) | 10 489–11 203 MiB |
+| Görülen en düşük boş RAM | 331 ile 576 MiB | 303–532 MiB |
 
 Nasıl okunur: referans, aynı latent'in CPU'da tek parça float32 olarak çözülmüş hâlidir; PSNR bizim GPU çözümümüzü onunla karşılaştırır (3 resim). VAE aşamasının bu referansa ne kadar yakın olduğunu söyler. Bir resmin güzel olup olmadığını söylemez. v0.2.0 resimleri, aynı istem ve tohum için v0.1.0 ile bayt bayt aynı değildir, çünkü VAE yolu bilerek değişti. Yöntem ve ölçülmeyenler: [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md).
 
@@ -118,7 +118,7 @@ Adımlar (8), cfg (1.0), örnekleyici ve zamanlayıcı bilerek sabittir; bkz. [N
 
 - **Model yazarları ne diyor.** Z-Image-Turbo model kartı, modelin "fits comfortably within 16G VRAM consumer devices" (16 GB'lık tüketici kartlarına rahatça sığar) dediğini yazıyor ([model kartı](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)). Bu, 16 GB'lık kartlar hakkında bir ifadedir. Resmî README ayrıca stable-diffusion.cpp'yi üçüncü taraf bir seçenek olarak listeliyor ve onu "as little as 4GB of VRAM" (en az 4 GB VRAM'le) diye aktarıyor ([README](https://github.com/Tongyi-MAI/Z-Image)); bu, stable-diffusion.cpp projesinin iddiasıdır, Z-Image ekibinin bir şartı değil.
 - **Biz ne ölçtük.** Z-Image-Turbo Q8_0 (6.6 GB'lık bir dosya) ve Qwen3-4B Q8_0 metin kodlayıcı, 768x1344: nvidia-smi'nin her 2 s'de bir örneklediği GPU tepesi (kısa bir sıçrama kaçabilir), 4096 MiB'lık kartta 2949 ile 2957 MiB (v0.1.0 motoru) ve 3057–3059 MiB (v0.2.0 motoru) oldu. Ağırlıklar (10 509 MiB; motor günlüğü bunu MB diye yazdırır) sistem RAM'inde kalır; motor ağı GPU'ya her seferinde bir parça (ağın bir dilimi) kopyalar: 36 parça, günlük satırındaki gibi `z_image using 36 segments`.
-- **Bedeli ne.** Zaman ve sistem belleği: resim başına 193–228 s ve motor işlemi 16 GB'lık makinede yaklaşık 10 667–10 915 MiB RAM tutar (bellek eşlemeli model sayfaları dahil); bu yüzden çalışırken boş RAM birkaç yüz MiB'a düşer.
+- **Bedeli ne.** Zaman ve sistem belleği: resim başına 188–193 s ve motor işlemi 16 GB'lık makinede yaklaşık 10 489–11 203 MiB RAM tutar (bellek eşlemeli model sayfaları dahil); bu yüzden çalışırken boş RAM birkaç yüz MiB'a düşer.
 - **Başkalarının kurulumları.** Başkaları Z-Image'i 4 GB'lık kartlarda daha düşük nicemleme ya da daha küçük boyutlarla çalıştırdığını bildiriyor (örneğin 4 GB'lık kartlar için stable-diffusion.cpp wiki sayfası 1024x512'de Q3_K ya da Q4_0 öneriyor). Baktığımız yerlerde ([`docs/RELATED.md`](docs/RELATED.md) içinde liste ve tarih) dördünü birden birleştiren yayımlanmış bir kurulum bulamadık: 4 GB'lık kart, Q8_0, 768x1344 ya da daha büyük ve ölçülmüş süre ile GPU belleği. Bu, baktığımız yerler hakkında bir ifadedir, her yer hakkında değil.
 - **Kim ne yapıyor.** 4 GB'a sığmayı stable-diffusion.cpp'nin kendisi sağlar: `--offload-to-cpu`, `--mmap`, dilim dilim çalışma ve flash attention (kapalıyken bir koşu 4205 MB istedi ve sığmadı). Yamalarımız hız ve daha iyi bir VAE aşaması içindir, sığmak için değil. Yamasız ana motoru bu kartta çalıştırmadık, o yüzden sığıp sığmadığını söyleyemeyiz.
 
@@ -140,7 +140,7 @@ Ayrıca: `--eager-load` (model sayfalarını baştan okur; aynı resimde 241.2 s
 | Difüzyon modeli | `z_image_turbo-Q8_0.gguf` (6,577,440,704 B) | [leejet/Z-Image-Turbo-GGUF](https://huggingface.co/leejet/Z-Image-Turbo-GGUF), temel model [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) |
 | Metin kodlayıcı | `Qwen3-4B-Instruct-2507-Q8_0.gguf` (4,280,405,600 B) | [unsloth/Qwen3-4B-Instruct-2507-GGUF](https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) |
 | VAE | `ae.safetensors` (335,304,388 B) | [Comfy-Org/Z-Image-Turbo](https://huggingface.co/Comfy-Org/Z-Image-Turbo), FLUX.1 tipi otomatik kodlayıcı |
-| Motor | `sd-cli.exe`, stable-diffusion.cpp `32d516c` ve [`patches/`](patches) içindeki yamalar | bu deponun v0.2.0 sürümü (`sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip`) |
+| Motor | `sd-cli.exe`, stable-diffusion.cpp `32d516c` ve [`patches/`](patches) içindeki yamalar | bu deponun v0.3.0 sürümü (`sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip`) |
 | CUDA çalışma zamanı | `cudart`, `cublas`, `cublasLt` (12.8), değiştirilmemiş | wan22-pascal-4gb v0.1.0 sürümündeki zip |
 | cuDNN (varsayılan olarak kurulur; `--no-cudnn` atlar) | 8 DLL, sürüm 9.10.2.21 (CUDA 11 derlemesi) | NVIDIA'nın kendi sunucusu, NVIDIA'nın lisansı altında; burada saklanmaz |
 

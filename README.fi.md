@@ -31,18 +31,18 @@ Jos käytät tekoälyavusteista koodausagenttia (Claude Code, Codex, Cursor ja v
 
 ## Yhdellä silmäyksellä
 
-Verrattuna v0.1.0-rakenteeseen: yksi kuva vie 193–228 s eikä 261.6 s, VAE-vaihe vie 8.3–15.9 s eikä 29.8–36.3 s, sama siemenluku antaa samat pikselit, ja jokaisen tämän README:n luvun takana on komento ja tiedosto.
+Verrattuna v0.1.0-rakenteeseen: yksi kuva vie 188–193 s eikä 261.6 s, VAE-vaihe vie 12.5–21.7 s eikä 29.8–36.3 s, sama siemenluku antaa samat pikselit, ja jokaisen tämän README:n luvun takana on komento ja tiedosto.
 
-768x1344, siemenluku 42, 8 askelta, sama kone. v0.1.0:n luvut ovat v0.1.0:n README:stä (puhtaan juuren testi ja viisi ajoa); v0.2.0:n luvut ovat tämän julkaisun puhtaan juuren testistä.
+768x1344, siemenluku 42, 8 askelta, sama kone. v0.1.0:n luvut ovat v0.1.0:n README:stä (puhtaan juuren testi ja viisi ajoa); v0.3.0:n luvut ovat tämän julkaisun puhtaan juuren testistä.
 
-| | v0.1.0 (ei koskaan julkaistu; vanha rakenne) | v0.2.0 |
+| | v0.1.0 (ei koskaan julkaistu; vanha rakenne) | v0.3.0 |
 |---|---|---|
-| Aika yhteen kuvaan (yksi `generate.py`-ajo) | 261.6 s | 193–228 s |
-| VAE-dekoodaus (viimeinen vaihe) | 29.8–36.3 s | 8.3–15.9 s |
+| Aika yhteen kuvaan (yksi `generate.py`-ajo) | 261.6 s | 188–193 s |
+| VAE-dekoodaus (viimeinen vaihe) | 29.8–36.3 s | 12.5–21.7 s |
 | Läheisyys vertailudekoodaukseen (PSNR, suurempi on parempi) | 38–43 dB | 71–73 dB |
 | GPU-muistin huippu (nvidia-smi) | 2949–2957 MiB | 3057–3059 MiB |
-| Prosessin muisti, huippu | 10.5–10.9 GB (sellaisena kuin silloin kirjattiin) | 10 667–10 915 MiB |
-| Pienin havaittu vapaa RAM | 331–576 MiB | 418–545 MiB |
+| Prosessin muisti, huippu | 10.5–10.9 GB (sellaisena kuin silloin kirjattiin) | 10 489–11 203 MiB |
+| Pienin havaittu vapaa RAM | 331–576 MiB | 303–532 MiB |
 
 Näin luku luetaan: vertailukohta on sama latent, joka on dekoodattu suorittimella yhtenä float32-kappaleena; PSNR vertaa GPU-dekoodaustamme siihen (3 kuvaa). Se kertoo, kuinka lähellä VAE-vaihe on tätä vertailukohtaa. Se ei kerro, miltä kuva näyttää tai kuinka hyvä se on. v0.2.0:n kuvat eivät ole tavu tavulta samat kuin v0.1.0:n samalla kehotteella ja siemenluvulla, koska VAE-polkua muutettiin tarkoituksella. Menetelmä ja mittaamattomat osat: [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md).
 
@@ -110,7 +110,7 @@ Askeleet (8), cfg (1.0), sampler ja scheduler on lukittu tarkoituksella; katso [
 
 - **Mitä mallin tekijät sanovat.** Z-Image-Turbon mallikortti (model card) sanoo, että malli "fits comfortably within 16G VRAM consumer devices" ([model card](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)), eli mahtuu mukavasti kuluttajalaitteisiin, joissa on 16 GB VRAM-muistia. Se on väite 16 GB:n korteista. Virallinen README mainitsee myös stable-diffusion.cpp:n kolmannen osapuolen vaihtoehtona ja siteeraa sitä lauseella "as little as 4GB of VRAM" ([README](https://github.com/Tongyi-MAI/Z-Image)), eli "vain 4 GB VRAM-muistia"; se on stable-diffusion.cpp-projektin väite, ei Z-Image-tiimin vaatimus.
 - **Mitä mittasimme.** Z-Image-Turbo Q8_0 (6.6 GB:n tiedosto) ja Qwen3-4B Q8_0 -tekstienkooderi, 768x1344: GPU-muistin huippu, jonka nvidia-smi näytteisti 2 s välein (lyhyt piikki voi jäädä huomaamatta), oli 2949–2957 MiB (v0.1.0-moottori) ja 3057–3059 MiB (v0.2.0-moottori) 4096 MiB:n kortilla. Painot (10 509 MiB; moottorin loki tulostaa sen muodossa MB) pysyvät järjestelmän RAM-muistissa; moottori kopioi verkon GPU:lle yksi segmentti (verkon viipale) kerrallaan: 36 segmenttiä, kuten lokirivillä `z_image using 36 segments`.
-- **Mitä se maksaa.** Aikaa ja järjestelmämuistia: 193–228 s kuvaa kohden, ja moottoriprosessi pitää hallussaan noin 10 667–10 915 MiB RAM-muistia (muistikartoitetut mallisivut mukaan lukien) 16 GB:n koneella, joten vapaa RAM putoaa muutamaan sataan MiB:iin ajon aikana.
+- **Mitä se maksaa.** Aikaa ja järjestelmämuistia: 188–193 s kuvaa kohden, ja moottoriprosessi pitää hallussaan noin 10 489–11 203 MiB RAM-muistia (muistikartoitetut mallisivut mukaan lukien) 16 GB:n koneella, joten vapaa RAM putoaa muutamaan sataan MiB:iin ajon aikana.
 - **Muiden ratkaisut.** Muut kertovat ajaneensa Z-Imagea 4 GB:n korteilla matalammalla kvantisoinnilla tai pienemmillä koilla (esimerkiksi stable-diffusion.cpp:n wikisivu 4 GB:n korteille suosittelee Q3_K- tai Q4_0-mallia koossa 1024x512). Sieltä, mistä katsoimme (lista ja päivämäärä tiedostossa [`docs/RELATED.md`](docs/RELATED.md)), emme löytäneet julkaistua ratkaisua, joka yhdistäisi kaikki neljä: 4 GB:n kortti, Q8_0, 768x1344 tai suurempi, sekä mitattu aika ja GPU-muisti. Tämä on toteamus siitä, mistä katsoimme, ei kaikesta.
 - **Kuka tekee mitä.** Mahtuminen 4 GB:iin tulee itse stable-diffusion.cpp:stä: `--offload-to-cpu`, `--mmap`, työskentely viipaleina ja flash attention (ilman sitä ajo tarvitsi 4205 MB eikä mahtunut). Meidän patchimme ovat nopeutta ja parempaa VAE-vaihetta varten, eivät mahtumista varten. Emme ajaneet muokkaamatonta upstream-moottoria tällä kortilla, joten emme voi sanoa, mahtuuko se.
 
@@ -132,7 +132,7 @@ Lisäksi: `--eager-load` (lukee mallisivut etukäteen; 241.2 s -> 220.3 s samall
 | Diffuusiomalli | `z_image_turbo-Q8_0.gguf` (6,577,440,704 B) | [leejet/Z-Image-Turbo-GGUF](https://huggingface.co/leejet/Z-Image-Turbo-GGUF), pohja [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) |
 | Tekstienkooderi | `Qwen3-4B-Instruct-2507-Q8_0.gguf` (4,280,405,600 B) | [unsloth/Qwen3-4B-Instruct-2507-GGUF](https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) |
 | VAE | `ae.safetensors` (335,304,388 B) | [Comfy-Org/Z-Image-Turbo](https://huggingface.co/Comfy-Org/Z-Image-Turbo), FLUX.1-tyyppinen autoenkooderi |
-| Moottori | `sd-cli.exe`, stable-diffusion.cpp `32d516c` ja patchit hakemistossa [`patches/`](patches) | tämän repositorion v0.2.0-julkaisu (`sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip`) |
+| Moottori | `sd-cli.exe`, stable-diffusion.cpp `32d516c` ja patchit hakemistossa [`patches/`](patches) | tämän repositorion v0.3.0-julkaisu (`sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip`) |
 | CUDA-runtime | `cudart`, `cublas`, `cublasLt` (12.8), muokkaamattomat | zip wan22-pascal-4gb:n v0.1.0-julkaisusta |
 | cuDNN (asennetaan oletuksena; `--no-cudnn` ohittaa sen) | 8 DLL-tiedostoa, versio 9.10.2.21 (CUDA 11 -build) | NVIDIAn oma palvelin, NVIDIAn lisenssillä; ei säilytetä täällä |
 

@@ -31,18 +31,18 @@ Kung gumagamit ka ng AI coding agent (Claude Code, Codex, Cursor at mga katulad)
 
 ## Sa isang tingin
 
-Kumpara sa layout ng v0.1.0: ang isang larawan ay tumatagal ng 193–228 s sa halip na 261.6 s, ang VAE stage ay tumatagal ng 8.3–15.9 s sa halip na 29.8 hanggang 36.3 s, ang parehong seed ay nagbibigay ng parehong mga pixel, at bawat numero sa README na ito ay may kasamang command at file na pinagmulan.
+Kumpara sa layout ng v0.1.0: ang isang larawan ay tumatagal ng 188–193 s sa halip na 261.6 s, ang VAE stage ay tumatagal ng 12.5–21.7 s sa halip na 29.8 hanggang 36.3 s, ang parehong seed ay nagbibigay ng parehong mga pixel, at bawat numero sa README na ito ay may kasamang command at file na pinagmulan.
 
-768x1344, seed 42, 8 hakbang, parehong makina. Ang mga numero ng v0.1.0 ay galing sa README ng v0.1.0 (clean-root test at limang takbo); ang mga numero ng v0.2.0 ay galing sa clean-root test ng release na ito.
+768x1344, seed 42, 8 hakbang, parehong makina. Ang mga numero ng v0.1.0 ay galing sa README ng v0.1.0 (clean-root test at limang takbo); ang mga numero ng v0.3.0 ay galing sa clean-root test ng release na ito.
 
-| | v0.1.0 (hindi kailanman nailathala; lumang layout) | v0.2.0 |
+| | v0.1.0 (hindi kailanman nailathala; lumang layout) | v0.3.0 |
 |---|---|---|
-| Oras para sa isang larawan (isang takbo ng `generate.py`) | 261.6 s | 193–228 s |
-| VAE decode (huling stage) | 29.8 hanggang 36.3 s | 8.3–15.9 s |
+| Oras para sa isang larawan (isang takbo ng `generate.py`) | 261.6 s | 188–193 s |
+| VAE decode (huling stage) | 29.8 hanggang 36.3 s | 12.5–21.7 s |
 | Pagkakalapit sa reference decode (PSNR, mas mataas ay mas malapit) | 38 hanggang 43 dB | 71 hanggang 73 dB |
 | Peak na memorya ng GPU (nvidia-smi) | 2949 hanggang 2957 MiB | 3057–3059 MiB |
-| Memorya ng proseso, peak | 10.5 hanggang 10.9 GB (ayon sa naitala noon) | 10 667–10 915 MiB |
-| Pinakamababang libreng RAM na nakita | 331 hanggang 576 MiB | 418–545 MiB |
+| Memorya ng proseso, peak | 10.5 hanggang 10.9 GB (ayon sa naitala noon) | 10 489–11 203 MiB |
+| Pinakamababang libreng RAM na nakita | 331 hanggang 576 MiB | 303–532 MiB |
 
 Paano basahin ito: ang reference ay ang parehong latent na na-decode sa CPU bilang isang pirasong float32; kinukumpara ng PSNR ang GPU decode namin sa reference na iyon (3 larawan). Sinasabi nito kung gaano kalapit ang VAE stage sa reference na iyon. Hindi nito sinasabi kung gaano kaganda ang isang larawan. Hindi byte-identical ang mga larawan ng v0.2.0 sa v0.1.0 para sa parehong prompt at seed, dahil sadyang binago ang VAE path. Paraan at mga bahaging hindi nasukat: [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md).
 
@@ -110,7 +110,7 @@ Sadyang nakapirmi ang mga hakbang (8), cfg (1.0), sampler at scheduler; tingnan 
 
 - **Ano ang sinasabi ng mga may-akda ng model.** Sinasabi ng model card ng Z-Image-Turbo na ang model ay "fits comfortably within 16G VRAM consumer devices" (kasyang-kasya sa mga consumer card na may 16 GB na VRAM) ([model card](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)). Pahayag iyon tungkol sa mga card na 16 GB. Nakalista rin sa opisyal na README ang stable-diffusion.cpp bilang third-party na opsyon at sinisipi ito para sa "as little as 4GB of VRAM" (kasing-liit ng 4 GB na VRAM) ([README](https://github.com/Tongyi-MAI/Z-Image)); pahayag iyon ng proyektong stable-diffusion.cpp, hindi kinakailangan mula sa Z-Image team.
 - **Ano ang sinukat namin.** Z-Image-Turbo Q8_0 (isang 6.6 GB na file) na may Qwen3-4B Q8_0 na text encoder, 768x1344: ang peak ng GPU, na kinuha ng nvidia-smi bawat 2 s (maaaring makaligtaan ang maikling pagtaas), ay 2949 hanggang 2957 MiB (engine ng v0.1.0) at 3057–3059 MiB (engine ng v0.2.0) sa card na 4096 MiB. Nananatili sa RAM ng sistema ang mga weight (10 509 MiB; ipinapakita ito ng log ng engine bilang MB); kinokopya ng engine ang network sa GPU nang isang segment (isang hiwa ng network) sa bawat pagkakataon: 36 na segment, tulad ng linya ng log na `z_image using 36 segments`.
-- **Ano ang kapalit.** Oras at memorya ng sistema: 193–228 s bawat larawan, at humahawak ang proseso ng engine ng humigit-kumulang 10 667–10 915 MiB ng RAM (kasama ang mga memory-mapped na pahina ng model) sa makinang may 16 GB, kaya bumababa ang libreng RAM sa ilang daang MiB habang tumatakbo ito.
+- **Ano ang kapalit.** Oras at memorya ng sistema: 188–193 s bawat larawan, at humahawak ang proseso ng engine ng humigit-kumulang 10 489–11 203 MiB ng RAM (kasama ang mga memory-mapped na pahina ng model) sa makinang may 16 GB, kaya bumababa ang libreng RAM sa ilang daang MiB habang tumatakbo ito.
 - **Mga setup ng iba.** May mga nag-uulat ng Z-Image sa mga card na 4 GB gamit ang mas mababang quantization o mas maliliit na sukat (halimbawa, inirerekomenda ng wiki page ng stable-diffusion.cpp para sa mga card na 4 GB ang Q3_K o Q4_0 sa 1024x512). Sa mga tiningnan namin (listahan at petsa sa [`docs/RELATED.md`](docs/RELATED.md)), wala kaming nakitang nailathalang setup na pinagsasama ang apat: isang card na 4 GB, Q8_0, 768x1344 o mas malaki, at nasukat na oras at memorya ng GPU. Pahayag iyon tungkol sa mga tiningnan namin, hindi tungkol sa lahat ng lugar.
 - **Sino ang gumagawa ng ano.** Ang stable-diffusion.cpp mismo ang nagpapakasya nito sa 4 GB: `--offload-to-cpu`, `--mmap`, pagtatrabaho nang hiwa-hiwa, at flash attention (kapag nakapatay ito, humingi ang isang takbo ng 4205 MB at hindi kumasya). Para sa bilis at mas mahusay na VAE stage ang mga patch namin, hindi para kumasya. Hindi namin pinatakbo ang hindi-na-patch na upstream engine sa card na ito, kaya hindi namin masasabi kung kasya ito.
 
@@ -132,7 +132,7 @@ Dagdag pa: ang `--eager-load` (binabasa nang maaga ang mga pahina ng model; 241.
 | Diffusion model | `z_image_turbo-Q8_0.gguf` (6,577,440,704 B) | [leejet/Z-Image-Turbo-GGUF](https://huggingface.co/leejet/Z-Image-Turbo-GGUF), base [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) |
 | Text encoder | `Qwen3-4B-Instruct-2507-Q8_0.gguf` (4,280,405,600 B) | [unsloth/Qwen3-4B-Instruct-2507-GGUF](https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) |
 | VAE | `ae.safetensors` (335,304,388 B) | [Comfy-Org/Z-Image-Turbo](https://huggingface.co/Comfy-Org/Z-Image-Turbo), autoencoder na uri ng FLUX.1 |
-| Engine | `sd-cli.exe`, stable-diffusion.cpp `32d516c` kasama ang mga patch sa [`patches/`](patches) | ang v0.2.0 release ng repository na ito (`sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip`) |
+| Engine | `sd-cli.exe`, stable-diffusion.cpp `32d516c` kasama ang mga patch sa [`patches/`](patches) | ang v0.3.0 release ng repository na ito (`sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip`) |
 | CUDA runtime | `cudart`, `cublas`, `cublasLt` (12.8), hindi binago | zip mula sa wan22-pascal-4gb v0.1.0 release |
 | cuDNN (ini-install bilang default; nilalaktawan ito ng `--no-cudnn`) | 8 DLL, bersyon 9.10.2.21 (CUDA 11 build) | sariling server ng NVIDIA, sa ilalim ng lisensya ng NVIDIA; hindi ito itinatabi rito |
 

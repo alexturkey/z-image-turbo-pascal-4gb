@@ -31,18 +31,18 @@
 
 ## ພາບລວມເປັນຕົວເລກ
 
-ທຽບກັບໂຄງສ້າງຂອງ v0.1.0: ໜຶ່ງຮູບໃຊ້ເວລາ 193–228 s ແທນທີ່ຈະເປັນ 261.6 s, ຂັ້ນ VAE ໃຊ້ 8.3–15.9 s ແທນທີ່ຈະເປັນ 29.8 ຫາ 36.3 s, ໃຊ້ seed ດຽວກັນໄດ້ພິກເຊວດຽວກັນ, ແລະ ທຸກຕົວເລກໃນ README ນີ້ມີຄຳສັ່ງ ແລະ ໄຟລ໌ຮອງຮັບ.
+ທຽບກັບໂຄງສ້າງຂອງ v0.1.0: ໜຶ່ງຮູບໃຊ້ເວລາ 188–193 s ແທນທີ່ຈະເປັນ 261.6 s, ຂັ້ນ VAE ໃຊ້ 12.5–21.7 s ແທນທີ່ຈະເປັນ 29.8 ຫາ 36.3 s, ໃຊ້ seed ດຽວກັນໄດ້ພິກເຊວດຽວກັນ, ແລະ ທຸກຕົວເລກໃນ README ນີ້ມີຄຳສັ່ງ ແລະ ໄຟລ໌ຮອງຮັບ.
 
-768x1344, seed 42, 8 steps, ເຄື່ອງດຽວກັນ. ຕົວເລກຂອງ v0.1.0 ມາຈາກ README ຂອງ v0.1.0 (ການທົດສອບຈາກ clean root ແລະ ການຣັນ 5 ຄັ້ງ); ຕົວເລກຂອງ v0.2.0 ມາຈາກການທົດສອບ clean root ຂອງຮຸ່ນນີ້.
+768x1344, seed 42, 8 steps, ເຄື່ອງດຽວກັນ. ຕົວເລກຂອງ v0.1.0 ມາຈາກ README ຂອງ v0.1.0 (ການທົດສອບຈາກ clean root ແລະ ການຣັນ 5 ຄັ້ງ); ຕົວເລກຂອງ v0.3.0 ມາຈາກການທົດສອບ clean root ຂອງຮຸ່ນນີ້.
 
-| | v0.1.0 (ບໍ່ເຄີຍເຜີຍແຜ່; ໂຄງສ້າງເກົ່າ) | v0.2.0 |
+| | v0.1.0 (ບໍ່ເຄີຍເຜີຍແຜ່; ໂຄງສ້າງເກົ່າ) | v0.3.0 |
 |---|---|---|
-| ເວລາຕໍ່ໜຶ່ງຮູບ (ການຣັນ `generate.py` ໜຶ່ງຄັ້ງ) | 261.6 s | 193–228 s |
-| VAE decode (ຂັ້ນສຸດທ້າຍ) | 29.8 ຫາ 36.3 s | 8.3–15.9 s |
+| ເວລາຕໍ່ໜຶ່ງຮູບ (ການຣັນ `generate.py` ໜຶ່ງຄັ້ງ) | 261.6 s | 188–193 s |
+| VAE decode (ຂັ້ນສຸດທ້າຍ) | 29.8 ຫາ 36.3 s | 12.5–21.7 s |
 | ຄວາມໃກ້ຄຽງກັບ reference decode (PSNR, ຍິ່ງສູງຍິ່ງໃກ້) | 38 ຫາ 43 dB | 71 ຫາ 73 dB |
 | VRAM ສູງສຸດ (nvidia-smi) | 2949 ຫາ 2957 MiB | 3057–3059 MiB |
-| ໜ່ວຍຄວາມຈຳຂອງໂປຣເຊສ, ຄ່າສູງສຸດ | 10.5 ຫາ 10.9 GB (ຕາມທີ່ບັນທຶກໄວ້ຕອນນັ້ນ) | 10 667–10 915 MiB |
-| RAM ວ່າງຕ່ຳສຸດທີ່ເຫັນ | 331 ຫາ 576 MiB | 418–545 MiB |
+| ໜ່ວຍຄວາມຈຳຂອງໂປຣເຊສ, ຄ່າສູງສຸດ | 10.5 ຫາ 10.9 GB (ຕາມທີ່ບັນທຶກໄວ້ຕອນນັ້ນ) | 10 489–11 203 MiB |
+| RAM ວ່າງຕ່ຳສຸດທີ່ເຫັນ | 331 ຫາ 576 MiB | 303–532 MiB |
 
 ວິທີອ່ານ: reference ແມ່ນ latent ອັນດຽວກັນທີ່ decode ເທິງ CPU ເປັນກ້ອນດຽວແບບ float32; PSNR ທຽບຜົນ decode ເທິງ GPU ຂອງເຮົາກັບ reference ນັ້ນ (3 ຮູບ). ຄ່ານີ້ບອກວ່າຂັ້ນ VAE ໃກ້ຄຽງກັບ reference ແຄ່ໃດ. ມັນບໍ່ໄດ້ບອກວ່າຮູບງາມຫຼືບໍ່. ຮູບຂອງ v0.2.0 ບໍ່ຕົງກັບ v0.1.0 ທຸກໄບຕ໌ເມື່ອໃຊ້ prompt ແລະ seed ດຽວກັນ, ເພາະເຮົາຕັ້ງໃຈປ່ຽນເສັ້ນທາງຂອງ VAE. ວິທີວັດ ແລະ ສ່ວນທີ່ຍັງບໍ່ໄດ້ວັດຢູ່ທີ່ [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md).
 
@@ -109,7 +109,7 @@ python scripts/generate.py --prompt-file prompts/eiffel.txt --width 1344 --heigh
 
 - **ຜູ້ສ້າງໂມເດວບອກວ່າແນວໃດ.** model card ຂອງ Z-Image-Turbo ລະບຸວ່າໂມເດວ "fits comfortably within 16G VRAM consumer devices" ([model card](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)). ນັ້ນໝາຍເຖິງກາດຂະໜາດ 16 GB. README ທາງການຍັງລະບຸ stable-diffusion.cpp ເປັນທາງເລືອກຈາກບຸກຄົນທີສາມ ແລະ ອ້າງເຖິງ "as little as 4GB of VRAM" ([README](https://github.com/Tongyi-MAI/Z-Image)); ນັ້ນເປັນຄຳກ່າວອ້າງຂອງໂປຣເຈັກ stable-diffusion.cpp, ບໍ່ແມ່ນຂໍ້ກຳນົດຂອງທີມ Z-Image.
 - **ສິ່ງທີ່ເຮົາວັດໄດ້.** Z-Image-Turbo Q8_0 (ໄຟລ໌ຂະໜາດ 6.6 GB) ກັບ text encoder Qwen3-4B Q8_0 ທີ່ 768x1344: ຄ່າສູງສຸດຂອງ GPU ທີ່ nvidia-smi ສຸ່ມອ່ານທຸກ 2 s (ຄ່າພຸ່ງສັ້ນໆອາດພາດໄດ້) ຢູ່ທີ່ 2949 ຫາ 2957 MiB (ເອັນຈິນ v0.1.0) ແລະ 3057–3059 MiB (ເອັນຈິນ v0.2.0) ເທິງກາດຂະໜາດ 4096 MiB. ນ້ຳໜັກໂມເດວ (10 509 MiB; ລັອກຂອງເອັນຈິນພິມເປັນ MB) ຢູ່ໃນ RAM ຂອງລະບົບ; ເອັນຈິນສຳເນົາເຄືອຂ່າຍໄປທີ່ GPU ເທື່ອລະ segment (ຊິ້ນສ່ວນຂອງເຄືອຂ່າຍ): ມີ 36 segments, ຕາມແຖວລັອກ `z_image using 36 segments`.
-- **ລາຄາທີ່ຕ້ອງຈ່າຍ.** ແມ່ນເວລາ ແລະ ໜ່ວຍຄວາມຈຳຂອງລະບົບ: 193–228 s ຕໍ່ໜຶ່ງຮູບ, ແລະ ໂປຣເຊສຂອງເອັນຈິນຖື RAM ປະມານ 10 667–10 915 MiB (ລວມໜ້າໂມເດວທີ່ memory-mapped) ເທິງເຄື່ອງ 16 GB, ດັ່ງນັ້ນ RAM ວ່າງຈະຫຼຸດເຫຼືອບໍ່ເທົ່າໃດຮ້ອຍ MiB ລະຫວ່າງທີ່ຣັນ.
+- **ລາຄາທີ່ຕ້ອງຈ່າຍ.** ແມ່ນເວລາ ແລະ ໜ່ວຍຄວາມຈຳຂອງລະບົບ: 188–193 s ຕໍ່ໜຶ່ງຮູບ, ແລະ ໂປຣເຊສຂອງເອັນຈິນຖື RAM ປະມານ 10 489–11 203 MiB (ລວມໜ້າໂມເດວທີ່ memory-mapped) ເທິງເຄື່ອງ 16 GB, ດັ່ງນັ້ນ RAM ວ່າງຈະຫຼຸດເຫຼືອບໍ່ເທົ່າໃດຮ້ອຍ MiB ລະຫວ່າງທີ່ຣັນ.
 - **ວິທີຂອງຄົນອື່ນ.** ມີລາຍງານວ່າຣັນ Z-Image ເທິງກາດ 4 GB ໄດ້ດ້ວຍ quantization ທີ່ຕ່ຳກວ່າ ຫຼື ຂະໜາດຮູບທີ່ນ້ອຍກວ່າ (ຕົວຢ່າງ ໜ້າ wiki ຂອງ stable-diffusion.cpp ສຳລັບກາດ 4 GB ແນະນຳ Q3_K ຫຼື Q4_0 ທີ່ 1024x512). ໃນບ່ອນທີ່ເຮົາໄປຄົ້ນເບິ່ງ (ລາຍການ ແລະ ວັນທີຢູ່ໃນ [`docs/RELATED.md`](docs/RELATED.md)) ເຮົາບໍ່ພົບວິທີທີ່ເຜີຍແຜ່ແລ້ວທີ່ລວມຄົບທັງສີ່ຢ່າງ: ກາດ 4 GB, Q8_0, 768x1344 ຫຼື ໃຫຍ່ກວ່າ, ແລະ ມີການວັດເວລາກັບໜ່ວຍຄວາມຈຳ GPU ໄວ້. ນີ້ເປັນຄຳກ່າວກ່ຽວກັບບ່ອນທີ່ເຮົາຄົ້ນເບິ່ງ, ບໍ່ແມ່ນກ່ຽວກັບທຸກບ່ອນ.
 - **ໃຜເຮັດຫຍັງ.** ການໃສ່ໄດ້ໃນ 4 GB ມາຈາກ stable-diffusion.cpp ເອງ: `--offload-to-cpu`, `--mmap`, ການເຮັດວຽກເທື່ອລະຊິ້ນ, ແລະ flash attention (ເມື່ອປິດ flash attention ການຣັນໃຊ້ 4205 MB ແລະ ໃສ່ບໍ່ພໍ). ແພັດຂອງເຮົາເຮັດເພື່ອຄວາມໄວ ແລະ ຂັ້ນ VAE ທີ່ດີຂຶ້ນ, ບໍ່ໄດ້ເຮັດເພື່ອໃຫ້ໃສ່ໄດ້. ເຮົາບໍ່ໄດ້ຣັນເອັນຈິນ upstream ທີ່ບໍ່ມີແພັດເທິງກາດໃບນີ້, ຈຶ່ງບອກບໍ່ໄດ້ວ່າໃສ່ໄດ້ຫຼືບໍ່.
 
@@ -131,7 +131,7 @@ python scripts/generate.py --prompt-file prompts/eiffel.txt --width 1344 --heigh
 | ໂມເດວ diffusion | `z_image_turbo-Q8_0.gguf` (6,577,440,704 B) | [leejet/Z-Image-Turbo-GGUF](https://huggingface.co/leejet/Z-Image-Turbo-GGUF), ຖານ [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) |
 | Text encoder | `Qwen3-4B-Instruct-2507-Q8_0.gguf` (4,280,405,600 B) | [unsloth/Qwen3-4B-Instruct-2507-GGUF](https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) |
 | VAE | `ae.safetensors` (335,304,388 B) | [Comfy-Org/Z-Image-Turbo](https://huggingface.co/Comfy-Org/Z-Image-Turbo), autoencoder ແບບ FLUX.1 |
-| ເອັນຈິນ | `sd-cli.exe`, stable-diffusion.cpp `32d516c` ພ້ອມແພັດໃນ [`patches/`](patches) | release v0.2.0 ຂອງ repository ນີ້ (`sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip`) |
+| ເອັນຈິນ | `sd-cli.exe`, stable-diffusion.cpp `32d516c` ພ້ອມແພັດໃນ [`patches/`](patches) | release v0.3.0 ຂອງ repository ນີ້ (`sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip`) |
 | CUDA runtime | `cudart`, `cublas`, `cublasLt` (12.8), ບໍ່ໄດ້ແກ້ໄຂ | zip ຈາກ release wan22-pascal-4gb v0.1.0 |
 | cuDNN (ຕິດຕັ້ງໂດຍຄ່າເລີ່ມຕົ້ນ; `--no-cudnn` ຂ້າມຂັ້ນນີ້) | DLL 8 ໄຟລ໌, ເວີຊັນ 9.10.2.21 (ບິລດ໌ສຳລັບ CUDA 11) | ເຊີບເວີຂອງ NVIDIA ເອງ, ພາຍໃຕ້ໃບອະນຸຍາດຂອງ NVIDIA; ບໍ່ໄດ້ເກັບໄວ້ທີ່ນີ້ |
 

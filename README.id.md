@@ -31,18 +31,18 @@ Jika Anda memakai agen coding AI (Claude Code, Codex, Cursor, dan sejenisnya), a
 
 ## Sekilas
 
-Dibandingkan dengan susunan v0.1.0: satu gambar butuh 193–228 s, bukan 261.6 s; tahap VAE butuh 8.3–15.9 s, bukan 29.8 sampai 36.3 s; seed yang sama menghasilkan piksel yang sama; dan setiap angka di README ini punya perintah dan berkas di baliknya.
+Dibandingkan dengan susunan v0.1.0: satu gambar butuh 188–193 s, bukan 261.6 s; tahap VAE butuh 12.5–21.7 s, bukan 29.8 sampai 36.3 s; seed yang sama menghasilkan piksel yang sama; dan setiap angka di README ini punya perintah dan berkas di baliknya.
 
-768x1344, seed 42, 8 langkah (steps), mesin yang sama. Angka v0.1.0 berasal dari README v0.1.0 (uji clean-root dan lima kali jalan); angka v0.2.0 berasal dari uji clean-root rilis ini.
+768x1344, seed 42, 8 langkah (steps), mesin yang sama. Angka v0.1.0 berasal dari README v0.1.0 (uji clean-root dan lima kali jalan); angka v0.3.0 berasal dari uji clean-root rilis ini.
 
-| | v0.1.0 (tidak pernah dipublikasikan; susunan lama) | v0.2.0 |
+| | v0.1.0 (tidak pernah dipublikasikan; susunan lama) | v0.3.0 |
 |---|---|---|
-| Waktu untuk satu gambar (satu kali jalan `generate.py`) | 261.6 s | 193–228 s |
-| Dekode VAE (tahap terakhir) | 29.8 sampai 36.3 s | 8.3–15.9 s |
+| Waktu untuk satu gambar (satu kali jalan `generate.py`) | 261.6 s | 188–193 s |
+| Dekode VAE (tahap terakhir) | 29.8 sampai 36.3 s | 12.5–21.7 s |
 | Kedekatan dengan dekode acuan (PSNR, makin tinggi makin dekat) | 38 sampai 43 dB | 71 sampai 73 dB |
 | Puncak memori GPU (nvidia-smi) | 2949 sampai 2957 MiB | 3057–3059 MiB |
-| Memori proses, puncak | 10.5 sampai 10.9 GB (sebagaimana tercatat saat itu) | 10 667–10 915 MiB |
-| RAM bebas terendah yang terlihat | 331 sampai 576 MiB | 418–545 MiB |
+| Memori proses, puncak | 10.5 sampai 10.9 GB (sebagaimana tercatat saat itu) | 10 489–11 203 MiB |
+| RAM bebas terendah yang terlihat | 331 sampai 576 MiB | 303–532 MiB |
 
 Cara membacanya: acuan adalah latent yang sama yang didekode di CPU sebagai satu potongan float32; PSNR membandingkan dekode GPU kami dengan acuan itu (3 gambar). Angka ini menunjukkan seberapa dekat tahap VAE dengan acuan tersebut. Angka ini tidak menunjukkan seberapa bagus tampilan sebuah gambar. Gambar v0.2.0 tidak identik byte demi byte dengan v0.1.0 untuk prompt dan seed yang sama, karena jalur VAE sengaja diubah. Metode dan bagian yang tidak diukur: [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md).
 
@@ -110,7 +110,7 @@ Langkah (8), cfg (1.0), sampler, dan scheduler sengaja dibuat tetap; lihat [Apa 
 
 - **Kata penulis model.** Model card Z-Image-Turbo menyebut model ini "fits comfortably within 16G VRAM consumer devices" (muat dengan nyaman di perangkat konsumen dengan VRAM 16 GB) ([model card](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)). Itu pernyataan tentang kartu 16 GB. README resminya juga mencantumkan stable-diffusion.cpp sebagai opsi pihak ketiga dan mengutipnya untuk "as little as 4GB of VRAM" (VRAM sekecil 4 GB) ([README](https://github.com/Tongyi-MAI/Z-Image)); itu klaim proyek stable-diffusion.cpp, bukan persyaratan dari tim Z-Image.
 - **Yang kami ukur.** Z-Image-Turbo Q8_0 (berkas 6.6 GB) dengan text encoder Qwen3-4B Q8_0, 768x1344: puncak GPU, dicuplik nvidia-smi tiap 2 s (lonjakan singkat bisa terlewat), adalah 2949 sampai 2957 MiB (mesin v0.1.0) dan 3057–3059 MiB (mesin v0.2.0) pada kartu 4096 MiB. Bobotnya (10 509 MiB; log mesin menuliskannya sebagai MB) tetap di RAM sistem; mesin menyalin jaringan ke GPU satu segmen (potongan dari jaringan) sekali waktu: 36 segmen, seperti pada baris log `z_image using 36 segments`.
-- **Biayanya.** Waktu dan memori sistem: 193–228 s per gambar, dan proses mesin menahan sekitar 10 667–10 915 MiB RAM (termasuk halaman model yang dipetakan ke memori) pada mesin 16 GB, sehingga RAM bebas turun ke beberapa ratus MiB selama berjalan.
+- **Biayanya.** Waktu dan memori sistem: 188–193 s per gambar, dan proses mesin menahan sekitar 10 489–11 203 MiB RAM (termasuk halaman model yang dipetakan ke memori) pada mesin 16 GB, sehingga RAM bebas turun ke beberapa ratus MiB selama berjalan.
 - **Pengaturan orang lain.** Orang lain melaporkan Z-Image di kartu 4 GB dengan kuantisasi yang lebih rendah atau ukuran yang lebih kecil (misalnya halaman wiki stable-diffusion.cpp untuk kartu 4 GB merekomendasikan Q3_K atau Q4_0 pada 1024x512). Di tempat-tempat yang kami periksa (daftar dan tanggalnya di [`docs/RELATED.md`](docs/RELATED.md)) kami tidak menemukan pengaturan terpublikasi yang menggabungkan keempatnya: kartu 4 GB, Q8_0, 768x1344 atau lebih besar, serta waktu dan memori GPU yang terukur. Ini pernyataan tentang tempat yang kami periksa, bukan tentang semua tempat.
 - **Siapa mengerjakan apa.** Muat di 4 GB berasal dari stable-diffusion.cpp sendiri: `--offload-to-cpu`, `--mmap`, bekerja per potongan, dan flash attention (saat dimatikan, satu kali jalan membutuhkan 4205 MB dan tidak muat). Patch kami untuk kecepatan dan tahap VAE yang lebih baik, bukan agar muat. Kami tidak menjalankan mesin upstream tanpa patch di kartu ini, jadi kami tidak bisa mengatakan apakah ia muat.
 
@@ -132,7 +132,7 @@ Selain itu: `--eager-load` (membaca halaman model di awal; 241.2 s menjadi 220.3
 | Model difusi | `z_image_turbo-Q8_0.gguf` (6,577,440,704 B) | [leejet/Z-Image-Turbo-GGUF](https://huggingface.co/leejet/Z-Image-Turbo-GGUF), dasar [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) |
 | Text encoder | `Qwen3-4B-Instruct-2507-Q8_0.gguf` (4,280,405,600 B) | [unsloth/Qwen3-4B-Instruct-2507-GGUF](https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) |
 | VAE | `ae.safetensors` (335,304,388 B) | [Comfy-Org/Z-Image-Turbo](https://huggingface.co/Comfy-Org/Z-Image-Turbo), autoencoder tipe FLUX.1 |
-| Mesin | `sd-cli.exe`, stable-diffusion.cpp `32d516c` dengan patch di [`patches/`](patches) | rilis v0.2.0 repositori ini (`sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip`) |
+| Mesin | `sd-cli.exe`, stable-diffusion.cpp `32d516c` dengan patch di [`patches/`](patches) | rilis v0.3.0 repositori ini (`sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip`) |
 | Runtime CUDA | `cudart`, `cublas`, `cublasLt` (12.8), tanpa modifikasi | zip dari rilis v0.1.0 wan22-pascal-4gb |
 | cuDNN (dipasang secara default; `--no-cudnn` melewatinya) | 8 DLL, versi 9.10.2.21 (build CUDA 11) | server NVIDIA sendiri, di bawah lisensi NVIDIA; tidak disimpan di sini |
 

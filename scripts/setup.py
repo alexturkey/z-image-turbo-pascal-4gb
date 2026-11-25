@@ -86,6 +86,18 @@ def _open(url, start):
     return urllib.request.urlopen(req, timeout=60)
 
 
+def engine_entries_to_install(entries, installed, have_sd_cli, have_cudart):
+    """Engine zips that must be downloaded and unpacked.
+
+    An upgrade only fetches the zips whose name and sha256 differ from the install marker (v0.2.0 -> v0.3.0 replaces the
+    38 MB engine zip and keeps the 567 MB CUDA runtime). Everything is fetched again when the marker is missing or
+    unreadable, or when sd-cli.exe or the CUDA runtime DLLs are gone.
+    """
+    if not isinstance(installed, dict) or not have_sd_cli or not have_cudart:
+        return list(entries)
+    return [e for e in entries if installed.get(e["name"]) != e["sha256"]]
+
+
 def download(url, dest, size, sha256, label=None):
     """Download url to dest through dest+'.part' (resumable). Returns True when verified.
 
@@ -341,10 +353,13 @@ def dry_run(lock, models_dir, bin_dir, no_cudnn, out=print):
         have = part.stat().st_size if part.is_file() else 0
         need_models += max(m["bytes"] - have, 0)
         out("  would fetch  %s (%.2f GiB%s)" % (m["name"], m["bytes"] / 2**30, ", resumes a .part file" if have else ""))
-    if not (find_sd_cli(bin_dir) and has_cudart(bin_dir)):
-        for e in lock["engine"]:
-            need_bin += e["bytes"] * 2
-            out("  would fetch  %s (%.1f MiB)" % (e["name"], e["bytes"] / 2**20))
+    try:                                                 # read only: the same decision as a real run (upgrade fetches changed zips)
+        installed = json.loads((Path(bin_dir) / ".engine_installed.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        installed = None
+    for e in engine_entries_to_install(lock["engine"], installed, bool(find_sd_cli(bin_dir)), has_cudart(bin_dir)):
+        need_bin += e["bytes"] * 2
+        out("  would fetch  %s (%.1f MiB)" % (e["name"], e["bytes"] / 2**20))
     c = lock.get("cudnn")
     if isinstance(c, dict) and not no_cudnn and not cudnn_installed(bin_dir, c):
         need_bin += c["bytes"] + sum(x["bytes"] for x in c["members"])
@@ -431,8 +446,12 @@ def main(argv=None):
                 if a.check:
                     print("ENGINE_MISSING_OR_OLD")
                     return 1
-                zips = []
+                todo = engine_entries_to_install(lock["engine"], installed, bool(find_sd_cli(bin_dir)), has_cudart(bin_dir))
                 for e in lock["engine"]:
+                    if e not in todo:
+                        print("Keeping %s (already installed, sha256 matches the lock file)" % e["name"])
+                zips = []
+                for e in todo:
                     zp = bin_dir / "_downloads" / e["name"]
                     if not is_verified(zp, e):
                         if zp.exists():

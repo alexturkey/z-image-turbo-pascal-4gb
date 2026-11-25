@@ -12,6 +12,10 @@ VAE decode (the last stage) has three modes, chosen with --vae:
   legacy  the v0.1.0 path: no cuDNN, automatic small tiles. Used automatically when the cuDNN DLLs are missing.
 The three modes give slightly different pixels (see docs/MEASUREMENTS.md); run.json records which path was taken.
 
+Copy/compute overlap (engine patch 0030, on in every mode): the weights of the next part of the model are copied to the
+GPU while the current part is computed. Same pixels, shorter run. --no-overlap switches it off; run.json
+stages.copy_overlap_used tells whether it ran.
+
 Examples (Windows):
   python scripts/generate.py --prompt "A lighthouse on a cliff at dawn, realistic photograph"
   python scripts/generate.py --prompt-file prompts/eiffel.txt --width 1344 --height 768 --seed 7
@@ -57,6 +61,11 @@ CUDNN_ENV = {
     "SD_CAPACITY_LOG": "1",                # log the memory gate (needed / available) so run.json can record it
 }
 FULL_ENV = {"SD_VAE_TRY_FULL": "1"}        # try the untiled decode first (margin 256 MiB), then the requested tile
+OVERLAP_ENV = {                            # copy/compute overlap (patch 0030): copy the next part's weights while this one computes
+    "SD_PREFETCH_THREAD": "1",             # issue the copies from a worker thread
+    "SD_STAGING_PINNED": "1",              # route them through a small page-locked ring
+    "SD_STAGING_PINNED_MB": "64",          # ring size (64 MB of pinned RAM)
+}
 LOW_RAM_MIB = 8000
 NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
@@ -115,10 +124,16 @@ def vae_args(mode, width, height):
     return args
 
 
-def engine_env(mode, base=None):
-    """Environment for sd-cli. Engine switches set by the caller are removed first, so a run is reproducible."""
+def engine_env(mode, base=None, overlap=True):
+    """Environment for sd-cli. Engine switches set by the caller are removed first, so a run is reproducible.
+
+    The copy/compute overlap is on in every VAE mode (it only changes when the weights are copied, not what is
+    computed); overlap=False (--no-overlap) leaves the three switches unset.
+    """
     src = os.environ if base is None else base
-    env = {k: v for k, v in src.items() if k not in CUDNN_ENV and k not in FULL_ENV}
+    env = {k: v for k, v in src.items() if k not in CUDNN_ENV and k not in FULL_ENV and k not in OVERLAP_ENV}
+    if overlap:
+        env.update(OVERLAP_ENV)
     if mode in ("auto", "tiled"):
         env.update(CUDNN_ENV)
     if mode == "auto":
@@ -157,6 +172,9 @@ def make_parser():
     ap.add_argument("--bin-dir", default=str(ROOT / "bin"), help="default: ./bin (sd-cli.exe, CUDA and cuDNN DLLs)")
     ap.add_argument("--vae", choices=VAE_MODES, default="auto",
                     help="VAE decode mode (default auto; see the text above). 'legacy' is the v0.1.0 decode path")
+    ap.add_argument("--no-overlap", action="store_true",
+                    help="do not overlap the weight copies with the computation (the engine runs the stock copy path; "
+                         "pictures are the same, a picture takes longer)")
     return ap
 
 
@@ -255,7 +273,26 @@ def parse_log(text):
         "vae_tiling_fallback": "retrying with spatial tiling" in text,
     }
     out.update(parse_vae(text))
+    out.update(parse_overlap(text))
     return out
+
+
+_RE_RING = re.compile(r"STAGING_PINNED total: ring (\d+) tensors ([\d.]+) MB, pageable fallback (\d+) tensors")
+
+
+def parse_overlap(text):
+    """Did the copy/compute overlap run? From the engine's one summary line (patch 0030).
+
+    copy_overlap_used is False when the line is missing (old engine, overlap switched off, or the pinned ring could not
+    be allocated), so a slow run explains itself in run.json.
+    """
+    m = _RE_RING.search(text)
+    return {
+        "copy_overlap_used": bool(m) and int(m.group(1)) > 0,
+        "overlap_ring_tensors": int(m.group(1)) if m else None,
+        "overlap_ring_mib": round(float(m.group(2)), 1) if m else None,
+        "overlap_fallback_tensors": int(m.group(3)) if m else None,
+    }
 
 
 _RE_PATH = re.compile(r"VAE path:\s*(full|tile|floor|retry)\s+(\d+)x(\d+)\s+\(attempt\s+(\d+)\)")
@@ -342,7 +379,7 @@ def main(argv=None):
               % (CUDNN_DLL, a.bin_dir))
     cmd = build_command(sd_cli, a.models_dir, prompt_path, image, a.width, a.height, a.seed, vae_mode)
     (out / "command.txt").write_text(subprocess.list2cmdline(cmd) + "\n", encoding="utf-8")
-    env = engine_env(vae_mode)
+    env = engine_env(vae_mode, overlap=not a.no_overlap)
     dll_dirs = [str(sd_cli.parent)]
     if cudnn_dir is not None and cudnn_dir != sd_cli.parent:
         dll_dirs.append(str(cudnn_dir))
@@ -388,7 +425,7 @@ def main(argv=None):
         "result": "OK" if ok else "FAILED", "exit_code": rc, "seconds": secs,
         "width": a.width, "height": a.height, "seed": a.seed, "steps": STEPS, "cfg": float(CFG),
         "vae_mode": vae_mode, "vae_mode_requested": a.vae,
-        "engine_env": {k: env[k] for k in sorted(set(CUDNN_ENV) | set(FULL_ENV)) if k in env},
+        "engine_env": {k: env[k] for k in sorted(set(CUDNN_ENV) | set(FULL_ENV) | set(OVERLAP_ENV)) if k in env},
         "image_pixel_sha256": pixel_sha, "engine_zips_sha256": engine_zips,
         "stages": stages,
         "gpu_memory_used_peak_mib": mon.vram_peak, "gpu_memory_used_before_mib": mon.baseline,

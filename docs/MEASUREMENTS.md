@@ -102,6 +102,10 @@ Each row is one check made in the clean-root test of this release. The evidence 
 | Interrupted setup resumes | a download was cut off and `setup.py` run again: does the `.part` file continue and is the sha256 right? | yes, for the cuDNN download with the current `setup.py`: stopped at 62 914 560 of 384 728 540 bytes, run again: it continued from the `.part` file (44 s, first progress line already at 20%), then `CUDNN_OK` and `SETUP_PART_OK cudnn` (the script checks the sha256 before `CUDNN_OK`). A first attempt was stopped when the file was already complete, so it only tested the hash check; it is listed in the evidence for honesty. The engine and CUDA runtime downloads were interrupted and resumed earlier, with the `setup.py` of that time (`setup_engine_resume.log`) | `docs/evidence/clean_root/setup/g12_*`, `setup_engine_resume.log` |
 | Commands from a fresh copy to the first picture | number of commands | 2 commands: `python scripts/setup.py` and `python scripts/generate.py --prompt-file prompts/eiffel.txt` (with `--lock`, `--bin-dir`, `--models-dir` in this test). Setup took 4 min 6 s, the picture 238 s (`PIXEL_SHA256` `bf39b8c5...`, the same as the other eiffel runs). In this test the engine zip came from a local file and the model files were the ones already downloaded and verified (so the 12 GB download was not repeated; its time is above), on the hard disk. The first attempt of the picture step was stopped by the host's memory manager and repeated; both are in the evidence | `docs/evidence/clean_root/g11_fresh_copy/` |
 | `sd-cli.exe --help` | flag names the commands use | every sd-cli flag that `generate.py` passes appears in the help text (checked with a script over the list of flags); version line `master-1088-32d516c` | `docs/evidence/clean_root/setup/sd-cli_help.txt` |
+| Release zip = tested engine | the 7 binaries in the v0.3.0 zip against the engine of the 12 runs of Table 4 | the same sha256 for all 7 files | `docs/evidence/overlap/engine_binaries_sha256.txt` |
+| Source tree of the release engine | patches 0001 to 0030 applied in the order of `patches/README.md` to a clean checkout of the two base commits, compared file by file with the tree the engine was built from | identical except a trace block in one CUDA file that is not in the release engine (and two comment lines) | `docs/evidence/overlap/source_tree_check.md` |
+| Rebuild of the release engine | the clean tree built once more (`E:\b\sdcpp_repro_02`, same flags, no `.git`), 7 binaries compared after replacing the build path and zeroing the PE time stamp | 2 of 7 equal (`ggml.dll`, `ggml-cpu.dll`); the other 5 differ and the reason is not found; **not reproduced byte for byte**; the rebuilt engine was not run | `docs/evidence/overlap/source_tree_check.md` |
+| Switches off are passive | arm B of Table 4 (patch built in, switches unset) against arm A (v0.2.0 engine) | steps 2 to 8: 20.78 against 21.04 s; the same picture hash in all 8 runs | `docs/evidence/overlap/runs.csv` |
 
 ## Table 3: development setup with the model held open (not in this repository)
 
@@ -117,6 +121,39 @@ First request of a series, a 1024x1024 picture, seed 42, 8 steps:
 | + one-piece VAE first (this release) | 191.5 s |
 
 Later pictures in the same series were faster (174 to 186 s per picture with the current engine; the first picture pays for warming up). Pictures: the refiner change gave pixel-identical pictures (the PNG files were identical too); the two VAE changes change the pixels on purpose (see Quality).
+
+## Table 4: copy/compute overlap, development engine (12 runs, alternating A, B, C)
+
+Setup: our development scripts, not `generate.py`: one `sd-cli` process per picture with the same flags as `generate.py` on the `auto` path (`--offload-to-cpu --mmap --eager-load --flash-attn on`, cuDNN VAE, one-piece VAE tried first), 768x1344, seed 42, 8 steps, one internal prompt. The picture is the same in all 12 runs (RGB hash `5dcd166e438a`, first 12 hex digits), `vae_path` `full` in all 12, no tile fallback. Order: A, B, C, A, B, C, ... (four rounds). Arm A: the v0.2.0 engine. Arm B: the engine with patch 0030, switches left unset. Arm C: the same engine with `SD_PREFETCH_THREAD=1 SD_STAGING_PINNED=1 SD_STAGING_PINNED_MB=64`. Files: `docs/evidence/overlap/` (`runs.csv`, two logs per arm kind, `engine_binaries_sha256.txt`).
+
+| Arm | `generate` time of the four runs | Median | Steps 2 to 8 (mean per step, four runs) | Median per step | First step |
+|---|---|---|---|---|---|
+| A: v0.2.0 engine | 199.77, 205.59, 199.25, 199.12 s | 199.5 s | 21.05, 21.12, 20.82, 21.02 s | 21.04 s | 27.7 to 29.5 s |
+| B: new engine, switches off | 224.17, 197.15, 197.48, 184.71 s | 197.3 s | 20.75, 20.80, 20.78, 20.78 s | 20.78 s | 23.9 to 37.0 s |
+| C: new engine, switches on | 180.67, 180.93, 173.32, 173.32 s | 177.0 s | 19.53, 19.58, 19.62, 19.77 s | 19.60 s | 20.2 to 20.8 s |
+
+Reading: with the switches on, the median run took 22.5 s less (199.5 to 177.0 s) and each of the four C runs was faster than each of the four A runs (slowest C 180.93 s, fastest A 199.12 s). Steps 2 to 8 are 1.44 s faster each (21.04 to 19.60 s), the first step about 8 s, the rest (text encoding, VAE, start-up) the remaining few seconds. The total contains the VAE stage, which in our runs takes either about 7.5 s or about 10 to 12 s from run to run (arm C: 7.5 to 11.9 s), so the step time is the cleaner number. Switches off (B) are as fast as the old engine per step (20.78 against 21.04 s): the patch does nothing until it is switched on; the slow B runs (224.17 and 184.71 s) are start-up and VAE variation (VAE 20.09 s in the first one). Trace of one run (a copy of the trace tool is not in this repository; the tables are): waiting for a weight copy per step fell from 1.38 s to 0.03 s (`tablo_iz_off.md`, `tablo_iz_on.md`, `tablo_o2_iz_on.md`).
+Memory in the same runs (sampled): GPU peak 3057 MiB in both A and C; lowest free RAM 369 to 611 MiB (A) and 452 to 566 MiB (C); engine process peak 10 614 MiB (first A run) and 11 052 MiB (first C run). The pinned ring is 64 MB of page-locked RAM that Windows cannot swap out; how much of the 438 MiB difference is the ring we did not measure. If your machine is short of RAM, use `--no-overlap`.
+The same engine through `generate.py` (Table 5) is the number that counts for this repository.
+
+## Table 5: v0.3.0, clean-root test (the release zip through `generate.py`)
+
+Engine: the v0.3.0 engine zip (`sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip`, 37 554 535 bytes), cuDNN installed by `setup.py`, `--vae auto`, models from an SSD (the three files were checked by sha256 by `setup.py`). A fresh copy of the repository in an empty folder, one `generate.py` run per row, 768x1344, seed 42. Because the release did not exist yet when we ran this, `setup.py` took the engine zip from a temporary lock file with a local address (same file, same sha256 as the lock file in this repository). Process memory peak: largest working set of `sd-cli.exe` seen by sampling `tasklist` every 2 s (`release/process_memory_samples.csv`). Files: `docs/evidence/overlap/release/`.
+
+| Picture | Total | Text encoding | Sampling | Steps 2 to 8 (mean per step) | VAE decode | `vae_path` | `copy_overlap_used` | Peak VRAM | Min free RAM | Process memory peak | Same `PIXEL_SHA256` as v0.2.0 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| eiffel | 188.1 s | 3.0 s | 161.2 s | 19.95 s | 12.5 s | `full` | true | 3059 MiB | 532 MiB | 10 489 MiB | yes |
+| turkish_tea | 192.9 s | 3.5 s | 159.5 s | 19.58 s | 21.7 s | `full` | true | 3057 MiB | 468 MiB | 10 827 MiB | yes |
+| village | 191.1 s | 3.0 s | 158.5 s | 19.72 s | 20.8 s | `full` | true | 3057 MiB | 303 MiB | 11 203 MiB | yes |
+| eiffel, `--no-overlap` | 204.5 s | 3.3 s | 180.9 s | 21.56 s | 10.5 s | `full` | false | 3059 MiB | 424 MiB | 11 076 MiB | yes (same as the first row) |
+
+Reading:
+- The three pictures have exactly the pixel hashes of the v0.2.0 table ("Example pictures: pixel hashes"). With `--no-overlap` the eiffel picture has the same hash again.
+- Sampling took 158.5 to 161.2 s against 173.8 to 186.3 s in Table 2 (v0.2.0, same pictures), and steps 2 to 8 about 19.6 to 20.0 s per step against about 21 s. Inside this one clean-root copy, the same picture with and without the overlap: 188.1 against 204.5 s in total (16.4 s less), sampling 161.2 against 180.9 s (19.7 s less); one run each, the overlap run first.
+- The total gained less than the sampling in two rows because the VAE stage took 21.7 and 20.8 s there (Table 2: 8.3 to 15.9 s); the VAE time of the same one-piece decode varies a lot between runs on this machine (see Table 4), and we have not found the reason.
+- With `--no-overlap` the log has no `STAGING_PINNED total` line and `run.json` says `copy_overlap_used` false.
+- Memory: peak VRAM is the same as in v0.2.0 (3057 to 3059 MiB). The process memory peak and the lowest free RAM moved within the range of the earlier tables (the no-overlap run peaked at 11 076 MiB, so the page-locked ring is not visible in this sampling); the lowest free RAM of the village run, 303 MiB, is lower than any row of Table 2 (418 MiB). We did not measure how much RAM the 64 MB ring takes away from a machine that is short of memory; if yours is, use `--no-overlap`.
+- `--vae legacy` (without cuDNN) was **not measured** with the overlap; the switches are on in that mode too, because they only change when the weights are copied.
 
 ## Quality: closeness of the VAE stage to a reference
 

@@ -31,18 +31,18 @@ Ukitumia wakala wa AI wa kuandika msimbo (Claude Code, Codex, Cursor na kama hao
 
 ## Kwa mtazamo mmoja
 
-Ikilinganishwa na mpangilio wa v0.1.0: picha moja huchukua 193–228 s badala ya 261.6 s, hatua ya VAE huchukua 8.3–15.9 s badala ya 29.8 hadi 36.3 s, seed ile ile hutoa pikseli zile zile, na kila nambari katika README hii ina amri na faili nyuma yake.
+Ikilinganishwa na mpangilio wa v0.1.0: picha moja huchukua 188–193 s badala ya 261.6 s, hatua ya VAE huchukua 12.5–21.7 s badala ya 29.8 hadi 36.3 s, seed ile ile hutoa pikseli zile zile, na kila nambari katika README hii ina amri na faili nyuma yake.
 
-768x1344, seed 42, hatua 8, mashine ile ile. Nambari za v0.1.0 zimetoka kwenye README ya v0.1.0 (jaribio la clean-root na mikimbio mitano); nambari za v0.2.0 zimetoka kwenye jaribio la clean-root la toleo hili.
+768x1344, seed 42, hatua 8, mashine ile ile. Nambari za v0.1.0 zimetoka kwenye README ya v0.1.0 (jaribio la clean-root na mikimbio mitano); nambari za v0.3.0 zimetoka kwenye jaribio la clean-root la toleo hili.
 
-| | v0.1.0 (haikuwahi kuchapishwa; mpangilio wa zamani) | v0.2.0 |
+| | v0.1.0 (haikuwahi kuchapishwa; mpangilio wa zamani) | v0.3.0 |
 |---|---|---|
-| Muda wa picha moja (uendeshaji mmoja wa `generate.py`) | 261.6 s | 193–228 s |
-| VAE decode (hatua ya mwisho) | 29.8 hadi 36.3 s | 8.3–15.9 s |
+| Muda wa picha moja (uendeshaji mmoja wa `generate.py`) | 261.6 s | 188–193 s |
+| VAE decode (hatua ya mwisho) | 29.8 hadi 36.3 s | 12.5–21.7 s |
 | Ukaribu na decode ya marejeo (PSNR, juu zaidi ni karibu zaidi) | 38 hadi 43 dB | 71 hadi 73 dB |
 | Kilele cha kumbukumbu ya GPU (nvidia-smi) | 2949 hadi 2957 MiB | 3057–3059 MiB |
-| Kumbukumbu ya mchakato, kilele | 10.5 hadi 10.9 GB (kama ilivyorekodiwa wakati huo) | 10 667–10 915 MiB |
-| RAM huru ya chini kabisa iliyoonekana | 331 hadi 576 MiB | 418–545 MiB |
+| Kumbukumbu ya mchakato, kilele | 10.5 hadi 10.9 GB (kama ilivyorekodiwa wakati huo) | 10 489–11 203 MiB |
+| RAM huru ya chini kabisa iliyoonekana | 331 hadi 576 MiB | 303–532 MiB |
 
 Jinsi ya kusoma: marejeo ni latent ile ile iliyofunguliwa kwenye CPU kama kipande kimoja cha float32; PSNR hulinganisha decode yetu ya GPU nayo (picha 3). Inaonyesha hatua ya VAE iko karibu kiasi gani na marejeo hayo. Haisemi picha inaonekana nzuri kiasi gani. Picha za v0.2.0 hazifanani baiti kwa baiti na v0.1.0 kwa prompt na seed ile ile, kwa sababu njia ya VAE ilibadilishwa kwa makusudi. Mbinu na sehemu ambazo hazikupimwa: [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md).
 
@@ -110,7 +110,7 @@ Hatua (8), cfg (1.0), sampler na scheduler zimewekwa kwa makusudi; tazama [Inaen
 
 - **Waandishi wa modeli wanasema nini.** Model card ya Z-Image-Turbo inasema modeli "fits comfortably within 16G VRAM consumer devices" (inatosha kwa raha kwenye vifaa vya watumiaji vyenye VRAM ya GB 16) ([model card](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)). Hiyo ni kauli kuhusu kadi za GB 16. README rasmi pia inaorodhesha stable-diffusion.cpp kama chaguo la mtu wa tatu na kuinukuu kwa "as little as 4GB of VRAM" (VRAM ya GB 4 tu) ([README](https://github.com/Tongyi-MAI/Z-Image)); hiyo ni dai la mradi wa stable-diffusion.cpp, si sharti la timu ya Z-Image.
 - **Tulichopima.** Z-Image-Turbo Q8_0 (faili ya GB 6.6) pamoja na text encoder ya Qwen3-4B Q8_0, 768x1344: kilele cha GPU, kilichopimwa na nvidia-smi kila 2 s (kuruka kwa muda mfupi kunaweza kukosekana), kilikuwa 2949 hadi 2957 MiB (injini ya v0.1.0) na 3057–3059 MiB (injini ya v0.2.0) kwenye kadi ya 4096 MiB. Uzito wa modeli (10 509 MiB; kumbukumbu ya injini huuchapisha kama MB) hubaki kwenye RAM ya mfumo; injini hunakili mtandao hadi GPU sehemu moja kwa wakati mmoja (kipande cha mtandao): sehemu 36, kama mstari wa kumbukumbu `z_image using 36 segments`.
-- **Gharama yake.** Muda na kumbukumbu ya mfumo: 193–228 s kwa kila picha, na mchakato wa injini hushikilia takriban 10 667–10 915 MiB za RAM (pamoja na kurasa za modeli zilizopangwa kwenye kumbukumbu) kwenye mashine ya GB 16, kwa hiyo RAM huru hushuka hadi mamia machache ya MiB inapoendesha.
+- **Gharama yake.** Muda na kumbukumbu ya mfumo: 188–193 s kwa kila picha, na mchakato wa injini hushikilia takriban 10 489–11 203 MiB za RAM (pamoja na kurasa za modeli zilizopangwa kwenye kumbukumbu) kwenye mashine ya GB 16, kwa hiyo RAM huru hushuka hadi mamia machache ya MiB inapoendesha.
 - **Usanidi wa wengine.** Wengine wanaripoti Z-Image kwenye kadi za GB 4 kwa quantization ya chini zaidi au ukubwa mdogo zaidi (kwa mfano, ukurasa wa wiki wa stable-diffusion.cpp kwa kadi za GB 4 unapendekeza Q3_K au Q4_0 katika 1024x512). Mahali tulipotazama (orodha na tarehe katika [`docs/RELATED.md`](docs/RELATED.md)) hatukupata usanidi uliochapishwa unaounganisha yote manne: kadi ya GB 4, Q8_0, 768x1344 au kubwa zaidi, na muda na kumbukumbu ya GPU vilivyopimwa. Hiyo ni kauli kuhusu mahali tulipotazama, si kuhusu kila mahali.
 - **Nani anafanya nini.** Kutosha katika GB 4 kunatokana na stable-diffusion.cpp yenyewe: `--offload-to-cpu`, `--mmap`, kufanya kazi kwa vipande, na flash attention (ikiwa imezimwa, uendeshaji mmoja ulihitaji MB 4205 na haukutosha). Viraka vyetu ni kwa ajili ya kasi na hatua bora ya VAE, si kwa ajili ya kutosha. Hatukuendesha injini ya upstream isiyo na viraka kwenye kadi hii, kwa hiyo hatuwezi kusema kama inatosha.
 
@@ -132,7 +132,7 @@ Pia: `--eager-load` (husoma kurasa za modeli mapema; 241.2 s hadi 220.3 s kwenye
 | Modeli ya diffusion | `z_image_turbo-Q8_0.gguf` (6,577,440,704 B) | [leejet/Z-Image-Turbo-GGUF](https://huggingface.co/leejet/Z-Image-Turbo-GGUF), msingi [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) |
 | Text encoder | `Qwen3-4B-Instruct-2507-Q8_0.gguf` (4,280,405,600 B) | [unsloth/Qwen3-4B-Instruct-2507-GGUF](https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) |
 | VAE | `ae.safetensors` (335,304,388 B) | [Comfy-Org/Z-Image-Turbo](https://huggingface.co/Comfy-Org/Z-Image-Turbo), autoencoder ya aina ya FLUX.1 |
-| Injini | `sd-cli.exe`, stable-diffusion.cpp `32d516c` pamoja na viraka katika [`patches/`](patches) | toleo la v0.2.0 la hazina hii (`sinirsiz-foto-engine-v0.2.0-win-x64-cuda12.8-sm61.zip`) |
+| Injini | `sd-cli.exe`, stable-diffusion.cpp `32d516c` pamoja na viraka katika [`patches/`](patches) | toleo la v0.3.0 la hazina hii (`sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip`) |
 | CUDA runtime | `cudart`, `cublas`, `cublasLt` (12.8), bila kubadilishwa | zip kutoka toleo la wan22-pascal-4gb v0.1.0 |
 | cuDNN (husakinishwa kwa chaguo-msingi; `--no-cudnn` huruka) | DLL 8, toleo 9.10.2.21 (muundo wa CUDA 11) | seva ya NVIDIA yenyewe, chini ya leseni ya NVIDIA; haihifadhiwi hapa |
 

@@ -136,6 +136,17 @@ Reading: with the switches on, the median run took 22.5 s less (199.5 to 177.0 s
 Memory in the same runs (sampled): GPU peak 3057 MiB in both A and C; lowest free RAM 369 to 611 MiB (A) and 452 to 566 MiB (C); engine process peak 10 614 MiB (first A run) and 11 052 MiB (first C run). The pinned ring is 64 MB of page-locked RAM that Windows cannot swap out; how much of the 438 MiB difference is the ring we did not measure. If your machine is short of RAM, use `--no-overlap`.
 The same engine through `generate.py` (Table 5) is the number that counts for this repository.
 
+## Table 4b: a series with the model kept loaded, development setup (not part of the repository)
+
+Same development setup as Table 3: a long-running engine server with the models kept loaded. **This setup is not part of the repository**; you cannot reproduce these times with `generate.py`, which loads the models for every picture. Ten pictures back to back (different prompts), 768x1344, 8 steps, seed 42, GTX 1050 Ti 4 GB, 2026-11-25. The earlier series is from another day (2026-11-15) with the v0.2.0 engine (same machine, same settings, other prompts); its times come from our work log, not from raw records. This is not an alternating comparison. The server log does not print the engine folder; the engine and the switches are as set in our series script (we did not keep the script as evidence).
+
+| Series | Picture 1 | Picture 2 | Pictures 3 to 10 (median) | Pictures 3 to 10 (range) |
+|---|---|---|---|---|
+| v0.2.0 engine (2026-11-15, taken from our work log, not from raw records) | 225.8 s | 199.4 s | 176.5 s | 176.1 to 177.2 s |
+| v0.3.0 engine (2026-11-25) | 168.9 s | 208.0 s | 163.5 s | 163.1 to 167.7 s |
+
+Picture 2 of the new series took 208.0 s, 39 s more than picture 1 and 44 s more than picture 3. This is not explained yet; we did not measure what happened. Free RAM was lowest in the series during this picture (299 MiB; the other pictures 355 to 499 MiB); we do not know whether that is the cause. Pictures 3 to 10 are the steady state, and the median of those is the fair figure (13.0 s per picture, 7.4 percent). All 10 times: `docs/evidence/overlap/series_model_kept_loaded.csv`.
+
 ## Table 5: v0.3.0, clean-root test (the release zip through `generate.py`)
 
 Engine: the v0.3.0 engine zip (`sinirsiz-foto-engine-v0.3.0-win-x64-cuda12.8-sm61.zip`, 37 554 535 bytes), cuDNN installed by `setup.py`, `--vae auto`, models from an SSD (the three files were checked by sha256 by `setup.py`). A fresh copy of the repository in an empty folder, one `generate.py` run per row, 768x1344, seed 42. Because the release did not exist yet when we ran this, `setup.py` took the engine zip from a temporary lock file with a local address (same file, same sha256 as the lock file in this repository). Process memory peak: largest working set of `sd-cli.exe` seen by sampling `tasklist` every 2 s (`release/process_memory_samples.csv`). Files: `docs/evidence/overlap/release/`.

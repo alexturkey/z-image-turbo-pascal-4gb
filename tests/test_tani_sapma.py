@@ -30,7 +30,7 @@ class Deviations(unittest.TestCase):
         rc, out = run_tani({"SD_TEST_SWITCH": "1"})
         self.assertEqual(rc, 0, out[-300:])
         self.assertIn("## deviations from the defaults", out)
-        self.assertIn("SD_TEST_SWITCH=1", out)
+        self.assertIn("SD_TEST_SWITCH", out)
         self.assertIn("model ", out)
 
     def test_name_in_value_is_hidden(self):

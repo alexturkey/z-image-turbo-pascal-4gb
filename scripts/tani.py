@@ -162,7 +162,7 @@ def deviations():
         out += ["  " + ln for ln in ch]
     else:
         out.append("git                 : not a git copy, or git is missing")
-    env = sorted("%s=%s" % (k, v) for k, v in os.environ.items() if k.startswith(("ZIMG_", "SD_", "GGML_")))
+    env = sorted(k for k in os.environ if k.startswith(("ZIMG_", "SD_", "GGML_")))
     out.append("engine/ZIMG_* env   : %s" % (" ".join(env) if env else "none") + ("  (generate.py removes the engine switches it owns before a run)" if env else ""))
     try:
         lock = json.loads((ROOT / "models.lock.json").read_text(encoding="utf-8"))

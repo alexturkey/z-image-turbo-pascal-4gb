@@ -6,6 +6,8 @@
 
 *Gayriresmî. Tongyi-MAI (Z-Image), leejet (stable-diffusion.cpp) ya da NVIDIA ile bağlantısı yoktur.*
 
+> **Yapay zeka ajanı (Codex, Claude Code, Gemini, Cursor) mı kullanıyorsunuz?** Ona şu cümleyi verin: "`AGENTS_HIZLI.md` dosyasını sonuna kadar oku, önce `python scripts/tani.py` çalıştır, ilerlemeni `DURUM.md` dosyasında tut; bir şeyi silmeden ya da taşımadan, sistem Python'unu ya da PATH'i değiştirmeden veya kalite ayarını düşürmeden önce bana sor." Ajan bu bilgisayarı teşhis eder, kontrol listesi yazar ve her kararda size sorar.
+
 ## Buradan başla
 
 Hazır bir paket var, önce onu dene. Donanımın farklıysa ya da bir adım takılırsa gerisi açık: yamalar, derleme tarifi ve ölçümler bu depoda, kendi kartına göre derleyebilir ya da uyarlayabilirsin.

@@ -6,6 +6,8 @@
 
 *Hindi opisyal. Walang kaugnayan sa Tongyi-MAI (Z-Image), kay leejet (stable-diffusion.cpp) o sa NVIDIA.*
 
+> **Gumagamit ka ba ng AI coding agent (Codex, Claude Code, Gemini, Cursor)?** Ibigay sa kanya ang isang pangungusap na ito: “Basahin mo ang `AGENTS_HIZLI.md` hanggang dulo, patakbuhin muna ang `python scripts/tani.py`, itala ang progreso mo sa `DURUM.md`, at magtanong ka muna sa akin bago magbura o maglipat ng anuman, magpalit ng Python ng sistema o PATH, o magbaba ng anumang setting ng kalidad.” Susuriin ng agent ang PC na ito, magsusulat ng checklist, at magtatanong sa iyo sa bawat desisyon.
+
 ## Magsimula dito
 
 May ready-made na package, kaya subukan mo muna iyon. Kung iba ang hardware mo o pumalya ang isang hakbang, bukas ang lahat ng iba pa: nasa repository na ito ang mga patch, ang build recipe at ang mga sukat, kaya puwede kang mag-build para sa sarili mong card o iangkop ang mga ito.

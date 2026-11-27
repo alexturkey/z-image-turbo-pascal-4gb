@@ -6,6 +6,8 @@
 
 *Inoffiziell. Nicht verbunden mit Tongyi-MAI (Z-Image), leejet (stable-diffusion.cpp) oder NVIDIA.*
 
+> **Nutzen Sie einen KI-Coding-Agenten (Codex, Claude Code, Gemini, Cursor)?** Geben Sie ihm diesen einen Satz: „Lies `AGENTS_HIZLI.md` bis zum Ende, führe zuerst `python scripts/tani.py` aus, halte deinen Fortschritt in `DURUM.md` fest und frag mich, bevor du etwas löschst oder verschiebst, das System-Python oder PATH änderst oder eine Qualitätseinstellung senkst.“ Der Agent diagnostiziert diesen PC, schreibt eine Checkliste und fragt Sie bei jeder Entscheidung.
+
 ## Hier starten
 
 Ein fertiges Paket ist vorhanden, probiere es also zuerst aus. Wenn deine Hardware anders ist oder ein Schritt scheitert, ist alles Übrige offen: Die Patches, das Build-Rezept und die Messungen liegen in diesem Repository, du kannst also für deine eigene Karte bauen oder sie anpassen.

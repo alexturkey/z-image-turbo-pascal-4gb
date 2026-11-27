@@ -1,7 +1,7 @@
 # Troubleshooting
 
 Labels: **measured** (we saw it on a GTX 1050 Ti 4 GB machine) and **not tested** (expected from how the tools work, we did not reproduce it).
-For the order of steps see [AGENTS.md](../AGENTS.md). Every message below is printed by `scripts/setup.py` or `scripts/generate.py` or is a line in `log.txt`; `run.json` in the output folder (`outputs/<time>_<name>/`) holds the fields named in the tables.
+For the order of steps see [AGENTS.md](../AGENTS.md). With an AI agent: run `python scripts/tani.py` first (read-only; its DEVIATIONS section shows what differs from the defaults) and let the agent keep its progress in `DURUM.md` in the repo root. Every message below is printed by `scripts/setup.py` or `scripts/generate.py` or is a line in `log.txt`; `run.json` in the output folder (`outputs/<time>_<name>/`) holds the fields named in the tables.
 
 ## Setup
 

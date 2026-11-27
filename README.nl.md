@@ -6,6 +6,8 @@
 
 *Onofficieel. Niet verbonden aan Tongyi-MAI (Z-Image), leejet (stable-diffusion.cpp) of NVIDIA.*
 
+> **Gebruikt u een AI-codeeragent (Codex, Claude Code, Gemini, Cursor)?** Geef hem deze ene zin: “Lees `AGENTS_HIZLI.md` helemaal uit, voer eerst `python scripts/tani.py` uit, houd je voortgang bij in `DURUM.md` en vraag het me voordat je iets verwijdert of verplaatst, het systeem-Python of PATH wijzigt of een kwaliteitsinstelling verlaagt.” De agent diagnosticeert deze pc, schrijft een checklist en vraagt u bij elke beslissing om akkoord.
+
 ## Begin hier
 
 Er is een kant-en-klaar pakket, probeer dat dus eerst. Als je hardware anders is of een stap mislukt, ligt de rest open: de patches, het bouwrecept en de metingen staan in deze repository, dus je kunt voor je eigen kaart bouwen of ze aanpassen.

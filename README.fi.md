@@ -6,6 +6,8 @@
 
 *Epävirallinen. Ei ole sidoksissa Tongyi-MAI:hin (Z-Image), leejetiin (stable-diffusion.cpp) eikä NVIDIAan.*
 
+> **Käytätkö tekoälykoodausagenttia (Codex, Claude Code, Gemini, Cursor)?** Anna sille tämä yksi lause: ”Lue `AGENTS_HIZLI.md` loppuun asti, aja ensin `python scripts/tani.py`, pidä edistymisesi kirjaa tiedostossa `DURUM.md` ja kysy minulta ennen kuin poistat tai siirrät mitään, muutat järjestelmän Pythonia tai PATHia tai laskat laatuasetusta.” Agentti diagnosoi tämän tietokoneen, kirjoittaa tarkistuslistan ja kysyy sinulta jokaisessa päätöksessä.
+
 ## Aloita tästä
 
 Valmis paketti on olemassa, joten kokeile sitä ensin. Jos laitteistosi on erilainen tai jokin vaihe epäonnistuu, kaikki muu on avoinna: patchit, buildausohje ja mittaukset ovat tässä repositoriossa, joten voit tehdä buildin omalle kortillesi tai muokata niitä.

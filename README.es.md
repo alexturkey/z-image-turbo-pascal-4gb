@@ -6,6 +6,8 @@
 
 *No oficial. Sin relación con Tongyi-MAI (Z-Image), leejet (stable-diffusion.cpp) ni NVIDIA.*
 
+> **¿Usa un agente de programación con IA (Codex, Claude Code, Gemini, Cursor)?** Dele esta única frase: «Lee `AGENTS_HIZLI.md` hasta el final, ejecuta primero `python scripts/tani.py`, lleva tu progreso en `DURUM.md` y pregúntame antes de borrar o mover nada, cambiar el Python del sistema o el PATH, o bajar un ajuste de calidad.» El agente diagnosticará este PC, escribirá una lista de comprobación y le preguntará en cada decisión.
+
 ## Empieza aquí
 
 Hay un paquete ya preparado, así que pruébalo primero. Si tu hardware es distinto o algún paso falla, todo lo demás está abierto: los parches, la receta de compilación y las mediciones están en este repositorio, para que compiles el motor para tu propia tarjeta o lo adaptes.

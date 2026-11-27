@@ -6,6 +6,8 @@
 
 *Tidak resmi. Tidak berafiliasi dengan Tongyi-MAI (Z-Image), leejet (stable-diffusion.cpp), maupun NVIDIA.*
 
+> **Memakai agen pemrograman AI (Codex, Claude Code, Gemini, Cursor)?** Berikan satu kalimat ini kepadanya: “Baca `AGENTS_HIZLI.md` sampai habis, jalankan `python scripts/tani.py` lebih dulu, catat kemajuanmu di `DURUM.md`, dan tanyakan kepada saya sebelum menghapus atau memindahkan apa pun, mengubah Python sistem atau PATH, atau menurunkan pengaturan kualitas.” Agen akan mendiagnosis PC ini, menulis daftar periksa, dan bertanya kepada Anda pada setiap keputusan.
+
 ## Mulai dari sini
 
 Paket siap pakai tersedia, jadi coba itu dulu. Jika perangkat keras Anda berbeda atau ada langkah yang gagal, sisanya terbuka: patch, resep build, dan hasil pengukuran ada di repositori ini, sehingga Anda bisa membangun untuk kartu Anda sendiri atau menyesuaikannya.

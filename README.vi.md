@@ -6,6 +6,8 @@
 
 *Không chính thức. Không liên kết với Tongyi-MAI (Z-Image), leejet (stable-diffusion.cpp) hay NVIDIA.*
 
+> **Bạn đang dùng tác tử lập trình AI (Codex, Claude Code, Gemini, Cursor)?** Hãy đưa cho nó đúng một câu này: “Đọc `AGENTS_HIZLI.md` đến hết, chạy `python scripts/tani.py` trước, ghi tiến độ của bạn vào `DURUM.md`, và hỏi tôi trước khi xóa hoặc di chuyển bất cứ thứ gì, đổi Python hệ thống hay PATH, hoặc hạ bất kỳ cài đặt chất lượng nào.” Tác tử sẽ chẩn đoán máy tính này, viết một danh sách kiểm tra và hỏi bạn ở mỗi quyết định.
+
 ## Bắt đầu từ đây
 
 Đã có sẵn một gói dựng sẵn, nên hãy thử nó trước. Nếu phần cứng của bạn khác hoặc một bước bị lỗi, mọi thứ còn lại đều mở: các bản vá, công thức build và các số đo đều nằm trong repository này, nên bạn có thể build cho card của mình hoặc chỉnh lại cho phù hợp.

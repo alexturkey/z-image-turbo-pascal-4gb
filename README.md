@@ -6,6 +6,8 @@
 
 *Unofficial. Not affiliated with Tongyi-MAI (Z-Image), leejet (stable-diffusion.cpp) or NVIDIA.*
 
+> **Using an AI coding agent (Codex, Claude Code, Gemini, Cursor)?** Give it this one sentence: "Read `AGENTS_HIZLI.md` to the end, run `python scripts/tani.py` first, keep your progress in `DURUM.md`, and ask me before you delete or move anything, change system Python or PATH, or lower a quality setting." The agent will diagnose this PC, write a checklist and ask you at every decision.
+
 ## Start here
 
 A ready-made package exists, so try it first. If your hardware is different or a step fails, everything else is open: the patches, the build recipe and the measurements are in this repository, so you can build for your own card or adapt them.

@@ -6,6 +6,8 @@
 
 *Projekt nieoficjalny. Niepowiązany z Tongyi-MAI (Z-Image), leejet (stable-diffusion.cpp) ani NVIDIA.*
 
+> **Używasz agenta programistycznego AI (Codex, Claude Code, Gemini, Cursor)?** Daj mu to jedno zdanie: „Przeczytaj `AGENTS_HIZLI.md` do końca, najpierw uruchom `python scripts/tani.py`, postępy zapisuj w `DURUM.md` i zapytaj mnie, zanim cokolwiek usuniesz lub przeniesiesz, zmienisz systemowy Python albo PATH lub obniżysz ustawienie jakości.” Agent zdiagnozuje ten komputer, napisze listę kontrolną i przy każdej decyzji zapyta Ciebie.
+
 ## Zacznij tutaj
 
 Gotowa paczka istnieje, więc najpierw wypróbuj ją. Jeśli masz inny sprzęt albo któryś krok się nie powiedzie, reszta jest otwarta: łatki, przepis na kompilację i pomiary są w tym repozytorium, więc możesz zbudować silnik pod własną kartę albo dostosować przepis.

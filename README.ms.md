@@ -6,6 +6,8 @@
 
 *Tidak rasmi. Tiada kaitan dengan Tongyi-MAI (Z-Image), leejet (stable-diffusion.cpp) atau NVIDIA.*
 
+> **Menggunakan ejen pengekodan AI (Codex, Claude Code, Gemini, Cursor)?** Berikan satu ayat ini kepadanya: “Baca `AGENTS_HIZLI.md` hingga habis, jalankan `python scripts/tani.py` dahulu, simpan kemajuan anda dalam `DURUM.md`, dan tanya saya sebelum memadam atau memindahkan apa-apa, menukar Python sistem atau PATH, atau menurunkan sebarang tetapan kualiti.” Ejen akan mendiagnosis PC ini, menulis senarai semak dan bertanya kepada anda pada setiap keputusan.
+
 ## Mula di sini
 
 Pakej siap pakai disediakan, jadi cuba yang itu dahulu. Jika perkakasan anda berbeza atau ada langkah yang gagal, selebihnya terbuka: patch, resipi binaan dan hasil ukuran ada dalam repositori ini, jadi anda boleh membina untuk kad anda sendiri atau menyesuaikannya.

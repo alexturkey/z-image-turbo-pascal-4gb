@@ -6,6 +6,8 @@
 
 *Si rasmi. Haina uhusiano na Tongyi-MAI (Z-Image), leejet (stable-diffusion.cpp) wala NVIDIA.*
 
+> **Je, unatumia wakala wa uandishi wa msimbo wa AI (Codex, Claude Code, Gemini, Cursor)?** Mpe sentensi hii moja: “Soma `AGENTS_HIZLI.md` hadi mwisho, endesha `python scripts/tani.py` kwanza, weka maendeleo yako katika `DURUM.md`, na uniulize kabla ya kufuta au kuhamisha chochote, kubadilisha Python ya mfumo au PATH, au kupunguza mpangilio wowote wa ubora.” Wakala atachunguza kompyuta hii, ataandika orodha ya ukaguzi na atakuuliza katika kila uamuzi.
+
 ## Anzia hapa
 
 Kifurushi kilichotengenezwa tayari kipo, kwa hiyo kijaribu kwanza. Ikiwa vifaa vyako ni tofauti au hatua moja inashindwa, kila kitu kingine kiko wazi: viraka, mapishi ya kujenga na vipimo viko katika hazina hii, kwa hiyo unaweza kujenga kwa kadi yako mwenyewe au kuvirekebisha.

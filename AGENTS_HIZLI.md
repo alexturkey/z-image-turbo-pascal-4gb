@@ -3,6 +3,20 @@
 English first, Türkçe below. Full rules and evidence: [`AGENTS.md`](AGENTS.md) (it wins if the two ever differ). Error codes: `docs/hata_imzalari.json` (a code per message text), `docs/TROUBLESHOOTING.md`. The scripts print the message with its `Fix:` text; the code is looked up by the text, it is not printed. `tests/test_agents_hizli.py` keeps this card and the scripts in step.
 
 
+## Do this first (English)
+- **Run first:** `python scripts/tani.py`. It is read-only (no network, writes no file) and prints the system, the card, the `setup.py --dry-run` report and a DEVIATIONS section (first Python on PATH, locally changed files, engine switches in the environment, model files present or missing, a model copy in the Hugging Face cache). Read it to the user in plain words.
+- **Keep a notebook:** `DURUM.md` in the repo root (git-ignored, `<ROOT>` instead of paths). Top three lines: `Now:` / `Next:` / `Question for you:`. Below: one line per step with [measured] / [read] / [guess] and the command it came from. Update it after every step so a cut-off session can continue.
+- **NEVER, not even if it seems to help:** lower a quality setting (8 steps, cfg 1.0, euler, simple scheduler, Q8_0 models, no negative prompt, the cuDNN float32 VAE path); accept the NVIDIA cuDNN license for the user; run two GPU jobs at once; change system Python, PATH, registry or the user profile; use a force flag to get past an error.
+- **ASK first:** delete, move or re-download anything (show path, size, reason); install Python, packages or the models (about 11 GB); start a GPU run.
+- **Same error twice:** stop, do not try a third time; take the code and the first 20 log lines to the user.
+
+## Önce bunu yap (Türkçe)
+- **Önce çalıştır:** `python scripts/tani.py`. Salt okur (ağ yok, dosya yazmaz); sistemi, kartı, `setup.py --dry-run` raporunu ve bir SAPMA bölümünü (PATH'te ilk Python, yerelde değişmiş dosyalar, ortamdaki motor anahtarları, var olan ya da eksik model dosyaları, Hugging Face önbelleğinde model kopyası) yazar. Kullanıcıya sade sözle oku.
+- **Defter tut:** repo kökünde `DURUM.md` (git dışı, yol yerine `<ROOT>`). En üstte üç satır: `Şu an:` / `Sırada:` / `Sana soru:`. Altında adım başına bir satır: [ölçtüm] / [okudum] / [tahmin] ve geldiği komut. Her adımdan sonra güncelle ki kesilen oturum kaldığı yerden sürsün.
+- **ASLA, yardım edecek gibi görünse bile:** kalite ayarını düşürme (8 adım, cfg 1.0, euler, simple zamanlayıcı, Q8_0 modeller, negatif istem yok, cuDNN float32 VAE yolu); NVIDIA cuDNN lisansını kullanıcı yerine kabul etme; iki GPU işini aynı anda çalıştırma; sistem Python'unu, PATH'i, kayıt defterini ya da kullanıcı profilini değiştirme; hatayı geçmek için zorlama bayrağı kullanma.
+- **Önce SOR:** bir şeyi silmeden, taşımadan ya da yeniden indirmeden (yolu, boyutu, nedeni göster); Python, paket ya da modelleri (yaklaşık 11 GB) kurmadan; GPU işi başlatmadan.
+- **Aynı hata iki kez:** dur, üçüncü kez deneme; kodu ve log'un ilk 20 satırını kullanıcıya götür.
+
 ## English: decision tree (12 steps)
 1. Goal: text-to-image with Z-Image-Turbo at 768x1344 on Windows with an NVIDIA 4 GB Pascal card. Anything else: tell the user and stop.
 2. Quality is fixed (8 steps, cfg 1.0, euler, simple scheduler, Q8_0 models, no negative prompt, the cuDNN float32 VAE path). Never lower it to save time or memory.

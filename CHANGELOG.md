@@ -5,6 +5,8 @@ Numbers come from [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md); where a number
 
 ## [Unreleased]
 
+- Agent onboarding (kit KL-23): a do-this-first block at the top of `AGENTS_HIZLI.md` and `AGENTS.md` (run `python scripts/tani.py` first, git-ignored `DURUM.md` notebook, NEVER / ASK lists, same error twice stop); a read-only DEVIATIONS section in `tani.py` (tests in `tests/test_tani_sapma.py`); a one-sentence "give this to your agent" block in every README (30 languages); long `AGENTS.md` lines split. Quality and run behaviour unchanged.
+
 ## [0.3.0] - 2026-11-25
 
 Faster pictures, same pictures.

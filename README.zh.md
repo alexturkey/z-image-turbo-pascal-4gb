@@ -6,6 +6,8 @@
 
 *非官方项目，与 Tongyi-MAI（Z-Image）、leejet（stable-diffusion.cpp）和 NVIDIA 均无隶属关系。*
 
+> **正在使用 AI 编程代理（Codex、Claude Code、Gemini、Cursor）吗？** 把下面这一句话交给它：“读完 `AGENTS_HIZLI.md`，先运行 `python scripts/tani.py`，把进度记在 `DURUM.md` 里；在删除或移动任何东西、更改系统 Python 或 PATH、或降低任何质量设置之前，必须先问我。”代理会诊断这台电脑、写出检查清单，并在每个决定处询问你。
+
 ## 从这里开始
 
 我们提供了现成的软件包，建议先试它。如果你的硬件不同，或者某一步失败了，其余内容都是公开的：补丁、编译方法和测量数据都在本仓库里，你可以针对自己的显卡重新编译或自行调整。

@@ -4,6 +4,8 @@
 What it does: collects a short report (operating system, Python, GPU from nvidia-smi, RAM, free disk, the repository
 version, the dry run of scripts/setup.py) and, if you name log files with --log, matches their text against
 docs/hata_imzalari.json (plain substrings) and lists the stable error codes with the first step.
+The report also has a read-only DEVIATIONS section (first Python on PATH, locally changed files, engine/ZIMG_* variables,
+model files present or missing, a model copy in the Hugging Face cache).
 What it never does: it sends NOTHING (no network, it does not upload or post anything), writes no file, installs nothing,
 opens no window. It only prints.
 Privacy filter: your user name, computer name, home folder and e-mail addresses are replaced with <...> markers before
@@ -137,6 +139,54 @@ def match_codes(text):
     return [c for c in data["kodlar"] if any(s.lower() in low for s in c["imza"])]
 
 
+def deviations():
+    """Read-only DEVIATIONS section (kit KL-23): what differs from the defaults. Prints nothing itself; returns lines."""
+    out = ["", "## deviations from the defaults (read only)"]
+    py = shutil.which("python")
+    if py is None:
+        out.append("first python on PATH : none (the py launcher or a venv is used)")
+    elif "WindowsApps" in py:
+        out.append("first python on PATH : the Microsoft Store shortcut (not a real Python; use `py -3` or a venv)")
+    else:
+        rc, v = run([py, "--version"], 15)
+        out.append("first python on PATH : %s" % (v.strip() or "unknown version"))
+    if os.name == "nt":
+        rc, v = run(["py", "-0p"], 15)
+        if rc == 0:
+            # tag only (folder names can be private; the filter does not know every drive)
+            out += ["py -0p              : " + " ".join(x for x in ln.split()[:2] if x.startswith("-V:") or x == "*") for ln in v.strip().splitlines()[:12]]
+    if shutil.which("git") and (ROOT / ".git").exists():
+        rc, v = run(["git", "--no-optional-locks", "-C", str(ROOT), "status", "--short", "-uno"], 30)
+        ch = [ln.strip() for ln in v.splitlines() if ln.strip()][:40]
+        out.append("git                 : %s" % ("tracked files unchanged" if not ch else "%d tracked file(s) changed (names only):" % len(ch)))
+        out += ["  " + ln for ln in ch]
+    else:
+        out.append("git                 : not a git copy, or git is missing")
+    env = sorted("%s=%s" % (k, v) for k, v in os.environ.items() if k.startswith(("ZIMG_", "SD_", "GGML_")))
+    out.append("engine/ZIMG_* env   : %s" % (" ".join(env) if env else "none") + ("  (generate.py removes the engine switches it owns before a run)" if env else ""))
+    try:
+        lock = json.loads((ROOT / "models.lock.json").read_text(encoding="utf-8"))
+        models = ROOT / "models"
+        hubs = [Path(h) for h in (os.environ.get("HF_HUB_CACHE"), os.path.join(os.environ.get("HF_HOME", ""), "hub") if os.environ.get("HF_HOME") else None,
+                                  str(Path.home() / ".cache" / "huggingface" / "hub")) if h]
+        for m in lock.get("models", []):
+            f = models / m["name"]
+            if f.is_file():
+                out.append("model              : %s: present, size %s (sha256 not read: scripts/setup.py --check verifies it)" % (m["name"], "matches" if f.stat().st_size == m["bytes"] else "DIFFERS (%d, expected %d)" % (f.stat().st_size, m["bytes"])))
+                continue
+            line = "model              : %s: missing in ./models" % m["name"]
+            for hub in hubs:
+                if hub.is_dir():
+                    hit = next((q for q in hub.rglob(m["name"]) if q.is_file()), None)
+                    if hit is not None:
+                        line += "; a copy exists in the Hugging Face cache (%.2f GiB, %s; reuse only after the user agrees)" % (hit.stat().st_size / 2**30, "size matches" if hit.stat().st_size == m["bytes"] else "size differs: do not reuse")
+                        break
+            out.append(line)
+    except (OSError, ValueError, KeyError):
+        out.append("models.lock.json    : could not be read")
+    return out
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Local diagnosis report (sends nothing).")
     ap.add_argument("--log", nargs="*", default=[], help="log files to match against the error codes (e.g. outputs/<run>/log.txt)")
@@ -169,6 +219,7 @@ def main(argv=None):
         tail = body.strip().splitlines()[-30:]
         lines += ["", "## last lines of %s" % p.name] + tail
         found_text += body
+    lines += deviations()
     codes = match_codes(found_text)
     lines += ["", "## error codes found (docs/hata_imzalari.json)"]
     if codes:

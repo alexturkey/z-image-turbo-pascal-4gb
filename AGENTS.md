@@ -8,6 +8,13 @@ Quick card (12-step decision tree, exit code to action table, English and Turkis
 How to run the job (hardware first, one folder, progress notes, stop file, one GPU job, no leftover processes, second opinion on decisions, ask before risky steps): [`docs/AGENT_METHOD.md`](docs/AGENT_METHOD.md). Read it first if the user is new to agents.
 Evidence labels used here: "measured on GTX 1050 Ti 4 GB" (we ran it), "not tested" (we did not) and, only in `docs/OTHER_GPUS.md`, "community test" (someone else ran it and published it; we did not repeat it; never this repository's result).
 
+## First, do this (agents)
+- **Run first:** `python scripts/tani.py`. Read-only: it prints the system, the card, the `setup.py --dry-run` report and a DEVIATIONS section (first Python on PATH, locally changed files, engine switches in the environment, model files present or missing, a model copy in the Hugging Face cache). Read it to the user in plain words.
+- **Keep a notebook:** `DURUM.md` in the repo root (git-ignored; `<ROOT>` instead of paths). Top three lines: `Now:` / `Next:` / `Question for you:`; below, one line per step with [measured] / [read] / [guess] and the command it came from. Update it after every step.
+- **NEVER:** lower a quality setting; accept the NVIDIA cuDNN license for the user; run two GPU jobs at once; change system Python, PATH, registry or the user profile; use a force flag to get past an error.
+- **ASK first:** delete, move or re-download anything; install Python, packages or the models; start a GPU run.
+- **Same error twice:** stop; take the message and the first 20 log lines to the user. The 12-step card with exit codes is `AGENTS_HIZLI.md`.
+
 ## 0. Decide first
 
 ```
@@ -159,7 +166,10 @@ These rules apply to you (an AI agent) and to any sub-agent you start. They exis
 6. **Same error twice: stop.** Do not try a third time; take the code (`docs/hata_imzalari.json`) and the first 20 lines of output to the user.
 7. **Sub-agents follow the same rules.** Put these rules in the brief of any agent you start; one install and one GPU job at a time; no agent edits the install scripts to get past a check.
 
-Türkçe: Bu kurallar sana ve başlattığın her alt ajana uygulanır: kurulum, verdiğin klasörlerin dışında iz bırakmaz ve hiçbir şeyi iki kez indirmez. (1) Klasörler `--models-dir`, `--bin-dir` ve `outputs/`; varsayılan hepsi depo klasöründe (harita README "Disk düzeni ve kaldırma"). (2) Betikler yalnız Python standart kitaplığını kullanır; pip, uv ya da Hugging Face önbelleği yok; yalnız `generate.py`'nin başlattığı motor sürecinin `PATH`'i ve motor anahtarları ayarlanır; sistem PATH'i, profil, registry değişmez. (3) sha256'sı doğru dosya atlanır, yarım indirme `.part`'tan sürer; kullanıcının modeli varsa `--models-dir` ile ona göster; aynı anda tek `setup.py`. (4) Önce `python scripts/setup.py --dry-run`; boyutu ve kaynakları söyle, evet'i bekle. (5) Silmeden önce göster; kaldırma klasörleri silmektir; betikler yalnız kendi artıklarını siler. (6) Aynı hata iki kez: dur. (7) Alt ajan aynı kurallara tabidir.
+Türkçe: Bu kurallar sana ve başlattığın her alt ajana uygulanır: kurulum, verdiğin klasörlerin dışında iz bırakmaz ve hiçbir şeyi iki kez indirmez. (1) Klasörler `--models-dir`, `--bin-dir` ve `outputs/`; varsayılan hepsi depo klasöründe (harita README "Disk düzeni ve kaldırma").
+- (2) Betikler yalnız Python standart kitaplığını kullanır; pip, uv ya da Hugging Face önbelleği yok; yalnız `generate.py`'nin başlattığı motor sürecinin `PATH`'i ve motor anahtarları ayarlanır; sistem PATH'i, profil, registry değişmez.
+- (3) sha256'sı doğru dosya atlanır, yarım indirme `.part`'tan sürer; kullanıcının modeli varsa `--models-dir` ile ona göster; aynı anda tek `setup.py`. (4) Önce `python scripts/setup.py --dry-run`; boyutu ve kaynakları söyle, evet'i bekle.
+- (5) Silmeden önce göster; kaldırma klasörleri silmektir; betikler yalnız kendi artıklarını siler. (6) Aynı hata iki kez: dur. (7) Alt ajan aynı kurallara tabidir.
 
 ## Troubleshooting
 
@@ -183,4 +193,6 @@ More cases in `docs/TROUBLESHOOTING.md`.
 ## Maintenance
 
 - A change to settings, engine or models is accepted only with a before/after measurement on the same seed and a human look at the pictures. Record it in `docs/MEASUREMENTS.md` with the label "measured on ..." or "not tested". A result someone else published goes to `docs/OTHER_GPUS.md` as "community test", with author, link, hardware, date and number of runs.
-- Do not add personal paths, names, e-mail addresses or machine-specific names to any file; run `python -I -X utf8 scripts/denetim.py --hizli` (quick gates: hidden characters, privacy scan, fixed quality settings, pinned lock file, error code file; `--tam` adds the unit tests) before the user commits. The privacy part is `python scripts/privacy_scan.py .`; by default it does not scan `licenses/` (verbatim upstream texts) and prints `CLEAN: <n> file(s) scanned, 0 finding(s)`. With `--scan-licenses` it reports exactly one finding, an e-mail address in the upstream author's copyright line in `licenses/LICENSE-oniguruma-BSD-2-Clause.txt`; the BSD license requires us to keep it, so it is not a problem. Report any other finding to the user.
+- Do not add personal paths, names, e-mail addresses or machine-specific names to any file; run `python -I -X utf8 scripts/denetim.py --hizli` (quick gates: hidden characters, privacy scan, fixed quality settings, pinned lock file, error code file; `--tam` adds the unit tests) before the user commits.
+  - The privacy part is `python scripts/privacy_scan.py .`; by default it does not scan `licenses/` (verbatim upstream texts) and prints `CLEAN: <n> file(s) scanned, 0 finding(s)`.
+  - With `--scan-licenses` it reports exactly one finding, an e-mail address in the upstream author's copyright line in `licenses/LICENSE-oniguruma-BSD-2-Clause.txt`; the BSD license requires us to keep it, so it is not a problem. Report any other finding to the user.

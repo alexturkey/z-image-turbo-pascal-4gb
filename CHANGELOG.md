@@ -5,6 +5,7 @@ Numbers come from [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md); where a number
 
 ## [Unreleased]
 
+- `docs/OTHER_GPUS.md`: the RTX 2060 laptop follow-up through `scripts/generate.py` (section 3b, `[user-reported, issue #7]`: 64.3 s, peak 4871 MiB, `ram_free_min_mib` 7025, same pixel hash as #5) and a short unnamed note about an Apple M4 Pro run in the Draw Things app (section 3c, `[user-reported, issue #4]`, not comparable with our tables). Thanks to MuhammedGUVEN108 for #5 and #7.
 - Agent onboarding (kit KL-23): a do-this-first block at the top of `AGENTS_HIZLI.md` and `AGENTS.md` (run `python scripts/tani.py` first, git-ignored `DURUM.md` notebook, NEVER / ASK lists, same error twice stop); a read-only DEVIATIONS section in `tani.py` (tests in `tests/test_tani_sapma.py`); a one-sentence "give this to your agent" block in every README (30 languages); long `AGENTS.md` lines split. Quality and run behaviour unchanged.
 
 ## [0.3.0] - 2026-11-25

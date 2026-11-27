@@ -244,6 +244,38 @@ What this report does not tell us (our notes from reading it, we did not run it)
 
 If you can run `scripts/generate.py` on a card like this, its `run.json` (with `ram_free_min_mib`) would fill the gaps above; see section 6.
 
+### Follow-up: the same card through `scripts/generate.py` (issue #7)
+
+> **Community test, not a maintainer measurement.** `[user-reported, issue #7]`
+> Reported by [MuhammedGUVEN108](https://github.com/MuhammedGUVEN108) in
+> [issue #7](https://github.com/alexturkey/z-image-turbo-pascal-4gb/issues/7), the follow-up to #5 that we asked for
+> (the reporter ticked the box that allows listing the result with the GitHub name). We did not repeat it.
+> The numbers are copied from the `run.json` in the report.
+
+| Part | Reported |
+|---|---|
+| Machine | Same RTX 2060 laptop 6 GB, Windows 11 as above; repository version `13224df`; 32 GB RAM |
+| Engine | Upstream `master-1106-532d2c1`, Windows CUDA12 x64, no patches (same as #5) |
+| How it was run | `python scripts/generate.py --prompt-file prompts/eiffel.txt --bin-dir engine/upstream-532d2c1-cuda12`, seed 42, 768x1344, 8 steps, CFG 1.0 |
+| Wall time | 64.3 s (text encoding 7.58 s, sampling 47.9 s, VAE decode 2.1 s) |
+| Sampled peak GPU memory | 4871 MiB |
+| `ram_free_min_mib` | 7025 (32 GB machine, browser and usual apps open; about 18.2 GB free before the run, per the reporter) |
+| VAE | `vae_mode: legacy` (requested `auto`; no cuDNN DLLs in the upstream build folder, so `cudnn_used: false`) |
+| Copy/compute overlap | `copy_overlap_used: false` (the switches were set, but the unpatched engine has no patch 0030) |
+| Pixel SHA-256 | `85f3add6b9be171df3720ff95895c45f1757a841308d7a754b907e8d1fd3d1ad`, identical to the hash reported in #5 |
+
+What this adds: the `ram_free_min_mib` gap noted above is now filled for this card (7025 MiB lowest free RAM in one run). The reporter treats 52 to 64 s as the range across #5 and #7 (a single cold run on a laptop with other apps open); we do not read more into the 64.3 s than that. Same limits as above: one run, one card, not comparable with the maintainer's Windows/Pascal tables.
+
+## 3c. Community note: Apple M4 Pro with the Draw Things app (a different tool)
+
+> **A community report, not a test of this repository.** `[user-reported, issue #4]`
+> Someone ran Z-Image-Turbo on an Apple M4 Pro (24 GB unified memory, macOS) with the **Draw Things** app and its
+> 6-bit "Z Image Turbo 1.0" model, with 8 steps, UniPC Trailing, guidance 1.0 and shift 3.0. They report that it worked
+> and that one picture took about 1 minute 45 seconds, read from the app screen and including the first run.
+> Resolution, peak memory and seed were not recorded.
+
+Do not compare this with our tables: it is a different application and a different model build (6-bit, not our Q8_0 GGUF), and it did not use `sd-cli`, `scripts/generate.py` or the Metal path described in section 3a. We list it only to show that the model also runs on Apple Silicon through other tools.
+
 ## 4. AMD card on Windows: a suggested first path (not tested)
 
 > **Not tested by us, and no community test yet.** This is a reading of the upstream releases and build files (read on 2026-11-16), written so that an agent does not have to build anything first. If you try it, please report the result (section 6). Work by [`AGENT_METHOD.md`](AGENT_METHOD.md); the folder names below (`repo\`, `engine\`, `models\`, `outputs\`, `logs\`, `notes\`) are from its section 2.
